@@ -1,0 +1,234 @@
+{
+  "reviewDate": "2026-11-11",
+  "revision": "cb01f2f238700eed7ec1c859be1737a9fbcdcb7c",
+  "redistributionReviewComplete": false,
+  "method": "Evidence assessments, not new license grants. Source files and selected presets are unchanged. Pixel comparisons use WPF-decoded BGRA32 bytes, dimensions and SHA-256. For Royale comparison copies only PNG textual metadata (tEXt/iTXt/zTXt/eXIf) was removed; critical and colour chunks were retained.",
+  "notices": [
+    {
+      "file": "Vortice.Windows-LICENSE.txt",
+      "source": "https://github.com/amerkoleci/Vortice.Windows/blob/9e609cb9439c9872aa1b339f177e40ec96f77239/LICENSE",
+      "gitBlob": "15fd3b8dd0e0f4474555ad0d248ecb68a278b7d1"
+    },
+    {
+      "file": "Vortice.Mathematics-LICENSE.txt",
+      "source": "https://github.com/amerkoleci/Vortice.Mathematics/blob/fa05ec6dcba48f3f7331791da6dc7f3d866b2ad6/LICENSE",
+      "gitBlob": "be64e3ef2e11e0663137d98e59cf1a229946b374"
+    },
+    {
+      "file": "SharpGenTools-LICENSE.txt",
+      "source": "https://github.com/SharpGenTools/SharpGenTools/blob/6990bcafe124a4c22515ad19cee5a081da8db67b/LICENSE.txt",
+      "gitBlob": "79650e8328873caf2474c61b58409a8966e40b3f"
+    },
+    {
+      "file": "CRTSim-COPYING.txt",
+      "source": "https://github.com/MinorKeyGames/CRTSim/blob/dbbe9d1bc2512288f5b1747e6be35ff44a7baae1/CRTSim/COPYING.txt",
+      "gitBlob": "1f2b75f75942f9b5d70cd8c1cb899cd796936a45"
+    }
+  ],
+  "findings": [
+    {
+      "id": "gpl-unspecified-version",
+      "url": "https://github.com/spdx/license-list-data/blob/main/text/GPL-2.0-or-later.txt",
+      "finding": "GPL v2 section 9 permits any FSF-published GPL version when the program specifies no version. Record EasyMode/aperture as GPL without version; comply under GPLv3 without replacing original notices. No separate version permission is needed on that basis."
+    },
+    {
+      "id": "crtsim-original-grant",
+      "url": "https://github.com/MinorKeyGames/CRTSim/blob/dbbe9d1bc2512288f5b1747e6be35ff44a7baae1/CRTSim/COPYING.txt",
+      "finding": "Original author implementation is CC0-1.0. Original crtbase.fx carries the CC0 notice, and both bundled textures match the author BMPs pixel-for-pixel. Original scope evidenced; separately review new Slang port/preset contributions."
+    },
+    {
+      "id": "royale-author-family",
+      "url": "https://github.com/TroggleMonkey/common-shaders/tree/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale",
+      "finding": "All six selected mask textures match the author family pixel-for-pixel; GPL family LICENSE.TXT is byte-identical (Git blob d8cf7d463e2a4f064a157fa994bb394d3623b9cc). Author preset references these masks. Supports family provenance; does not by itself settle later port contributions."
+    }
+  ],
+  "fileAssessments": [
+    {
+      "path": "crt/shaders/crtsim/artifacts.png",
+      "source": "https://github.com/MinorKeyGames/CRTSim/blob/dbbe9d1bc2512288f5b1747e6be35ff44a7baae1/CRTSim/bin/artifacts.bmp",
+      "sourceBlob": "3784efadb005a9f8107380e041d8477bb9a01b02",
+      "comparison": {
+        "texture": "artifacts",
+        "original": {
+          "width": 256,
+          "height": 224,
+          "bgraSha256": "debf08df505446a39c4c5d4b116848477e48fa4362d23a71ecb3590ac0cbf959"
+        },
+        "bundled": {
+          "width": 256,
+          "height": 224,
+          "bgraSha256": "debf08df505446a39c4c5d4b116848477e48fa4362d23a71ecb3590ac0cbf959"
+        },
+        "pixelsMatch": true
+      },
+      "status": "original-CC0-asset-provenance-evidenced",
+      "sha256": "5ed0dd2a95c4f0a4f1f410d67fc54441cca986310cd28a0d3dafb49592c8f8ca"
+    },
+    {
+      "path": "crt/shaders/crtsim/mask.png",
+      "source": "https://github.com/MinorKeyGames/CRTSim/blob/dbbe9d1bc2512288f5b1747e6be35ff44a7baae1/CRTSim/bin/mask.bmp",
+      "sourceBlob": "5714265a1be09cca3ea06778a3e5eca069604e2e",
+      "comparison": {
+        "texture": "mask",
+        "original": {
+          "width": 64,
+          "height": 32,
+          "bgraSha256": "4fb993675d9ba878ad026404de4ff681fac644ace5de2f8841278a00a845670e"
+        },
+        "bundled": {
+          "width": 64,
+          "height": 32,
+          "bgraSha256": "4fb993675d9ba878ad026404de4ff681fac644ace5de2f8841278a00a845670e"
+        },
+        "pixelsMatch": true
+      },
+      "status": "original-CC0-asset-provenance-evidenced",
+      "sha256": "1b0d25c41454bb46fa26b312d1c8eca505c8a7542e5dd79a6f11ab113f6c5ddd"
+    },
+    {
+      "path": "crt/shaders/crtsim/crtbase.h",
+      "source": "https://github.com/MinorKeyGames/CRTSim/blob/dbbe9d1bc2512288f5b1747e6be35ff44a7baae1/CRTSim/bin/crtbase.fx",
+      "sourceBlob": "9fbafaf5c6ba17751d592ffcd3909b0a061b5cf1",
+      "status": "original-CC0-code-provenance-evidenced; Slang-port-scope-still-pending",
+      "sha256": "e9e973f05c21d9e1b1fc004be2526e9aa09b194b0ea0b4669353558d7c7d5506"
+    },
+    {
+      "path": "crt/shaders/crt-royale/TileableLinearApertureGrille15Wide8And5d5Spacing.png",
+      "source": "https://github.com/TroggleMonkey/common-shaders/blob/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale/TileableLinearApertureGrille15Wide8And5d5Spacing.png",
+      "sourceBlob": "2995ae5f4cd1c7f0c72732286e49f255c641ac5c",
+      "comparison": {
+        "texture": "TileableLinearApertureGrille15Wide8And5d5Spacing.png",
+        "original": {
+          "width": 512,
+          "height": 512,
+          "bgraSha256": "0714d937c8e320283fd0400a157682e9254365b8ca95a765de3d5f53b237ebba"
+        },
+        "bundled": {
+          "width": 512,
+          "height": 512,
+          "bgraSha256": "0714d937c8e320283fd0400a157682e9254365b8ca95a765de3d5f53b237ebba"
+        },
+        "pixelsMatch": true
+      },
+      "status": "author-family-asset-provenance-evidenced",
+      "sha256": "4b46103e20567b99e9525ce521438573f49609452d142438088fa6309902aef2"
+    },
+    {
+      "path": "crt/shaders/crt-royale/TileableLinearApertureGrille15Wide8And5d5SpacingResizeTo64.png",
+      "source": "https://github.com/TroggleMonkey/common-shaders/blob/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale/TileableLinearApertureGrille15Wide8And5d5SpacingResizeTo64.png",
+      "sourceBlob": "2c3f21eed13d8087195e16e857b0e1b4ffc31eb6",
+      "comparison": {
+        "texture": "TileableLinearApertureGrille15Wide8And5d5SpacingResizeTo64.png",
+        "original": {
+          "width": 64,
+          "height": 64,
+          "bgraSha256": "01e10f58e69360c4d95aca39cae61627e0066bf9f86e7f08e84bcf5003436412"
+        },
+        "bundled": {
+          "width": 64,
+          "height": 64,
+          "bgraSha256": "01e10f58e69360c4d95aca39cae61627e0066bf9f86e7f08e84bcf5003436412"
+        },
+        "pixelsMatch": true
+      },
+      "status": "author-family-asset-provenance-evidenced",
+      "sha256": "3ba708dba5989741c58d9b7a1d1e38499bb6dabeb6787da523c9ca6e06159215"
+    },
+    {
+      "path": "crt/shaders/crt-royale/TileableLinearShadowMaskEDP.png",
+      "source": "https://github.com/TroggleMonkey/common-shaders/blob/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale/TileableLinearShadowMaskEDP.png",
+      "sourceBlob": "a3844dc2a752154d96c78e86f832dae7cc75479a",
+      "comparison": {
+        "texture": "TileableLinearShadowMaskEDP.png",
+        "original": {
+          "width": 512,
+          "height": 512,
+          "bgraSha256": "e49498a67225cebecc3758bad1ce8bc01174b2d6f4c3d5cd9d72c5fce4191f25"
+        },
+        "bundled": {
+          "width": 512,
+          "height": 512,
+          "bgraSha256": "e49498a67225cebecc3758bad1ce8bc01174b2d6f4c3d5cd9d72c5fce4191f25"
+        },
+        "pixelsMatch": true
+      },
+      "status": "author-family-asset-provenance-evidenced",
+      "sha256": "637e567fe5180ba53af5a185ceef24b4a44b86d74d802fb33df6a2d02d3bcf49"
+    },
+    {
+      "path": "crt/shaders/crt-royale/TileableLinearShadowMaskEDPResizeTo64.png",
+      "source": "https://github.com/TroggleMonkey/common-shaders/blob/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale/TileableLinearShadowMaskEDPResizeTo64.png",
+      "sourceBlob": "b61d92a0e186cde1a77542ef7a5e06c130e9701c",
+      "comparison": {
+        "texture": "TileableLinearShadowMaskEDPResizeTo64.png",
+        "original": {
+          "width": 64,
+          "height": 64,
+          "bgraSha256": "afa526f5f4b9c527090cebe0fc617a34b6b380ab2968c7da5b2759272a6309df"
+        },
+        "bundled": {
+          "width": 64,
+          "height": 64,
+          "bgraSha256": "afa526f5f4b9c527090cebe0fc617a34b6b380ab2968c7da5b2759272a6309df"
+        },
+        "pixelsMatch": true
+      },
+      "status": "author-family-asset-provenance-evidenced",
+      "sha256": "d68808ef5c819555c6001ea2d0627c18e64a7d0a7a6ebb3af4a09261a4c23713"
+    },
+    {
+      "path": "crt/shaders/crt-royale/TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacing.png",
+      "source": "https://github.com/TroggleMonkey/common-shaders/blob/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale/TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacing.png",
+      "sourceBlob": "eb20b2316fa22d8180cc685bf3886bb5975ab2c5",
+      "comparison": {
+        "texture": "TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacing.png",
+        "original": {
+          "width": 512,
+          "height": 512,
+          "bgraSha256": "747ddd9628e0066092aca0e0a0c7f3a286b191f7b3580865207f06e45a776560"
+        },
+        "bundled": {
+          "width": 512,
+          "height": 512,
+          "bgraSha256": "747ddd9628e0066092aca0e0a0c7f3a286b191f7b3580865207f06e45a776560"
+        },
+        "pixelsMatch": true
+      },
+      "status": "author-family-asset-provenance-evidenced",
+      "sha256": "4d4385d8476faaaebc6c4f6540b73c28bf3b643a6efb93866e58050f3d0f6567"
+    },
+    {
+      "path": "crt/shaders/crt-royale/TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacingResizeTo64.png",
+      "source": "https://github.com/TroggleMonkey/common-shaders/blob/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale/TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacingResizeTo64.png",
+      "sourceBlob": "df518db5718c3f78e549203bbdede72d29fb7ca5",
+      "comparison": {
+        "texture": "TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacingResizeTo64.png",
+        "original": {
+          "width": 64,
+          "height": 64,
+          "bgraSha256": "a70f8d4e71b5fd2c5fa001b977f2671d1529236506eaba469a8169472696b359"
+        },
+        "bundled": {
+          "width": 64,
+          "height": 64,
+          "bgraSha256": "a70f8d4e71b5fd2c5fa001b977f2671d1529236506eaba469a8169472696b359"
+        },
+        "pixelsMatch": true
+      },
+      "status": "author-family-asset-provenance-evidenced",
+      "sha256": "b3ab2c1d9205e167c44fc86aeb5a031a4fe7199de728d52f94e11635a467ab6d"
+    }
+  ],
+  "releasePolicy": {
+    "decidedBy": "project-owner",
+    "date": "2026-11-11",
+    "approach": "follow-upstream-practice-with-transparent-notices",
+    "retainAllSevenPresets": true,
+    "documentedScopeUncertaintiesAccepted": true,
+    "individualRetrospectiveConfirmationsRequired": false,
+    "automaticShaderReleaseBlock": false,
+    "blanketLicenseGrantInferred": false,
+    "concreteRestrictionsMustBeRespected": true,
+    "upstreamRequest": "optional-not-scheduled"
+  }
+}

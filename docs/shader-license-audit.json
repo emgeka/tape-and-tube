@@ -1,0 +1,1151 @@
+{
+  "reviewDate": "2026-11-11",
+  "revision": "cb01f2f238700eed7ec1c859be1737a9fbcdcb7c",
+  "policy": "retain-all-seven-presets",
+  "releasePolicy": {
+    "decidedBy": "project-owner",
+    "date": "2026-11-11",
+    "approach": "follow-upstream-practice-with-transparent-notices",
+    "retainAllSevenPresets": true,
+    "documentedScopeUncertaintiesAccepted": true,
+    "individualRetrospectiveConfirmationsRequired": false,
+    "automaticShaderReleaseBlock": false,
+    "blanketLicenseGrantInferred": false,
+    "concreteRestrictionsMustBeRespected": true,
+    "upstreamRequest": "optional-not-scheduled"
+  },
+  "redistributionReviewComplete": false,
+  "presets": [
+    {
+      "name": "crt-easymode",
+      "referencedFiles": 2,
+      "reviewComplete": false
+    },
+    {
+      "name": "crt-aperture",
+      "referencedFiles": 2,
+      "reviewComplete": false
+    },
+    {
+      "name": "crt-hyllian",
+      "referencedFiles": 8,
+      "reviewComplete": false
+    },
+    {
+      "name": "crt-royale",
+      "referencedFiles": 38,
+      "reviewComplete": false
+    },
+    {
+      "name": "crtglow_gauss",
+      "referencedFiles": 9,
+      "reviewComplete": false
+    },
+    {
+      "name": "crtglow_lanczos",
+      "referencedFiles": 9,
+      "reviewComplete": false
+    },
+    {
+      "name": "crtsim",
+      "referencedFiles": 9,
+      "reviewComplete": false
+    }
+  ],
+  "files": [
+    {
+      "path": "blurs/shaders/royale/blur9fast-horizontal.slang",
+      "sha256": "402bf7ff14c5c3825a52dde087ec550f067ab53752f884f77dfdbbcaa495172b",
+      "bytes": 2774,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "MIT-style grant; preserve full original notice",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/blurs/shaders/royale/blur9fast-horizontal.slang",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "blurs/shaders/royale/blur9fast-vertical.slang",
+      "sha256": "4da274ed27c9a3a1055b9b76162c5b3f18f71acfdf9cc2e8f7ffc8282298fd51",
+      "bytes": 2781,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "MIT-style grant; preserve full original notice",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/blurs/shaders/royale/blur9fast-vertical.slang",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "blurs/shaders/royale/vertex-shader-blur-fast-horizontal.h",
+      "sha256": "be12271987eabf9d9ae02b0d2365f50012368b224476da7d50bb71cbcf07e1e2",
+      "bytes": 2874,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "MIT-style grant; preserve full original notice",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/blurs/shaders/royale/vertex-shader-blur-fast-horizontal.h",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "blurs/shaders/royale/vertex-shader-blur-fast-vertical.h",
+      "sha256": "b076f4a4b3b8fadb5bc80d0b4b9b045de839a6bd75a755b866af7e06a483ca94",
+      "bytes": 2674,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "MIT-style grant; preserve full original notice",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/blurs/shaders/royale/vertex-shader-blur-fast-vertical.h",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/crt-aperture.slangp",
+      "sha256": "71ea5ae6ca681ac45e74bb1af694d72a5bebf80a272b0766a2e7f1f62d78cc06",
+      "bytes": 96,
+      "presets": [
+        "crt-aperture"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "asset-or-preset-license-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/crt-easymode.slangp",
+      "sha256": "3e624916ca4e3bc8660c0b00b3abcb262b03b2699137a03d8171d936054a1fd5",
+      "bytes": 96,
+      "presets": [
+        "crt-easymode"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "asset-or-preset-license-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/crt-hyllian.slangp",
+      "sha256": "f858cdb6fb9fa2786f85584a66915429e73c9c0cf7b8aea8548b213d2a17363f",
+      "bytes": 1101,
+      "presets": [
+        "crt-hyllian"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "asset-or-preset-license-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/crt-royale.slangp",
+      "sha256": "724e0196cf83da1a229bc896e970d639b4cbeb9c41f341e1e5764780fecede96",
+      "bytes": 10529,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "asset-or-preset-license-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/crtglow_gauss.slangp",
+      "sha256": "d48d8c08d2f9822f200fcee5f6ed38b5180a9f4edb00b43c82c2d045455d35b8",
+      "bytes": 815,
+      "presets": [
+        "crtglow_gauss"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "asset-or-preset-license-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/crtglow_lanczos.slangp",
+      "sha256": "162d6392ab699b046f9e7b49bbb00528cfd8bd37b756c3a078de1778955ed17a",
+      "bytes": 817,
+      "presets": [
+        "crtglow_lanczos"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "asset-or-preset-license-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/crtsim.slangp",
+      "sha256": "e51c1d2eed5046476d76670bc2972689da3ec683eddc5aa8ac23b344b0d1889f",
+      "bytes": 573,
+      "presets": [
+        "crtsim"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "asset-or-preset-license-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/crt-aperture.slang",
+      "sha256": "2cbadf75f1dfc4741504c2fbcd323c5c77d663500de92ea1c43ad21fd8202a69",
+      "bytes": 5566,
+      "presets": [
+        "crt-aperture"
+      ],
+      "fileDeclaration": "GPL; version not specified in file",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-aperture.slang",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review",
+      "complianceVersion": "GPL-3.0; original unspecified-version declaration retained",
+      "versionEvidence": "gpl-unspecified-version"
+    },
+    {
+      "path": "crt/shaders/crt-easymode.slang",
+      "sha256": "cacb1595c7988619c29b46cc283e2140f25cf14a9d104fcf6c28f197ee4b29a3",
+      "bytes": 6362,
+      "presets": [
+        "crt-easymode"
+      ],
+      "fileDeclaration": "GPL; version not specified in file",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-easymode.slang",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review",
+      "complianceVersion": "GPL-3.0; original unspecified-version declaration retained",
+      "versionEvidence": "gpl-unspecified-version"
+    },
+    {
+      "path": "crt/shaders/crt-royale/LICENSE.TXT",
+      "sha256": "d8c320ffc0030d1b096ae4732b50d2b811cf95e9a9b7377c1127b2563e0a0388",
+      "bytes": 15220,
+      "presets": [],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "family-license-reference-found; scope/provenance review pending"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/bind-shader-params.h",
+      "sha256": "0c96863109297914837fa80c5639d10ca780c584ee3817edaca19ca7d452de0e",
+      "bytes": 16488,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/bind-shader-params.h",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/bloom-functions.h",
+      "sha256": "8bc5450359a056ff8dbd9b2504f467687aefb8018af7cc44cc2f222c61c3d0c3",
+      "bytes": 15775,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/bloom-functions.h",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/crt-royale-bloom-approx.h",
+      "sha256": "50d5af04fa770560fac17a3f00bbfcab417ad87cc7fa702cdea0b2da78261c80",
+      "bytes": 19074,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/crt-royale-bloom-approx.h",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/crt-royale-bloom-approx.slang",
+      "sha256": "9e531b3c3046fe41c6576f5c2ab836442bcc258d0d4ed3f0669631592fc154e4",
+      "bytes": 50,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "family-license-reference-found; scope/provenance review pending"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/crt-royale-bloom-horizontal-reconstitute.slang",
+      "sha256": "89a64e73f93bb3d6d6156114784b3b9e2a5b8289ca58fdaca06ee177bdebe5bb",
+      "bytes": 7006,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/crt-royale-bloom-horizontal-reconstitute.slang",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/crt-royale-bloom-vertical.slang",
+      "sha256": "0605645255aabeb03d3a2e9c7fe6e028dff5e12ea0568f2b8ed04ac4e95fa4cd",
+      "bytes": 4304,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/crt-royale-bloom-vertical.slang",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/crt-royale-brightpass.slang",
+      "sha256": "6748bf8ca0779b652992cb13d5c0f0ce7927a80e55f64d9fd97ba311b708ed9c",
+      "bytes": 7298,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/crt-royale-brightpass.slang",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/crt-royale-first-pass-linearize-crt-gamma-bob-fields.slang",
+      "sha256": "08d609d05ff1e6ca793c0969a1f1c393f2960eb3c734c43235428eb5fa94f2a0",
+      "bytes": 4189,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/crt-royale-first-pass-linearize-crt-gamma-bob-fields.slang",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/crt-royale-geometry-aa-last-pass.h",
+      "sha256": "a4e73af234fb5bd8470b50efdd3704f2cf0f6f57ee3b9e6400edbe3247216dce",
+      "bytes": 10826,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/crt-royale-geometry-aa-last-pass.h",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/crt-royale-geometry-aa-last-pass.slang",
+      "sha256": "062aa057e96ce109281b1936bf1deb2b8ad6b3daa13eae7d5f889f08ea83b27d",
+      "bytes": 60,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "family-license-reference-found; scope/provenance review pending"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/crt-royale-mask-resize-horizontal.slang",
+      "sha256": "966b8d1de40773a9f68e33dc9e7420e62511c7dbb30fed1f80b3426a9e74896e",
+      "bytes": 5519,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/crt-royale-mask-resize-horizontal.slang",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/crt-royale-mask-resize-vertical.slang",
+      "sha256": "c20a113e76cb32765c42d5f0c018a39955ca0142f893c6ee8bec2721f2c25c27",
+      "bytes": 7106,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/crt-royale-mask-resize-vertical.slang",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/crt-royale-scanlines-horizontal-apply-mask.h",
+      "sha256": "87439a49f06ba4bcbdfd2fa38b55c0e444ebe3958f6f8653edf5b1dc80ada0d2",
+      "bytes": 14706,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/crt-royale-scanlines-horizontal-apply-mask.h",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/crt-royale-scanlines-horizontal-apply-mask.slang",
+      "sha256": "09fc3f28678ba4b270d3cf736f427bac14245136f81e6cdbcdf7ab933d0eb4aa",
+      "bytes": 69,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "family-license-reference-found; scope/provenance review pending"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/crt-royale-scanlines-vertical-interlacing.slang",
+      "sha256": "a93600fa01fe13c9a76868dad47e6901389721efa66db8aa3cf71448184f1fe2",
+      "bytes": 11294,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/crt-royale-scanlines-vertical-interlacing.slang",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/derived-settings-and-constants.h",
+      "sha256": "1438399a93acd0adf54831f37fb20199d81b3828802658b7a8ea5ed0aa58ca91",
+      "bytes": 14186,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/derived-settings-and-constants.h",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/geometry-functions.h",
+      "sha256": "0a4e93cc2f6bf524d7b83b777817fde65c83d7c5a7e390eda640e966bb5ad53d",
+      "bytes": 38266,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/geometry-functions.h",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/phosphor-mask-resizing.h",
+      "sha256": "1820dede5dc179511f3a6d8ad1bb709a85aac2b21ac635eaaaef72ec75532ac0",
+      "bytes": 33936,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/phosphor-mask-resizing.h",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/scanline-functions.h",
+      "sha256": "e9b104537329ddc6c593418e19898ab15c91da06e76c018d1f54d6b4e4757b93",
+      "bytes": 28552,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/scanline-functions.h",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/tex2Dantialias.h",
+      "sha256": "c2d69eb9989c59e3635849838414ad781a66f5f483a5dba781ad2649fa8014db",
+      "bytes": 80378,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "GPL-2.0-or-later",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/src/tex2Dantialias.h",
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crt-royale/src/user-cgp-constants.h",
+      "sha256": "8976660d604283a5ee07fa39561559c9766e60323c655571a919a0d8d5518b6e",
+      "bytes": 3083,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "family-license-reference-found; scope/provenance review pending"
+    },
+    {
+      "path": "crt/shaders/crt-royale/TileableLinearApertureGrille15Wide8And5d5Spacing.png",
+      "sha256": "4b46103e20567b99e9525ce521438573f49609452d142438088fa6309902aef2",
+      "bytes": 179710,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "author-family-asset-provenance-evidenced",
+      "provenanceAssessment": {
+        "path": "crt/shaders/crt-royale/TileableLinearApertureGrille15Wide8And5d5Spacing.png",
+        "source": "https://github.com/TroggleMonkey/common-shaders/blob/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale/TileableLinearApertureGrille15Wide8And5d5Spacing.png",
+        "sourceBlob": "2995ae5f4cd1c7f0c72732286e49f255c641ac5c",
+        "comparison": {
+          "texture": "TileableLinearApertureGrille15Wide8And5d5Spacing.png",
+          "original": {
+            "width": 512,
+            "height": 512,
+            "bgraSha256": "0714d937c8e320283fd0400a157682e9254365b8ca95a765de3d5f53b237ebba"
+          },
+          "bundled": {
+            "width": 512,
+            "height": 512,
+            "bgraSha256": "0714d937c8e320283fd0400a157682e9254365b8ca95a765de3d5f53b237ebba"
+          },
+          "pixelsMatch": true
+        },
+        "status": "author-family-asset-provenance-evidenced",
+        "sha256": "4b46103e20567b99e9525ce521438573f49609452d142438088fa6309902aef2"
+      }
+    },
+    {
+      "path": "crt/shaders/crt-royale/TileableLinearApertureGrille15Wide8And5d5SpacingResizeTo64.png",
+      "sha256": "3ba708dba5989741c58d9b7a1d1e38499bb6dabeb6787da523c9ca6e06159215",
+      "bytes": 3769,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "author-family-asset-provenance-evidenced",
+      "provenanceAssessment": {
+        "path": "crt/shaders/crt-royale/TileableLinearApertureGrille15Wide8And5d5SpacingResizeTo64.png",
+        "source": "https://github.com/TroggleMonkey/common-shaders/blob/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale/TileableLinearApertureGrille15Wide8And5d5SpacingResizeTo64.png",
+        "sourceBlob": "2c3f21eed13d8087195e16e857b0e1b4ffc31eb6",
+        "comparison": {
+          "texture": "TileableLinearApertureGrille15Wide8And5d5SpacingResizeTo64.png",
+          "original": {
+            "width": 64,
+            "height": 64,
+            "bgraSha256": "01e10f58e69360c4d95aca39cae61627e0066bf9f86e7f08e84bcf5003436412"
+          },
+          "bundled": {
+            "width": 64,
+            "height": 64,
+            "bgraSha256": "01e10f58e69360c4d95aca39cae61627e0066bf9f86e7f08e84bcf5003436412"
+          },
+          "pixelsMatch": true
+        },
+        "status": "author-family-asset-provenance-evidenced",
+        "sha256": "3ba708dba5989741c58d9b7a1d1e38499bb6dabeb6787da523c9ca6e06159215"
+      }
+    },
+    {
+      "path": "crt/shaders/crt-royale/TileableLinearShadowMaskEDP.png",
+      "sha256": "637e567fe5180ba53af5a185ceef24b4a44b86d74d802fb33df6a2d02d3bcf49",
+      "bytes": 182337,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "author-family-asset-provenance-evidenced",
+      "provenanceAssessment": {
+        "path": "crt/shaders/crt-royale/TileableLinearShadowMaskEDP.png",
+        "source": "https://github.com/TroggleMonkey/common-shaders/blob/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale/TileableLinearShadowMaskEDP.png",
+        "sourceBlob": "a3844dc2a752154d96c78e86f832dae7cc75479a",
+        "comparison": {
+          "texture": "TileableLinearShadowMaskEDP.png",
+          "original": {
+            "width": 512,
+            "height": 512,
+            "bgraSha256": "e49498a67225cebecc3758bad1ce8bc01174b2d6f4c3d5cd9d72c5fce4191f25"
+          },
+          "bundled": {
+            "width": 512,
+            "height": 512,
+            "bgraSha256": "e49498a67225cebecc3758bad1ce8bc01174b2d6f4c3d5cd9d72c5fce4191f25"
+          },
+          "pixelsMatch": true
+        },
+        "status": "author-family-asset-provenance-evidenced",
+        "sha256": "637e567fe5180ba53af5a185ceef24b4a44b86d74d802fb33df6a2d02d3bcf49"
+      }
+    },
+    {
+      "path": "crt/shaders/crt-royale/TileableLinearShadowMaskEDPResizeTo64.png",
+      "sha256": "d68808ef5c819555c6001ea2d0627c18e64a7d0a7a6ebb3af4a09261a4c23713",
+      "bytes": 4098,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "author-family-asset-provenance-evidenced",
+      "provenanceAssessment": {
+        "path": "crt/shaders/crt-royale/TileableLinearShadowMaskEDPResizeTo64.png",
+        "source": "https://github.com/TroggleMonkey/common-shaders/blob/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale/TileableLinearShadowMaskEDPResizeTo64.png",
+        "sourceBlob": "b61d92a0e186cde1a77542ef7a5e06c130e9701c",
+        "comparison": {
+          "texture": "TileableLinearShadowMaskEDPResizeTo64.png",
+          "original": {
+            "width": 64,
+            "height": 64,
+            "bgraSha256": "afa526f5f4b9c527090cebe0fc617a34b6b380ab2968c7da5b2759272a6309df"
+          },
+          "bundled": {
+            "width": 64,
+            "height": 64,
+            "bgraSha256": "afa526f5f4b9c527090cebe0fc617a34b6b380ab2968c7da5b2759272a6309df"
+          },
+          "pixelsMatch": true
+        },
+        "status": "author-family-asset-provenance-evidenced",
+        "sha256": "d68808ef5c819555c6001ea2d0627c18e64a7d0a7a6ebb3af4a09261a4c23713"
+      }
+    },
+    {
+      "path": "crt/shaders/crt-royale/TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacing.png",
+      "sha256": "4d4385d8476faaaebc6c4f6540b73c28bf3b643a6efb93866e58050f3d0f6567",
+      "bytes": 184906,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "author-family-asset-provenance-evidenced",
+      "provenanceAssessment": {
+        "path": "crt/shaders/crt-royale/TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacing.png",
+        "source": "https://github.com/TroggleMonkey/common-shaders/blob/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale/TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacing.png",
+        "sourceBlob": "eb20b2316fa22d8180cc685bf3886bb5975ab2c5",
+        "comparison": {
+          "texture": "TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacing.png",
+          "original": {
+            "width": 512,
+            "height": 512,
+            "bgraSha256": "747ddd9628e0066092aca0e0a0c7f3a286b191f7b3580865207f06e45a776560"
+          },
+          "bundled": {
+            "width": 512,
+            "height": 512,
+            "bgraSha256": "747ddd9628e0066092aca0e0a0c7f3a286b191f7b3580865207f06e45a776560"
+          },
+          "pixelsMatch": true
+        },
+        "status": "author-family-asset-provenance-evidenced",
+        "sha256": "4d4385d8476faaaebc6c4f6540b73c28bf3b643a6efb93866e58050f3d0f6567"
+      }
+    },
+    {
+      "path": "crt/shaders/crt-royale/TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacingResizeTo64.png",
+      "sha256": "b3ab2c1d9205e167c44fc86aeb5a031a4fe7199de728d52f94e11635a467ab6d",
+      "bytes": 5850,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "author-family-asset-provenance-evidenced",
+      "provenanceAssessment": {
+        "path": "crt/shaders/crt-royale/TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacingResizeTo64.png",
+        "source": "https://github.com/TroggleMonkey/common-shaders/blob/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale/TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacingResizeTo64.png",
+        "sourceBlob": "df518db5718c3f78e549203bbdede72d29fb7ca5",
+        "comparison": {
+          "texture": "TileableLinearSlotMaskTall15Wide9And4d5Horizontal9d14VerticalSpacingResizeTo64.png",
+          "original": {
+            "width": 64,
+            "height": 64,
+            "bgraSha256": "a70f8d4e71b5fd2c5fa001b977f2671d1529236506eaba469a8169472696b359"
+          },
+          "bundled": {
+            "width": 64,
+            "height": 64,
+            "bgraSha256": "a70f8d4e71b5fd2c5fa001b977f2671d1529236506eaba469a8169472696b359"
+          },
+          "pixelsMatch": true
+        },
+        "status": "author-family-asset-provenance-evidenced",
+        "sha256": "b3ab2c1d9205e167c44fc86aeb5a031a4fe7199de728d52f94e11635a467ab6d"
+      }
+    },
+    {
+      "path": "crt/shaders/crt-royale/user-settings.h",
+      "sha256": "fdd85fca181afaf64b112773721a57e040995b92d1364dcc1577b04538d11a04",
+      "bytes": 22897,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crt-royale/LICENSE.TXT",
+      "reviewStatus": "family-license-reference-found; scope/provenance review pending"
+    },
+    {
+      "path": "crt/shaders/crtsim/artifacts.png",
+      "sha256": "5ed0dd2a95c4f0a4f1f410d67fc54441cca986310cd28a0d3dafb49592c8f8ca",
+      "bytes": 174,
+      "presets": [
+        "crtsim"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "original-CC0-asset-provenance-evidenced",
+      "provenanceAssessment": {
+        "path": "crt/shaders/crtsim/artifacts.png",
+        "source": "https://github.com/MinorKeyGames/CRTSim/blob/dbbe9d1bc2512288f5b1747e6be35ff44a7baae1/CRTSim/bin/artifacts.bmp",
+        "sourceBlob": "3784efadb005a9f8107380e041d8477bb9a01b02",
+        "comparison": {
+          "texture": "artifacts",
+          "original": {
+            "width": 256,
+            "height": 224,
+            "bgraSha256": "debf08df505446a39c4c5d4b116848477e48fa4362d23a71ecb3590ac0cbf959"
+          },
+          "bundled": {
+            "width": 256,
+            "height": 224,
+            "bgraSha256": "debf08df505446a39c4c5d4b116848477e48fa4362d23a71ecb3590ac0cbf959"
+          },
+          "pixelsMatch": true
+        },
+        "status": "original-CC0-asset-provenance-evidenced",
+        "sha256": "5ed0dd2a95c4f0a4f1f410d67fc54441cca986310cd28a0d3dafb49592c8f8ca"
+      }
+    },
+    {
+      "path": "crt/shaders/crtsim/composite.slang",
+      "sha256": "6984cbbcbedcbc70fe0b21dc82b87439b31a84ea831810b4bd6fbb64667cb607",
+      "bytes": 6514,
+      "presets": [
+        "crtsim"
+      ],
+      "fileDeclaration": "CC0-1.0",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crtsim/composite.slang",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crtsim/crtbase.h",
+      "sha256": "e9e973f05c21d9e1b1fc004be2526e9aa09b194b0ea0b4669353558d7c7d5506",
+      "bytes": 2959,
+      "presets": [
+        "crtsim"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "original-CC0-code-provenance-evidenced; Slang-port-scope-still-pending",
+      "provenanceAssessment": {
+        "path": "crt/shaders/crtsim/crtbase.h",
+        "source": "https://github.com/MinorKeyGames/CRTSim/blob/dbbe9d1bc2512288f5b1747e6be35ff44a7baae1/CRTSim/bin/crtbase.fx",
+        "sourceBlob": "9fbafaf5c6ba17751d592ffcd3909b0a061b5cf1",
+        "status": "original-CC0-code-provenance-evidenced; Slang-port-scope-still-pending",
+        "sha256": "e9e973f05c21d9e1b1fc004be2526e9aa09b194b0ea0b4669353558d7c7d5506"
+      }
+    },
+    {
+      "path": "crt/shaders/crtsim/mask.png",
+      "sha256": "1b0d25c41454bb46fa26b312d1c8eca505c8a7542e5dd79a6f11ab113f6c5ddd",
+      "bytes": 390,
+      "presets": [
+        "crtsim"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "original-CC0-asset-provenance-evidenced",
+      "provenanceAssessment": {
+        "path": "crt/shaders/crtsim/mask.png",
+        "source": "https://github.com/MinorKeyGames/CRTSim/blob/dbbe9d1bc2512288f5b1747e6be35ff44a7baae1/CRTSim/bin/mask.bmp",
+        "sourceBlob": "5714265a1be09cca3ea06778a3e5eca069604e2e",
+        "comparison": {
+          "texture": "mask",
+          "original": {
+            "width": 64,
+            "height": 32,
+            "bgraSha256": "4fb993675d9ba878ad026404de4ff681fac644ace5de2f8841278a00a845670e"
+          },
+          "bundled": {
+            "width": 64,
+            "height": 32,
+            "bgraSha256": "4fb993675d9ba878ad026404de4ff681fac644ace5de2f8841278a00a845670e"
+          },
+          "pixelsMatch": true
+        },
+        "status": "original-CC0-asset-provenance-evidenced",
+        "sha256": "1b0d25c41454bb46fa26b312d1c8eca505c8a7542e5dd79a6f11ab113f6c5ddd"
+      }
+    },
+    {
+      "path": "crt/shaders/crtsim/post-downsample.slang",
+      "sha256": "b71daaa63181e4a6c8967af66716e19e6c0534921266c6e5c01b7e6facf46ce5",
+      "bytes": 2731,
+      "presets": [
+        "crtsim"
+      ],
+      "fileDeclaration": "CC0-1.0",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crtsim/post-downsample.slang",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crtsim/post-upsample.slang",
+      "sha256": "f70f8640d1d556656df40c05d42c81c61bce46172f17eeff1d2e0a86e7ecce35",
+      "bytes": 2755,
+      "presets": [
+        "crtsim"
+      ],
+      "fileDeclaration": "CC0-1.0",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crtsim/post-upsample.slang",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crtsim/present.slang",
+      "sha256": "e9fe7f8f4d856beb9dbdd4a7e97976a4d00aa53bc5f504802ef84740f636e172",
+      "bytes": 3394,
+      "presets": [
+        "crtsim"
+      ],
+      "fileDeclaration": "CC0-1.0",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crtsim/present.slang",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/crtsim/screen.slang",
+      "sha256": "c67e0a043888f62c630ef7f019f3fb3b9b2819569fcbfa5e822580a5a125edfb",
+      "bytes": 3066,
+      "presets": [
+        "crtsim"
+      ],
+      "fileDeclaration": "CC0-1.0",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/crtsim/screen.slang",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/glow/blur_horiz.slang",
+      "sha256": "fc2a9fcba146557c2f8dc1661e8009272b30816018f995c7d44d21457049b5c5",
+      "bytes": 1002,
+      "presets": [
+        "crtglow_gauss",
+        "crtglow_lanczos"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/glow/blur_params.inc",
+      "sha256": "cb82a1df96fe9c00e2ed97ca39101f757cceeb7319878419d78cad7cd1bfb317",
+      "bytes": 117,
+      "presets": [
+        "crtglow_gauss",
+        "crtglow_lanczos"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/glow/blur_vert.slang",
+      "sha256": "cf5780fd1a20065450600c80807a1a4d0ae882e582e99d1fa491f0fd066b3445",
+      "bytes": 949,
+      "presets": [
+        "crtglow_gauss",
+        "crtglow_lanczos"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/glow/gauss_horiz.slang",
+      "sha256": "74f7ad449efa6c66956e872451ddc5787ae9f17d21f01d753b1978825f45b1dc",
+      "bytes": 1503,
+      "presets": [
+        "crtglow_gauss"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/glow/gauss_vert.slang",
+      "sha256": "d2b7755c1b94594973f5fd4b12cef87245c9b1718536128081a11c71e4596fd1",
+      "bytes": 1946,
+      "presets": [
+        "crtglow_gauss",
+        "crtglow_lanczos"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/glow/lanczos_horiz.slang",
+      "sha256": "761d57507f595bb0a94574d11fc9889bb438752b75b8c41bbc67db1613540da8",
+      "bytes": 1557,
+      "presets": [
+        "crtglow_lanczos"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/glow/linearize.slang",
+      "sha256": "2336ad3d9ff007eaecf9df143ab61a442c5ab54749496fc61a924481308141f0",
+      "bytes": 844,
+      "presets": [
+        "crtglow_gauss",
+        "crtglow_lanczos"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/glow/resolve.slang",
+      "sha256": "83c27fdfad11ceb27a3b26cbc566a4a6ac5bbb45b3fd7bb8f3d4a2b15521c5d3",
+      "bytes": 6401,
+      "presets": [
+        "crtglow_gauss",
+        "crtglow_lanczos"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/glow/threshold.slang",
+      "sha256": "bebfe4aeb134004ba974c950f5db8ccfda028964f83118f23cb46aeca60454aa",
+      "bytes": 1018,
+      "presets": [
+        "crtglow_gauss",
+        "crtglow_lanczos"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/hyllian/crt-hyllian-base.slang",
+      "sha256": "c763fba0a737ef68cc88b710c82c747e1f02bb4b99c02db64944c5504682e513",
+      "bytes": 10559,
+      "presets": [
+        "crt-hyllian"
+      ],
+      "fileDeclaration": "MIT-style grant; preserve full original notice",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/crt/shaders/hyllian/crt-hyllian-base.slang",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "crt/shaders/hyllian/support/glow/blur_horiz.slang",
+      "sha256": "3618511b73e2124af028621b4885904df3b0f88c65e691b49de5d33009e1fcbd",
+      "bytes": 1693,
+      "presets": [
+        "crt-hyllian"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/hyllian/support/glow/blur-glow-mask-geom.slang",
+      "sha256": "1a06c42a4fe3f0c62f68e0b11dca132e5a3640aae574f87dfbb69a241f36099f",
+      "bytes": 15132,
+      "presets": [
+        "crt-hyllian"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/hyllian/support/glow/threshold.slang",
+      "sha256": "653e853465ac18326070f1a2d860f230c72d4aea18feccb6af8a0f224fd1957c",
+      "bytes": 1179,
+      "presets": [
+        "crt-hyllian"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/hyllian/support/LUT/Sony_Wega_29FA310_no_gamma-v2.png",
+      "sha256": "f8a3131e2782d64f548b3cbbfdfdc77cc9b72169940f50d73916811c6f9a5e6f",
+      "bytes": 15539,
+      "presets": [
+        "crt-hyllian"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "asset-or-preset-license-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/hyllian/support/LUT/Sony_Wega_29FA310_no_gamma.png",
+      "sha256": "303392f028ce76aa91ccc4ed82fcd705b4a074f7ab5bdcbdac00d25a5e986369",
+      "bytes": 14822,
+      "presets": [
+        "crt-hyllian"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "asset-or-preset-license-scope-needs-confirmation"
+    },
+    {
+      "path": "crt/shaders/hyllian/support/multiLUT-linear-fast.slang",
+      "sha256": "0a63d9df5ff1e07a9507053268ffab0760816217fcfe39591c3825279d738735",
+      "bytes": 3037,
+      "presets": [
+        "crt-hyllian"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "include/blur-functions.h",
+      "sha256": "0edea684af38d783068f61eccc7c8ff8695c80133605bab3f8e73a2337e307d6",
+      "bytes": 108594,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "MIT-style grant; preserve full original notice",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/include/blur-functions.h",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "include/compat_macros.inc",
+      "sha256": "38c1957b4bedc098ce01f2ee56db6aa97e708b037087dfde51d4ebbe342a2de6",
+      "bytes": 771,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": null,
+      "noticeEvidence": null,
+      "familyLicense": null,
+      "reviewStatus": "explicit-scope-needs-confirmation"
+    },
+    {
+      "path": "include/gamma-management.h",
+      "sha256": "aa851dac11e468ef0b168bb8576f709b386ea35f5a9f10ed16c0789343a0ad0e",
+      "bytes": 27936,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "MIT-style grant; preserve full original notice",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/include/gamma-management.h",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "include/quad-pixel-communication.h",
+      "sha256": "e07f8c0b8583bf78babe1d23333b83ebae40c3f5a664e35fdd041ae6fccb5410",
+      "bytes": 12436,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "MIT-style grant; preserve full original notice",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/include/quad-pixel-communication.h",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    },
+    {
+      "path": "include/special-functions.h",
+      "sha256": "0b5dbbaef443327756958b0f59caad87e23f13f499e0fcd5bac97860b069b3ab",
+      "bytes": 18566,
+      "presets": [
+        "crt-royale"
+      ],
+      "fileDeclaration": "MIT-style grant; preserve full original notice",
+      "noticeEvidence": "https://github.com/libretro/slang-shaders/blob/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c/include/special-functions.h",
+      "familyLicense": null,
+      "reviewStatus": "declaration-found; packaging obligations require final review"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "collection-policy",
+      "url": "https://github.com/libretro/slang-shaders/issues/150#issuecomment-670993746",
+      "finding": "Maintainer describes mixed licenses and files without a listed license; this is not a blanket grant."
+    },
+    {
+      "id": "glow-original-bloom",
+      "url": "https://github.com/libretro/common-shaders/commit/c8c5f5ab3d0a5c47c3e246efa134c4467ec5d1d4",
+      "finding": "Themaister introduced the predecessor bloom code in 2014; no license grant found in the inspected addition."
+    },
+    {
+      "id": "glow-rename",
+      "url": "https://github.com/libretro/common-shaders/commit/a7c364862d7aa93dd5c8a66806900b36e41f5901",
+      "finding": "Themaister moved bloom files into crt/glow."
+    },
+    {
+      "id": "glow-refactor",
+      "url": "https://github.com/libretro/common-shaders/commit/6c2ca06be42a3678a4b92f27b8a34ade92bf79bd",
+      "finding": "Hyllian moved the Cg files into crt/shaders/glow in 2015."
+    },
+    {
+      "id": "glow-slang-port",
+      "url": "https://github.com/libretro/slang-shaders/commit/efd79721cb517b1affe366b3094115992e04dc50",
+      "finding": "rz5 translated Glow shaders/presets to Slang in 2016; inspected additions have no explicit license grant."
+    },
+    {
+      "id": "glow-later-contributions",
+      "url": "https://github.com/libretro/slang-shaders/commit/8f26d985e683c499c92327c629ca92cd1eeee9d3",
+      "finding": "hunterk added curvature and moire compensation in 2018; current resolve.slang credits Themaister and Timothy Lottes."
+    },
+    {
+      "id": "hyllian-assets",
+      "url": "https://github.com/libretro/slang-shaders/commit/3e7cc725a5d08168c20c9c7e736b00c27567f8d4",
+      "finding": "Hyllian describes LUT1/LUT2 as representing his Trinitron displays; provenance evidence, not an explicit standalone LUT license grant."
+    },
+    {
+      "id": "crtsim",
+      "url": "https://github.com/libretro/slang-shaders/commit/46172167c9ed4884d92da5df588cbcc92c4a7ac2",
+      "finding": "hunterk introduced the port. Five shader files include J. Kyle Pittman CC0 notices. See curated evidence for original implementation/textures; port/preset scope remains under review."
+    },
+    {
+      "id": "gpl-unspecified-version",
+      "url": "https://github.com/spdx/license-list-data/blob/main/text/GPL-2.0-or-later.txt",
+      "finding": "GPL v2 section 9 permits any FSF-published GPL version when the program specifies no version. Record EasyMode/aperture as GPL without version; comply under GPLv3 without replacing original notices. No separate version permission is needed on that basis."
+    },
+    {
+      "id": "crtsim-original-grant",
+      "url": "https://github.com/MinorKeyGames/CRTSim/blob/dbbe9d1bc2512288f5b1747e6be35ff44a7baae1/CRTSim/COPYING.txt",
+      "finding": "Original author implementation is CC0-1.0. Original crtbase.fx carries the CC0 notice, and both bundled textures match the author BMPs pixel-for-pixel. Original scope evidenced; separately review new Slang port/preset contributions."
+    },
+    {
+      "id": "royale-author-family",
+      "url": "https://github.com/TroggleMonkey/common-shaders/tree/53329b74a3f9b5af1a48e56473fabd370bdbd8ca/crt/shaders/crt-royale",
+      "finding": "All six selected mask textures match the author family pixel-for-pixel; GPL family LICENSE.TXT is byte-identical (Git blob d8cf7d463e2a4f064a157fa994bb394d3623b9cc). Author preset references these masks. Supports family provenance; does not by itself settle later port contributions."
+    }
+  ],
+  "conclusion": "All seven presets retained unchanged. Original CRTSim code/assets and Royale mask provenance are documented. Remaining scope questions are transparently recorded and accepted under the owner release policy, not automatic shader release blockers. This is not a blanket license grant. Native dependency packaging checks remain separate."
+}

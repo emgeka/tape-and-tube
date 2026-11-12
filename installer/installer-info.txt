@@ -1,0 +1,15 @@
+Tape & Tube is a Windows adaptation of NTSCRT by Finn McKenty.
+https://github.com/finnmckenty/NTSCRT
+
+Own application and host integration: GPL-3.0-only.
+Third-party components retain their own licenses and attribution.
+
+All seven CRT presets, original notices, license review and matching own
+source ZIP are included. Known upstream shader-scope uncertainties are
+documented, following the project's adopted upstream-oriented policy.
+
+This beta is unsigned. FFmpeg is optional and is not distributed here.
+Required Microsoft runtimes are checked, not silently installed.
+
+VirtualBox: CRTSim exports may contain black frames. This was not
+reproduced on the physical host with the same source and preset.

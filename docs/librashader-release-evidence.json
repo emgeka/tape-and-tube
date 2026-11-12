@@ -1,0 +1,21 @@
+{
+  "reviewDate": "2026-11-11",
+  "repository": "https://github.com/SnowflakePowered/librashader",
+  "release": "https://github.com/SnowflakePowered/librashader/releases/tag/librashader-v0.12.0",
+  "tag": "librashader-v0.12.0",
+  "tagObject": "5537e838fc4680f5a9b2c0f4b9b669edea6e981b",
+  "commit": "87e8a97b50516d997defeaa168173dcd185d4022",
+  "assetName": "librashader-x86_64-windows-v0.12.0-optimized.zip",
+  "assetId": 474517668,
+  "assetSha256": "521fe0f364bfa705883f9e99fb1733a3a24f0f403bcc5591b6b78f6cff289183",
+  "dllSha256": "1890f647c7fbe52d4cc591526db24367caca284996855c4565c6003c7e46f8cc",
+  "licenseDeclaration": "MPL-2.0 OR GPL-3.0-only (C-API manifest); MIT for C header",
+  "evidence": [
+    "Downloaded ZIP SHA-256 equals the official GitHub release asset digest.",
+    "runtime/librashader.dll is byte-identical to the DLL extracted from that ZIP.",
+    "The distributed dependency file lists D3D9, D3D11, D3D12, GL and Vulkan runtime source modules. This is evidence of a multi-runtime build, not a complete transitive SBOM.",
+    "The source tag resolves through the annotated tag object to the recorded commit. The accompanying tag source archive includes Cargo.lock and original license files."
+  ],
+  "nativeTransitiveNoticeReviewComplete": false,
+  "remainingUncertainty": "The upstream binary ZIP contains no complete transitive license bundle or feature-resolved dependency inventory. Tag sources and the release digest establish provenance but do not supply all third-party notices."
+}

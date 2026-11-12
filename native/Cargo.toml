@@ -1,0 +1,16 @@
+[package]
+name = "ntscrt-ntsc"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-only"
+description = "Tape & Tube host boundary for the unmodified ntsc-rs processor"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+ntsc-rs = { git = "https://github.com/ntsc-rs/ntsc-rs", rev = "add90f5bf1bf7e3c573e4e945a16f44a82941b51" }
+serde_json = "1"
+
+[profile.release]
+lto = true

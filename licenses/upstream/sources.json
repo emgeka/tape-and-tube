@@ -1,0 +1,27 @@
+[
+  {
+    "file": "Vortice.Windows-LICENSE.txt",
+    "source": "https://github.com/amerkoleci/Vortice.Windows/blob/9e609cb9439c9872aa1b339f177e40ec96f77239/LICENSE",
+    "gitBlob": "15fd3b8dd0e0f4474555ad0d248ecb68a278b7d1"
+  },
+  {
+    "file": "Vortice.Mathematics-LICENSE.txt",
+    "source": "https://github.com/amerkoleci/Vortice.Mathematics/blob/fa05ec6dcba48f3f7331791da6dc7f3d866b2ad6/LICENSE",
+    "gitBlob": "be64e3ef2e11e0663137d98e59cf1a229946b374"
+  },
+  {
+    "file": "SharpGenTools-LICENSE.txt",
+    "source": "https://github.com/SharpGenTools/SharpGenTools/blob/6990bcafe124a4c22515ad19cee5a081da8db67b/LICENSE.txt",
+    "gitBlob": "79650e8328873caf2474c61b58409a8966e40b3f"
+  },
+  {
+    "file": "CRTSim-COPYING.txt",
+    "source": "https://github.com/MinorKeyGames/CRTSim/blob/dbbe9d1bc2512288f5b1747e6be35ff44a7baae1/CRTSim/COPYING.txt",
+    "gitBlob": "1f2b75f75942f9b5d70cd8c1cb899cd796936a45"
+  },
+  {
+    "file": "WindowsDesktop-THIRD-PARTY-NOTICES.txt",
+    "source": "https://github.com/dotnet/dotnet/blob/0427b9abbead3fa64c6655eb4290c537397131fa/src/wpf/THIRD-PARTY-NOTICES.TXT",
+    "gitBlob": "c2ce2452c1dd7ff03eb862e1d8cd8f6117cee05b"
+  }
+]

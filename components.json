@@ -1,0 +1,16 @@
+{
+  "shaderRoot": null,
+  "ntscLibrary": "ntscrt_ntsc.dll",
+  "librashaderLibrary": "librashader.dll",
+  "ffmpeg": null,
+  "ffprobe": null,
+  "shaderPresets": [
+    "crt/crt-easymode.slangp",
+    "crt/crt-aperture.slangp",
+    "crt/crt-hyllian.slangp",
+    "crt/crt-royale.slangp",
+    "crt/crtglow_gauss.slangp",
+    "crt/crtglow_lanczos.slangp",
+    "crt/crtsim.slangp"
+  ]
+}

@@ -1,0 +1,18 @@
+Tape & Tube - Windows beta
+
+Matching application source: sources\TapeTube-0.1.0-beta.1-source.zip
+Other upstream sources and notices: sources\ and licenses\
+
+Windows adaptation of NTSCRT by Finn McKenty:
+https://github.com/finnmckenty/NTSCRT
+
+Own code: GPL-3.0-only. Third-party components retain their licenses.
+
+Images require no FFmpeg. For video, add ffmpeg.exe and ffprobe.exe to
+runtime\media, or use an existing PATH installation. FFmpeg is not bundled.
+
+Microsoft runtimes: setup checks their loadability and offers official
+downloads if missing. The Microsoft installers may require admin rights.
+
+Setup: Inno Setup by Jordan Russell and Martijn Laan, https://jrsoftware.org/
+VirtualBox CRTSim export limitation: see licenses\EXPORT_FLICKER_INVESTIGATION.md.
