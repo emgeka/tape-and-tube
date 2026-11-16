@@ -10,7 +10,8 @@
   },
   "ffmpeg": {
     "repository": "https://github.com/FFmpeg/FFmpeg",
-    "integration": "External ffmpeg and ffprobe executables; local installation, not bundled"
+    "integration": "Separate ffmpeg and ffprobe processes; optional checksum-pinned upstream download during setup, or existing local tools",
+    "installerDownload": "installer/ffmpeg-download.json"
   },
   "slang-shaders": {
     "repository": "https://github.com/libretro/slang-shaders",

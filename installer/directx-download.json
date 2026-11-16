@@ -1,0 +1,13 @@
+{
+  "name": "DirectX End-User Runtimes (June 2010)",
+  "version": "9.29.1974.1",
+  "provider": "Microsoft Corporation",
+  "homepage": "https://www.microsoft.com/download/details.aspx?id=8109",
+  "url": "https://download.microsoft.com/download/8/4/a/84a35bf1-dafe-4ae8-82af-ad2ae20b6b14/directx_Jun2010_redist.exe",
+  "file": "directx_Jun2010_redist.exe",
+  "sha256": "053f76dcbb28802e23341b6a787e3b0791c0fa5c8d4d011b1044172dbf89c73b",
+  "bytes": 100275120,
+  "setupSha256": "8f47d7121ef6532ad9ad9901e44e237f5c30448b752028c58a9d19521414e40d",
+  "license": "Microsoft license terms presented by DXSETUP; not covered by Tape & Tube's GPL",
+  "delivery": "Direct Microsoft download on user request; automatic extraction only; interactive elevated DXSETUP; not embedded or mirrored"
+}

@@ -1,33 +1,29 @@
-# Release review — 0.1.0-beta.1
+# Release review — 0.1.0-beta.2
 
-The owner approved a public source-and-installer beta under emgeka/tape-and-tube on 2026-11-12. Own application and host code remain GPL-3.0-only; external projects retain their licenses. This review records evidence and limitations, not a blanket legal clearance.
+The owner authorized publication on 2026-11-16 after reporting a successful Windows 11 VM installer test and export without flicker or black frames. Own application/host code remains GPL-3.0-only; third parties retain their licenses. This is a prerelease, not a blanket platform or licensing clearance.
 
 ## Origin and scope
 
-Tape & Tube is a Windows adaptation of NTSCRT by Finn McKenty. Concept, core signal chain and workflow originate there. Windows application/host code is newly implemented; Swift/Metal application code is not copied. ntsc-rs supplies signal processing, RetroArch authors supply CRT effects, librashader executes shaders and external FFmpeg supplies media processing.
+Tape & Tube is a Windows adaptation of NTSCRT by Finn McKenty. The concept, signal chain and workflow originate there. The WPF application and Rust host boundary are newly implemented; original Swift/Metal application code is not included. ntsc-rs supplies signal processing, RetroArch authors supply CRT shaders, librashader executes them, and FFmpeg handles media.
 
-All seven selected CRT presets are retained unchanged. The owner adopted upstream's pragmatic handling of incompletely documented shader scopes: preserve files, notices, attribution and source; disclose uncertainty without demanding retrospective grants for every headerless file. Concrete restrictions are not overridden. The optional maintainer request remains unsent.
+All seven selected CRT presets are retained. Follow the owner's adopted upstream-oriented license policy: preserve original files, source, notices and attribution; disclose uncertainty without inventing retrospective grants. Concrete restrictions still apply.
+
+## Beta.2 changes
+
+One installer component page, assisted pinned Microsoft DirectX download/extraction with interactive DXSETUP/recheck, optional pinned FFmpeg download, version/path-based selection of existing matched tools, persistent app-local selection and clearer status wording. External FFmpeg files are referenced in place and never removed by our uninstaller. No system PATH change, silent Microsoft license acceptance, Linux build or new effect family is included.
 
 ## Validation evidence
 
-- Existing functional suites: 182 checks. New update-channel suite: 17 checks; total 199.
-- Previous installer candidate: local install/reinstall/uninstall verified 605 payload files, matching own source and preservation of user files. Owner's Windows 11 VirtualBox test confirmed installation, app/Start menu launch, test picture, video opening and Windows Settings uninstallation with VC/DirectX already installed.
-- The channel-enabled release build must have its own package/installer validation report. Prior candidate results do not replace those checks.
-- The missing-component flow on a fresh Windows VM is still unverified. A second physical Windows computer/GPU has not been certified.
+- All 199 existing functional checks passed for the tested application payload.
+- Local installer tests verified 605 package files, source companion, install/reinstall/uninstall, user-file preservation, download/existing/skip modes, Unicode selection paths, use of the chosen external tools, retained choice on upgrade and a missing-selection error instead of PATH fallback. Video decode/export checks include synchronized original audio.
+- Native pair probing rejects different versions and limits unresponsive processes. DirectX download/extraction and checksum rejection were exercised without running the system installer on the developer host.
+- The owner reports the latest installer works in the VM and the latest export had no flicker/black frames. Prior CRTSim failures remain historical evidence: latest success is a non-reproduction, not a proven permanent repair.
+- Release documentation/approval metadata are updated for publication. The release build must retain the tested application and installer logic and have its own final hashes/source checks. A successful overall VM test does not establish separately recorded coverage of every missing-component, UAC-cancel or restart branch, or every GPU.
 
-## Known runtime limits
+## Remaining limits
 
-- VirtualBox-generated CRTSim exports contain black/flickering frames from around 16 / 17.56 seconds. The supplied original and saved preset exported all 744 frames correctly on the physical host. Root cause is not established. See docs/EXPORT_FLICKER_INVESTIGATION.md.
-- The reference DLL requires Visual C++ v14 x64 and D3DX9_43.dll. Setup probes system DLL loadability and offers official Microsoft download links; the user runs those installers separately. A D3D11-only rebuild remains a possible future improvement.
-- FFmpeg is external, not bundled. No silent system-component installation, signing certificate, automatic installer execution or HDR workflow is provided.
-- Release/Beta update checks use public GitHub data anonymously. Download/installation are manual, and automatic checking can be disabled. See docs/UPDATE_CHANNELS.md.
+Preview is silent, SDR only, VFR normalized to the preview grid; processing may be slow. The reference DLL still requires Visual C++ v14 x64 and D3DX9_43.dll. Existing explicit environment overrides take priority over setup's saved media selection. Update checks are anonymous; download/install remain manual.
 
-## Licensing evidence and open inventory items
+Original CRTSim CC0 and texture evidence, Royale mask comparisons, exact-package Vortice/SharpGen/ntsc-rs-macros/WindowsDesktop notices and official librashader provenance remain included. Complete native transitive notices and the hifijson standalone notice/provenance remain documented gaps. See docs/DEPENDENCY_LICENSE_REVIEW.md, docs/SHADER_LICENSE_REVIEW.md and machine-readable evidence. Name checks were preliminary, not comprehensive trademark clearance.
 
-Original CRTSim CC0 scope and both texture conversions were evidenced. All six Royale masks match author pixels. Original exact-package Vortice/SharpGen notices, ntsc-rs-macros notices, WindowsDesktop notices and MIT C header are collected. librashader binary provenance matches the official release asset digest. Upstream shader sources/notices and the librashader tag source archive accompany the installer.
-
-Complete native transitive notices and the hifijson standalone notice/provenance remain documented gaps; no copyright statements or grants are invented. See docs/DEPENDENCY_LICENSE_REVIEW.md, docs/SHADER_LICENSE_REVIEW.md and their machine-readable evidence. Product-name checks were preliminary, not comprehensive trademark clearance.
-
-## Publication
-
-Publish as v0.1.0-beta.1, a prerelease rather than latest stable. Attach the Windows installer, matching application source and checksums. Exclude personal paths/configuration, development tools, original user media and local diagnostics. Record the exact commit/tag, asset hashes and final public URLs in the local publication receipt. The GitHub authorization does not include posts or messages on X.
+Publish v0.1.0-beta.2 as prerelease=true and make_latest=false with installer, matching own source and checksums. Record exact commit/tag, server asset digests and public URLs. GitHub publication authorization does not include X messages or posts.

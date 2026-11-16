@@ -2,13 +2,13 @@
 
 **Windows adaptation of [NTSCRT](https://github.com/finnmckenty/NTSCRT) by Finn McKenty.** The original macOS project is the starting point for the concept, signal chain and workflow; this Windows implementation covers its core NTSC/VHS and CRT stages with newly written application/host code.
 
-**Version 0.1.0-beta.1 — unsigned early beta.**
+**Version 0.1.0-beta.2 — unsigned early beta.**
 
 ![Tape & Tube with a synthetic original/output video comparison](docs/screenshot.jpg)
 
 ## Start
 
-Run the Windows x64 installer and start **Tape & Tube** from the Start menu. Setup checks required Microsoft runtimes and offers official download links; missing components are installed separately by you. .NET is included. Optional FFmpeg selection copies your chosen existing tools. The installer includes matching own source under `sources`. If using a portable ZIP, extract it completely into a writable folder and keep the DLLs, assets, metadata and notices together.
+Run the Windows x64 installer and start **Tape & Tube** from the Start menu. Setup checks required Microsoft runtimes. Visual C++ uses the official download. Install DirectX downloads and verifies Microsoft's package, automatically extracts it and starts DXSETUP; confirm Microsoft's license and administrator prompt yourself. Setup then checks again. .NET is included. Choose to download and install FFmpeg, use existing tools, or skip it. The optional download comes directly from Gyan Doshi / gyan.dev and is checksum-verified; original notices and build documentation are kept under `licenses/ffmpeg`. The installer includes matching own source under `sources`. If using a portable ZIP, extract it completely into a writable folder and keep the DLLs, assets, metadata and notices together.
 
 The reference librashader binary also imports Microsoft Visual C++ runtime DLLs (`MSVCP140`, `VCRUNTIME140`, `VCRUNTIME140_1`) and legacy `D3DX9_43.dll`, even though this app uses Direct3D 11. A computer missing these components needs the official Microsoft [Visual C++ x64 Redistributable](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) and [DirectX End-User Runtimes June 2010](https://www.microsoft.com/en-us/download/details.aspx?id=8109). They are not copied from this computer or silently installed. A future D3D11-only library build should remove unnecessary legacy dependencies.
 

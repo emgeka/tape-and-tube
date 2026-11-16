@@ -99,7 +99,7 @@
     "Aktueller Shader-Ordner: ": "Current shader folder: ",
     "Geladener Preset-Katalog:": "Loaded preset catalog:",
     "\nFFmpeg / ffprobe · Videoeinlesen und MP4-/Audio-Kodierung": "\nFFmpeg / ffprobe · Video decoding and MP4/audio encoding",
-    "Externe Installation, nicht Bestandteil dieses Prüfpakets. Die Lizenz hängt vom jeweiligen Build ab.": "External installation, not included in this review package. The license depends on the specific build.",
+    "Separates Programm; optional über Setup installiert oder selbst bereitgestellt. Die Lizenz hängt vom verwendeten Build ab. Hinweise: licenses/ffmpeg.": "Separate program; optionally installed by setup or provided by you. The license depends on the build used. Notices: licenses/ffmpeg.",
     "Quelle: https://ffmpeg.org/\n": "Source: https://ffmpeg.org/\n",
     "Weitere Komponenten: Vortice.Windows, Vortice.Mathematics und SharpGen.Runtime (MIT), .NET (Microsoft und Mitwirkende). Details: licenses/dependency-inventory.json.\n": "Other components: Vortice.Windows, Vortice.Mathematics and SharpGen.Runtime (MIT), .NET (Microsoft and contributors). Details: licenses/dependency-inventory.json.\n",
     "Tape & Tube ist ein eigenständiges Projekt und keine offizielle Ausgabe der genannten Projekte.\n": "Tape & Tube is an independent project and is not an official release of the projects listed above.\n",
@@ -316,7 +316,7 @@
       "Aktueller Shader-Ordner: ": "Carpeta actual de shaders: ",
       "Geladener Preset-Katalog:": "Catálogo de presets cargado:",
       "\nFFmpeg / ffprobe · Videoeinlesen und MP4-/Audio-Kodierung": "\nFFmpeg / ffprobe · Decodificación de vídeo y codificación MP4/audio",
-      "Externe Installation, nicht Bestandteil dieses Prüfpakets. Die Lizenz hängt vom jeweiligen Build ab.": "Instalación externa, no incluida en este paquete de revisión. La licencia depende de la compilación concreta.",
+      "Separates Programm; optional über Setup installiert oder selbst bereitgestellt. Die Lizenz hängt vom verwendeten Build ab. Hinweise: licenses/ffmpeg.": "Programa separado; instalación opcional mediante el instalador o aportado por ti. La licencia depende de la compilación. Avisos: licenses/ffmpeg.",
       "Weitere Komponenten: Vortice.Windows, Vortice.Mathematics und SharpGen.Runtime (MIT), .NET (Microsoft und Mitwirkende). Details: licenses/dependency-inventory.json.\n": "Otros componentes: Vortice.Windows, Vortice.Mathematics y SharpGen.Runtime (MIT), .NET (Microsoft y colaboradores). Detalles: licenses/dependency-inventory.json.\n",
       "Tape & Tube ist ein eigenständiges Projekt und keine offizielle Ausgabe der genannten Projekte.\n": "Tape & Tube es un proyecto independiente y no es una versión oficial de los proyectos indicados.\n",
       "Eigene Versionen und Pfade lassen sich über components.local.json oder TAPETUBE_* konfigurieren. Referenzstände bestätigen nicht die Version einer selbst ersetzten Bibliothek.": "Configura versiones y rutas mediante components.local.json o TAPETUBE_*. Las versiones de referencia no verifican la versión de una biblioteca sustituida.",
@@ -477,7 +477,7 @@
       "Aktueller Shader-Ordner: ": "Dossier actuel des shaders : ",
       "Geladener Preset-Katalog:": "Catalogue de préréglages chargé :",
       "\nFFmpeg / ffprobe · Videoeinlesen und MP4-/Audio-Kodierung": "\nFFmpeg / ffprobe · Décodage vidéo et encodage MP4/audio",
-      "Externe Installation, nicht Bestandteil dieses Prüfpakets. Die Lizenz hängt vom jeweiligen Build ab.": "Installation externe, non incluse dans ce paquet de vérification. La licence dépend de la compilation utilisée.",
+      "Separates Programm; optional über Setup installiert oder selbst bereitgestellt. Die Lizenz hängt vom verwendeten Build ab. Hinweise: licenses/ffmpeg.": "Programme séparé, installé en option ou fourni par vous. La licence dépend de la compilation utilisée. Notices : licenses/ffmpeg.",
       "Weitere Komponenten: Vortice.Windows, Vortice.Mathematics und SharpGen.Runtime (MIT), .NET (Microsoft und Mitwirkende). Details: licenses/dependency-inventory.json.\n": "Autres composants : Vortice.Windows, Vortice.Mathematics et SharpGen.Runtime (MIT), .NET (Microsoft et contributeurs). Détails : licenses/dependency-inventory.json.\n",
       "Tape & Tube ist ein eigenständiges Projekt und keine offizielle Ausgabe der genannten Projekte.\n": "Tape & Tube est un projet indépendant et non une version officielle des projets cités.\n",
       "Eigene Versionen und Pfade lassen sich über components.local.json oder TAPETUBE_* konfigurieren. Referenzstände bestätigen nicht die Version einer selbst ersetzten Bibliothek.": "Configurez les versions et chemins via components.local.json ou TAPETUBE_*. Les références ne vérifient pas la version d’une bibliothèque remplacée.",
@@ -638,7 +638,6 @@
       "Aktueller Shader-Ordner: ": "Pasta atual de shaders: ",
       "Geladener Preset-Katalog:": "Catálogo de presets carregado:",
       "\nFFmpeg / ffprobe · Videoeinlesen und MP4-/Audio-Kodierung": "\nFFmpeg / ffprobe · Decodificação de vídeo e codificação MP4/áudio",
-      "Externe Installation, nicht Bestandteil dieses Prüfpakets. Die Lizenz hängt vom jeweiligen Build ab.": "Instalação externa, não incluída neste pacote de revisão. A licença depende da compilação específica.",
       "Weitere Komponenten: Vortice.Windows, Vortice.Mathematics und SharpGen.Runtime (MIT), .NET (Microsoft und Mitwirkende). Details: licenses/dependency-inventory.json.\n": "Outros componentes: Vortice.Windows, Vortice.Mathematics e SharpGen.Runtime (MIT), .NET (Microsoft e colaboradores). Detalhes: licenses/dependency-inventory.json.\n",
       "Tape & Tube ist ein eigenständiges Projekt und keine offizielle Ausgabe der genannten Projekte.\n": "Tape & Tube é um projeto independente, não uma versão oficial dos projetos listados.\n",
       "Eigene Versionen und Pfade lassen sich über components.local.json oder TAPETUBE_* konfigurieren. Referenzstände bestätigen nicht die Version einer selbst ersetzten Bibliothek.": "Configure versões e caminhos em components.local.json ou TAPETUBE_*. As versões de referência não verificam a versão de uma biblioteca substituída.",
@@ -707,7 +706,8 @@
       "Download öffnen": "Abrir download",
       "Installation wird von dir gestartet.": "Você inicia a instalação.",
       "Einstellung konnte nicht gespeichert werden.": "Não foi possível salvar a configuração.",
-      "Downloadseite konnte nicht geöffnet werden.": "Não foi possível abrir a página de download."
+      "Downloadseite konnte nicht geöffnet werden.": "Não foi possível abrir a página de download.",
+      "Separates Programm; optional über Setup installiert oder selbst bereitgestellt. Die Lizenz hängt vom verwendeten Build ab. Hinweise: licenses/ffmpeg.": "Programa separado; instalação opcional pelo instalador ou fornecido por você. A licença depende da compilação utilizada. Avisos: licenses/ffmpeg."
     },
     "it": {
       "Analoges Video. Digitaler Spielraum.": "Video analogico. Possibilità digitali.",
@@ -799,7 +799,7 @@
       "Aktueller Shader-Ordner: ": "Cartella shader attuale: ",
       "Geladener Preset-Katalog:": "Catalogo dei preset caricato:",
       "\nFFmpeg / ffprobe · Videoeinlesen und MP4-/Audio-Kodierung": "\nFFmpeg / ffprobe · Decodifica video e codifica MP4/audio",
-      "Externe Installation, nicht Bestandteil dieses Prüfpakets. Die Lizenz hängt vom jeweiligen Build ab.": "Installazione esterna, non inclusa in questo pacchetto di verifica. La licenza dipende dalla build specifica.",
+      "Separates Programm; optional über Setup installiert oder selbst bereitgestellt. Die Lizenz hängt vom verwendeten Build ab. Hinweise: licenses/ffmpeg.": "Programma separato; installato facoltativamente dal programma di installazione o fornito da te. La licenza dipende dalla build utilizzata. Note: licenses/ffmpeg.",
       "Weitere Komponenten: Vortice.Windows, Vortice.Mathematics und SharpGen.Runtime (MIT), .NET (Microsoft und Mitwirkende). Details: licenses/dependency-inventory.json.\n": "Altri componenti: Vortice.Windows, Vortice.Mathematics e SharpGen.Runtime (MIT), .NET (Microsoft e collaboratori). Dettagli: licenses/dependency-inventory.json.\n",
       "Tape & Tube ist ein eigenständiges Projekt und keine offizielle Ausgabe der genannten Projekte.\n": "Tape & Tube è un progetto indipendente e non è una versione ufficiale dei progetti elencati.\n",
       "Eigene Versionen und Pfade lassen sich über components.local.json oder TAPETUBE_* konfigurieren. Referenzstände bestätigen nicht die Version einer selbst ersetzten Bibliothek.": "Configura versioni e percorsi tramite components.local.json o TAPETUBE_*. Le versioni di riferimento non verificano la versione di una libreria sostituita.",
@@ -960,7 +960,7 @@
       "Aktueller Shader-Ordner: ": "Текущая папка шейдеров: ",
       "Geladener Preset-Katalog:": "Загруженный каталог пресетов:",
       "\nFFmpeg / ffprobe · Videoeinlesen und MP4-/Audio-Kodierung": "\nFFmpeg / ffprobe · Декодирование видео и кодирование MP4/аудио",
-      "Externe Installation, nicht Bestandteil dieses Prüfpakets. Die Lizenz hängt vom jeweiligen Build ab.": "Внешняя установка, не включённая в этот проверочный пакет. Лицензия зависит от конкретной сборки.",
+      "Separates Programm; optional über Setup installiert oder selbst bereitgestellt. Die Lizenz hängt vom verwendeten Build ab. Hinweise: licenses/ffmpeg.": "Отдельная программа; устанавливается по выбору или предоставляется пользователем. Лицензия зависит от сборки. Уведомления: licenses/ffmpeg.",
       "Weitere Komponenten: Vortice.Windows, Vortice.Mathematics und SharpGen.Runtime (MIT), .NET (Microsoft und Mitwirkende). Details: licenses/dependency-inventory.json.\n": "Другие компоненты: Vortice.Windows, Vortice.Mathematics и SharpGen.Runtime (MIT), .NET (Microsoft и участники). Подробности: licenses/dependency-inventory.json.\n",
       "Tape & Tube ist ein eigenständiges Projekt und keine offizielle Ausgabe der genannten Projekte.\n": "Tape & Tube — независимый проект, а не официальный выпуск перечисленных проектов.\n",
       "Eigene Versionen und Pfade lassen sich über components.local.json oder TAPETUBE_* konfigurieren. Referenzstände bestätigen nicht die Version einer selbst ersetzten Bibliothek.": "Свои версии и пути задаются через components.local.json или TAPETUBE_*. Эталонные версии не подтверждают версию заменённой библиотеки.",
@@ -1121,7 +1121,6 @@
       "Aktueller Shader-Ordner: ": "当前着色器文件夹： ",
       "Geladener Preset-Katalog:": "已加载的预设目录：",
       "\nFFmpeg / ffprobe · Videoeinlesen und MP4-/Audio-Kodierung": "\nFFmpeg / ffprobe · 视频解码和 MP4/音频编码",
-      "Externe Installation, nicht Bestandteil dieses Prüfpakets. Die Lizenz hängt vom jeweiligen Build ab.": "外部安装，不包含在此审核包中。许可证取决于具体构建版本。",
       "Weitere Komponenten: Vortice.Windows, Vortice.Mathematics und SharpGen.Runtime (MIT), .NET (Microsoft und Mitwirkende). Details: licenses/dependency-inventory.json.\n": "其他组件：Vortice.Windows、Vortice.Mathematics 和 SharpGen.Runtime（MIT）、.NET（Microsoft 及贡献者）。详情：licenses/dependency-inventory.json。\n",
       "Tape & Tube ist ein eigenständiges Projekt und keine offizielle Ausgabe der genannten Projekte.\n": "Tape & Tube 是独立项目，并非上述项目的官方版本。\n",
       "Eigene Versionen und Pfade lassen sich über components.local.json oder TAPETUBE_* konfigurieren. Referenzstände bestätigen nicht die Version einer selbst ersetzten Bibliothek.": "可通过 components.local.json 或 TAPETUBE_* 配置自定义版本和路径。参考版本并不能验证您替换的库版本。",
@@ -1190,7 +1189,8 @@
       "Download öffnen": "打开下载页面",
       "Installation wird von dir gestartet.": "安装由你自行启动。",
       "Einstellung konnte nicht gespeichert werden.": "无法保存设置。",
-      "Downloadseite konnte nicht geöffnet werden.": "无法打开下载页面。"
+      "Downloadseite konnte nicht geöffnet werden.": "无法打开下载页面。",
+      "Separates Programm; optional über Setup installiert oder selbst bereitgestellt. Die Lizenz hängt vom verwendeten Build ab. Hinweise: licenses/ffmpeg.": "独立程序；可通过安装程序选装或自行提供。许可证取决于所用构建版本。声明：licenses/ffmpeg。"
     },
     "ja": {
       "Analoges Video. Digitaler Spielraum.": "アナログ映像。デジタルの可能性。",
@@ -1282,7 +1282,7 @@
       "Aktueller Shader-Ordner: ": "現在のシェーダーフォルダー： ",
       "Geladener Preset-Katalog:": "読み込んだプリセット一覧：",
       "\nFFmpeg / ffprobe · Videoeinlesen und MP4-/Audio-Kodierung": "\nFFmpeg / ffprobe・動画デコードと MP4/音声エンコード",
-      "Externe Installation, nicht Bestandteil dieses Prüfpakets. Die Lizenz hängt vom jeweiligen Build ab.": "外部インストールで、この確認用パッケージには含まれません。ライセンスは使用するビルドに依存します。",
+      "Separates Programm; optional über Setup installiert oder selbst bereitgestellt. Die Lizenz hängt vom verwendeten Build ab. Hinweise: licenses/ffmpeg.": "独立したプログラムです。セットアップで追加するか、ご自身で用意できます。ライセンスはビルドにより異なります。通知：licenses/ffmpeg。",
       "Weitere Komponenten: Vortice.Windows, Vortice.Mathematics und SharpGen.Runtime (MIT), .NET (Microsoft und Mitwirkende). Details: licenses/dependency-inventory.json.\n": "その他のコンポーネント：Vortice.Windows、Vortice.Mathematics、SharpGen.Runtime（MIT）、.NET（Microsoft と貢献者）。詳細：licenses/dependency-inventory.json。\n",
       "Tape & Tube ist ein eigenständiges Projekt und keine offizielle Ausgabe der genannten Projekte.\n": "Tape & Tube は独立したプロジェクトであり、上記プロジェクトの公式リリースではありません。\n",
       "Eigene Versionen und Pfade lassen sich über components.local.json oder TAPETUBE_* konfigurieren. Referenzstände bestätigen nicht die Version einer selbst ersetzten Bibliothek.": "独自のバージョンやパスは components.local.json または TAPETUBE_* で設定できます。参照バージョンは差し替えたライブラリのバージョンを保証しません。",
@@ -1443,7 +1443,6 @@
       "Aktueller Shader-Ordner: ": "현재 셰이더 폴더: ",
       "Geladener Preset-Katalog:": "불러온 프리셋 목록:",
       "\nFFmpeg / ffprobe · Videoeinlesen und MP4-/Audio-Kodierung": "\nFFmpeg / ffprobe · 동영상 디코딩 및 MP4/오디오 인코딩",
-      "Externe Installation, nicht Bestandteil dieses Prüfpakets. Die Lizenz hängt vom jeweiligen Build ab.": "외부 설치이며 이 검토 패키지에 포함되지 않습니다. 라이선스는 해당 빌드에 따라 다릅니다.",
       "Weitere Komponenten: Vortice.Windows, Vortice.Mathematics und SharpGen.Runtime (MIT), .NET (Microsoft und Mitwirkende). Details: licenses/dependency-inventory.json.\n": "기타 구성 요소: Vortice.Windows, Vortice.Mathematics 및 SharpGen.Runtime(MIT), .NET(Microsoft 및 기여자). 자세한 내용: licenses/dependency-inventory.json.\n",
       "Tape & Tube ist ein eigenständiges Projekt und keine offizielle Ausgabe der genannten Projekte.\n": "Tape & Tube는 독립 프로젝트이며 나열된 프로젝트의 공식 배포판이 아닙니다.\n",
       "Eigene Versionen und Pfade lassen sich über components.local.json oder TAPETUBE_* konfigurieren. Referenzstände bestätigen nicht die Version einer selbst ersetzten Bibliothek.": "사용자 지정 버전과 경로는 components.local.json 또는 TAPETUBE_*로 설정할 수 있습니다. 참조 버전은 교체한 라이브러리의 버전을 확인해 주지 않습니다.",
@@ -1512,7 +1511,8 @@
       "Download öffnen": "다운로드 열기",
       "Installation wird von dir gestartet.": "설치는 직접 시작합니다.",
       "Einstellung konnte nicht gespeichert werden.": "설정을 저장하지 못했습니다.",
-      "Downloadseite konnte nicht geöffnet werden.": "다운로드 페이지를 열지 못했습니다."
+      "Downloadseite konnte nicht geöffnet werden.": "다운로드 페이지를 열지 못했습니다.",
+      "Separates Programm; optional über Setup installiert oder selbst bereitgestellt. Die Lizenz hängt vom verwendeten Build ab. Hinweise: licenses/ffmpeg.": "별도 프로그램으로, 설치 프로그램에서 선택하여 설치하거나 직접 준비할 수 있습니다. 라이선스는 사용한 빌드에 따라 다릅니다. 고지: licenses/ffmpeg."
     }
   }
 }

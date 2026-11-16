@@ -14,13 +14,13 @@
 | librashader | https://github.com/SnowflakePowered/librashader | C-API 0.12.0: MPL-2.0 OR GPL-3.0-only laut Quellmanifest; Fremdabhängigkeiten separat prüfen |
 | RetroArch slang-shaders | https://github.com/libretro/slang-shaders | Unterschiedliche Lizenzen je Shader; Originalhinweise im unveränderten Asset-Baum |
 | Vortice.Windows / SharpGen.Runtime | Über NuGet, Versionen im Projekt und Paketcache | MIT laut Paket-/Projektangaben |
-| FFmpeg / ffprobe | https://ffmpeg.org/ – bereits vorhandene lokale Installation | Lizenz und Build-Optionen hängen vom verwendeten Build ab; Ausgabe von `ffmpeg -version` prüfen |
+| FFmpeg / ffprobe | https://ffmpeg.org/ – getrennte Prozesse; optionaler Setup-Download von Gyan Doshi / gyan.dev oder eigene Installation | Referenzdownload 9.0.2 Essentials: GPL v3 laut Anbieter; andere Builds haben eigene Optionen und Lizenzen. Originalhinweise unter `licenses/ffmpeg` nach Setup-Download |
 
 Die Shader werden mit ihren ursprünglichen Dateien und Hinweisen geladen. Bibliotheken und Werkzeuge sind getrennt vom eigenen Quellcode abgelegt. NTSCRT von Finn McKenty ist das Originalprojekt, dessen Kern-Workflow hier für Windows adaptiert wird.
 
 Die lokalen Entwicklungswerkzeuge (.NET SDK, Rust und MinGW) sind Build-Werkzeuge und gehören nicht zu einem späteren App-Paket. Vor einer distributierbaren Ausgabe sind die für die tatsächlich enthaltenen Bibliotheken und Shader erforderlichen Lizenztexte, Hinweise und Quellcodeangebote zusammenzustellen.
 
-Die Video-Vorschau ruft die lokale FFmpeg-Installation als getrennte Hilfsprozesse auf. Dieser Stand lädt und verteilt keinen FFmpeg-Build. Die verwendete lokale Konfiguration liegt in der nicht versionierten Datei `runtime/media-tools.json`.
+Die Video-Vorschau ruft FFmpeg als getrennte Hilfsprozesse auf. Ab dem lokalen Entwicklungsstand 0.1.0-beta.2 kann der Installer einen festgelegten Build direkt beim Anbieter herunterladen, seine SHA-256-Prüfsumme prüfen und ihn nur für diese App installieren. Der Build wird nicht in unseren Installer eingebettet oder auf unserem Release gespiegelt. Originallizenz, README mit Build-Optionen/Quellreferenz und Dokumentation werden unter `licenses/ffmpeg` erhalten. Details und Grenzen: [FFmpeg-Integration](docs/FFMPEG_INSTALLATION.md). Eigene Builds bleiben über Umgebungsvariablen, Komponentenpfade, `runtime/media-tools.json` oder PATH verwendbar und behalten ihre jeweiligen Lizenzen.
 
 Die portable lokale Prüf-ZIP enthält einen Abhängigkeitsbestand unter `licenses/dependency-inventory.json`, gesammelte Originalhinweise und das unveränderte Quellarchiv von librashader 0.12.0 unter `sources/`, sofern es bereitgestellt wurde. Das ist noch keine abgeschlossene Lizenzfreigabe für alle nativen Transitivabhängigkeiten oder Shader/Texturen. Insbesondere fehlen im gepinnten Glow-Shaderverzeichnis ausdrückliche Dateihinweise; siehe `RELEASE_REVIEW.md`.
 

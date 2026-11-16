@@ -7,6 +7,7 @@ artifacts/
 runtime/*.dll
 runtime/*.pdb
 runtime/media-tools.json
+runtime/media-selection.ini
 runtime/current-app.txt
 runtime/current-release.txt
 components.local.json

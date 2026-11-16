@@ -15,7 +15,7 @@ Status: **native dependency packaging checks remain open**. This review covers t
 | Rust runtime | Toolchain notices and license directory collected | Match runtime portions actually linked into host DLL |
 | librashader 0.12.0 | Official Windows ZIP digest verified; extracted and packaged DLL hashes match. Tag resolves to `87e8a97b50516d997defeaa168173dcd185d4022`. Original MPL/GPL texts, MIT C header and tag source archive included | Upstream multi-runtime binary has no complete transitive notice bundle. Provenance is now established; complete transitive notices/source inventory remains open. See `librashader-release-evidence.json` |
 | Microsoft VC v14 / D3DX9_43 | Detected imports; these system DLLs are not copied into the package | Use official prerequisites or assess redistribution terms before installer bundling. D3D11-only rebuild could remove legacy dependency; not done in this audit |
-| FFmpeg | External user installation, not bundled | If bundled later, audit that exact build, enabled codecs/libraries, notices and source obligations first |
+| FFmpeg | Development beta.2: optional direct provider download, pinned Gyan Essentials 9.0.2; GPL v3 per original README/LICENSE. Archive SHA-256 verified; original notices and build docs retained. Own tools still supported | Not embedded or mirrored by Tape & Tube. This is not a complete source inventory of all linked external libraries; embedding/mirroring requires a separate exact-build source review. See [FFMPEG_INSTALLATION.md](FFMPEG_INSTALLATION.md) |
 
 ## Evidence and concrete corrections
 

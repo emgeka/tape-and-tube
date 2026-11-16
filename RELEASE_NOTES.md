@@ -1,30 +1,35 @@
-# v0.1.0-beta.1 — Tape & Tube for Windows
+# v0.1.0-beta.2 — Tape & Tube for Windows
 
-**Tape & Tube is a Windows adaptation of [NTSCRT](https://github.com/finnmckenty/NTSCRT) by Finn McKenty.** NTSCRT is the original macOS application and the starting point for the concept, signal chain and workflow. This release reimplements its core NTSC/VHS → CRT workflow for Windows using ntsc-rs and RetroArch community shaders through librashader.
+**Tape & Tube is a Windows adaptation of [NTSCRT](https://github.com/finnmckenty/NTSCRT) by Finn McKenty.** NTSCRT supplies the original concept, signal chain and workflow. Our C#/WPF application and Rust host integration are independently implemented around ntsc-rs, librashader and RetroArch community shaders. This beta covers a subset of NTSCRT's features; it is not an official NTSCRT release.
 
-The C#/WPF interface and Rust host integration are newly written. This preview covers a subset of the original project’s features; NTSCRT’s Swift/Metal application code is not included.
+## What's new since beta.1
 
-This first beta includes image/video playback, looping, a draggable original/output comparison, PNG export, H.264 MP4 export with synchronized original audio, custom output sizes and ten UI languages. All seven CRT presets are retained. The Windows UI uses a dark layout with a large preview and visible save controls.
+- **One component page** for Visual C++ Runtime, legacy DirectX and optional FFmpeg, with clear Available / Missing / Ready for installation status.
+- **Assisted DirectX setup:** download the pinned original Microsoft package, verify it, extract to a temporary folder and start DXSETUP automatically. No manual extraction path or executable search. You confirm Microsoft's license and administrator prompts; setup waits and checks the actual runtime again.
+- **Optional FFmpeg installation:** download a checksum-pinned FFmpeg/ffprobe pair directly from Gyan Doshi / gyan.dev, use an existing installation, or skip video tools.
+- **Choose between existing FFmpeg installations:** show version and folder for working pairs found in the app folder and PATH; add other folders manually. The selected absolute paths are saved, so a changed PATH order does not silently select another installation. External tools are used in place and are never copied or removed by our uninstaller.
+- Reject mismatched ffmpeg/ffprobe versions and unresponsive tools. Explicit environment overrides remain available.
+
+The core editor remains: images and video, playback/looping, original/output comparison, seven CRT presets, PNG and H.264 MP4 export with synchronized first original audio track, custom output sizes and ten UI languages. New effect families and Linux support are planning topics, not features of this release.
 
 ## Download and install
 
-Download **TapeTube-0.1.0-beta.1-win-x64-setup.exe**, run setup and start Tape & Tube from the Start menu. Windows x64 and a Direct3D 11-capable GPU are required. .NET is included. Setup checks Visual C++ v14 x64 and legacy DirectX (`D3DX9_43.dll`) and opens official Microsoft downloads for missing components. You install those components separately and click **Check again**. Setup is available in German and English; the app supports ten languages.
+Download **TapeTube-0.1.0-beta.2-win-x64-setup.exe**. Windows x64 and a Direct3D 11-capable GPU are required. .NET is included; no development tools are needed. Setup installs per user and adds Start menu and uninstall entries. Visual C++ uses the official Microsoft download. DirectX assistance and the FFmpeg download need internet access; system PATH is not changed.
 
-For video, provide **ffmpeg.exe** and **ffprobe.exe** via an existing PATH installation, select their folder during setup, or add them under `runtime/media`. FFmpeg is not bundled or automatically downloaded. Images work without it.
+FFmpeg's reference download is Gyan Essentials 9.0.2 (GPL v3 per distributor), about 34 MiB. Downloaded tools retain their original license, build documentation and source reference under `licenses/ffmpeg`. FFmpeg and Microsoft installers are downloaded directly from their providers, not embedded in our installer or mirrored here. Images work without FFmpeg.
 
-The matching own-source ZIP and **SHA256SUMS.txt** are attached. The installer also includes that source ZIP, original notices and source references. To build, follow README.md. This unsigned installer may trigger Windows reputation prompts; this beta does not have a signing certificate.
+The attached **TapeTube-0.1.0-beta.2-source.zip** contains matching application/host and installer sources. **SHA256SUMS.txt** covers the installer and source ZIP. The installer includes that source ZIP, original notices, shader sources and upstream source references. This unsigned beta has no signing certificate.
 
-## Limitations
+## Validation and known limits
 
-- **VirtualBox:** CRTSim exports produced black/flickering frames in the tested VM. The same original and saved preset exported all 744 frames correctly on the physical host. Treat virtual-GPU export compatibility as unverified; changing artifact animation did not resolve the failure.
-- **Fresh prerequisite test pending:** installation, Start menu launch, test picture, video opening and uninstallation succeeded in Windows 11 / VirtualBox with Microsoft runtimes already present. The missing-component workflow still needs a fresh-machine test.
-- Preview is silent; exports include the first original audio track as AAC. SDR workflow, variable frame rates normalized to the preview grid, and slower-than-real-time processing are possible. Separate Release/Beta update channels can notify you at startup; downloading and installation remain manual. Automatic checking can be disabled under Updates.
-- Upstream shader-scope uncertainties and incomplete native transitive notice inventory are documented in `docs/SHADER_LICENSE_REVIEW.md` and `docs/DEPENDENCY_LICENSE_REVIEW.md`, also shipped with the app. Existing upstream licenses and notices are preserved; no blanket relicensing is claimed.
+- All 199 existing functional checks passed. Installer download/existing/skip modes, actual selected-tool use, Unicode paths, saved selection on upgrade, missing-selection errors, video/audio export, preservation of external/user files and uninstallation were tested locally. Native tool probes reject version mismatches and time out unresponsive tools.
+- The owner reports successful Windows 11 / VirtualBox installation of the latest candidate and an export without flicker or black frames. **Earlier CRTSim exports did exhibit those faults. They were not reproduced in the latest test; their root cause has not been established, and no permanent fix is claimed.**
+- DirectX download, checksum rejection and automatic extraction were tested without changing system components on the development machine. The owner's overall VM test was successful, but separate results for every fresh-machine missing-runtime/UAC-cancel branch were not recorded. These results do not certify every Windows/GPU configuration.
+- Preview is silent; exports include the first original audio track as AAC. SDR workflow; variable frame rates are normalized to the preview grid. Processing can be slower than real time.
+- Original upstream licenses and notices are preserved. Shader-scope uncertainties and native transitive notice inventory gaps remain documented in `docs/SHADER_LICENSE_REVIEW.md` and `docs/DEPENDENCY_LICENSE_REVIEW.md`. No blanket relicensing or complete legal clearance is claimed.
 
-## Validation
+## Updates and credits
 
-The test suites contain 199 checks, including 17 checks for update-channel selection and preference persistence. Local install/reinstall/uninstall verification and candidate VM validation are recorded separately; the new channel-enabled build still needs the fresh-VM missing-prerequisite test. Release-package validation reports record checks for the actual attached build. These results do not establish compatibility with every Windows computer.
+This is a **Beta-channel prerelease**, not a stable Release-channel version. The app can notify you about updates; downloading and installation remain manual. Automatic checking can be disabled under Updates.
 
-## Credits and license
-
-Our application and host code: GPL-3.0-only. ntsc-rs, librashader, RetroArch shaders, FFmpeg and other third-party components retain their own licenses. Original application concept and workflow: Finn McKenty / NTSCRT. Tape & Tube is a separately maintained Windows adaptation.
+Own application and host code: **GPL-3.0-only**. Finn McKenty / NTSCRT, ntsc-rs, librashader, RetroArch shader authors, FFmpeg and other third-party components retain their own attribution and licenses. See [third-party credits](https://github.com/emgeka/tape-and-tube/blob/main/THIRD_PARTY.md).

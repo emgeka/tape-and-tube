@@ -38,7 +38,7 @@ public partial class MainWindow
         text.AppendLine(Localization.T("Geladener Preset-Katalog:"));
         foreach (var shader in _shaders) text.AppendLine("  " + shader.Key + " → " + shader.Value);
         text.AppendLine(Localization.T("\nFFmpeg / ffprobe · Videoeinlesen und MP4-/Audio-Kodierung"));
-        text.AppendLine(Localization.T("Externe Installation, nicht Bestandteil dieses Prüfpakets. Die Lizenz hängt vom jeweiligen Build ab."));
+        text.AppendLine(Localization.T("Separates Programm; optional über Setup installiert oder selbst bereitgestellt. Die Lizenz hängt vom verwendeten Build ab. Hinweise: licenses/ffmpeg."));
         text.AppendLine(Localization.T("Quelle: https://ffmpeg.org/\n"));
         text.AppendLine(Localization.T("Weitere Komponenten: Vortice.Windows, Vortice.Mathematics und SharpGen.Runtime (MIT), .NET (Microsoft und Mitwirkende). Details: licenses/dependency-inventory.json.\n"));
         text.AppendLine(Localization.T("Tape & Tube ist ein eigenständiges Projekt und keine offizielle Ausgabe der genannten Projekte.\n"));

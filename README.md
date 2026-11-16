@@ -10,7 +10,7 @@
 
 ## Origin: NTSCRT
 
-[NTSCRT](https://github.com/finnmckenty/NTSCRT) is the original macOS application and the starting point for this project. Finn McKenty’s concept, signal-chain organization and media-editing workflow shaped Tape & Tube, including the choice of NTSC/VHS processing and CRT shader families.
+[NTSCRT](https://github.com/finnmckenty/NTSCRT) originated as a macOS application and is the starting point for this project; it now also offers its own Windows preview. Finn McKenty’s concept, signal-chain organization and media-editing workflow shaped Tape & Tube, including the choice of NTSC/VHS processing and CRT shader families.
 
 Tape & Tube reimplements that core workflow in C#/WPF with a Rust host wrapper for Windows. Its application and host code are newly written; the original Swift/Metal implementation is not included. The current Windows adaptation covers a subset of NTSCRT’s features. The original project remains the reference for its broader feature set.
 
@@ -30,11 +30,11 @@ Effect processing comes from the upstream projects. Tape & Tube supplies the Win
 
 ## Availability
 
-**[Download the Windows x64 beta installer](https://github.com/emgeka/tape-and-tube/releases/tag/v0.1.0-beta.1)** or browse the [releases](https://github.com/emgeka/tape-and-tube/releases). Version **0.1.0-beta.1** includes the installer and matching application source. Install for your current Windows user, then start Tape & Tube from the Start menu. The app includes .NET; you do not need the development tools below to run it.
+**[Download the Windows x64 beta installer](https://github.com/emgeka/tape-and-tube/releases/tag/v0.1.0-beta.2)** or browse the [releases](https://github.com/emgeka/tape-and-tube/releases). Version **0.1.0-beta.2** includes the installer and matching application source. Install for your current Windows user, then start Tape & Tube from the Start menu. The app includes .NET; you do not need the development tools below to run it.
 
-Setup checks the required Visual C++ x64 and legacy DirectX components and offers official Microsoft download links if they are missing. FFmpeg and ffprobe are optional external tools for video; setup can copy an existing pair you select. See [installer details](docs/INSTALLER.md).
+Setup checks the required Visual C++ x64 and legacy DirectX components. Install DirectX downloads and verifies Microsoft's package, extracts it automatically and starts interactive DXSETUP, then rechecks. Microsoft's license and administrator prompts remain yours to confirm. Setup can also optionally download and install a checksum-pinned FFmpeg/ffprobe pair, select an existing installation by version and folder, or skip them. See [installer details](docs/INSTALLER.md), [DirectX preparation](docs/DIRECTX_INSTALLATION.md) and [FFmpeg provenance](docs/FFMPEG_INSTALLATION.md).
 
-This is an **unsigned early beta**. Installation, Start menu launch, images, video opening and uninstallation were tested in a Windows 11 VM with prerequisites already installed. Detection/installation of missing prerequisites on a fresh VM is still unverified. **VirtualBox CRTSim exports can contain black frames; the same original/preset exported correctly on the physical host.** See [release review](RELEASE_REVIEW.md) for testing and licensing uncertainties.
+This is an **unsigned early beta**. The owner reports successful Windows 11 VM installation and a latest export without flicker or black frames. Earlier VirtualBox CRTSim export failures were not reproduced in that latest test; their cause is still unconfirmed. Separate results for every fresh-machine missing-runtime/cancel branch were not recorded. See [release review](RELEASE_REVIEW.md) for testing and licensing uncertainties.
 
 The repository contains our source and dependency references, not upstream shader collections, downloaded toolchains, FFmpeg binaries or personal media/configuration. Building from source downloads the pinned upstream components separately.
 
@@ -114,7 +114,7 @@ Our original application code, host integration, scripts and documentation: **GP
 | [ntsc-rs](https://github.com/ntsc-rs/ntsc-rs) | NTSC/VHS signal processing | MIT OR ISC OR Apache-2.0 |
 | [librashader](https://github.com/SnowflakePowered/librashader) | CRT shader execution | C-API 0.12.0 declares MPL-2.0 OR GPL-3.0-only; C header MIT; transitive notices separately documented |
 | [RetroArch slang-shaders](https://github.com/libretro/slang-shaders) | CRT effects, masks, scanlines, glow | Varies by file; preserve original notices |
-| [FFmpeg](https://ffmpeg.org/) | Media decoding and video/audio encoding | Depends on the separately installed build |
+| [FFmpeg](https://ffmpeg.org/) | Media decoding and video/audio encoding | Optional setup download: Gyan Essentials 9.0.2, GPL v3 per distributor; other builds retain their licenses |
 | Vortice.Windows / SharpGen.Runtime | Managed graphics bindings | MIT; see package metadata |
 
 [Full third-party notes](THIRD_PARTY.md). Tape & Tube is not an official release of NTSCRT, ntsc-rs, RetroArch or librashader.

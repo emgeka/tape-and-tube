@@ -1,0 +1,14 @@
+{
+  "version": "9.0.2",
+  "provider": "Gyan Doshi / gyan.dev",
+  "homepage": "https://www.gyan.dev/ffmpeg/builds/",
+  "releaseUrl": "https://github.com/GyanD/codexffmpeg/releases/tag/9.0.2",
+  "url": "https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-essentials_build.7z",
+  "archive": "ffmpeg-9.0.2-essentials_build.7z",
+  "root": "ffmpeg-9.0.2-essentials_build",
+  "sha256": "4705843ccaaf54257c16ad90f3e952ece33c17df964ecf7bfdbb0f49c7171077",
+  "bytes": 35430500,
+  "license": "GPL v3 (provider declaration; original LICENSE retained)",
+  "sourceUrl": "https://github.com/FFmpeg/FFmpeg/commit/946fcce07b",
+  "delivery": "Optional direct upstream download at installation; not embedded or mirrored by Tape & Tube"
+}

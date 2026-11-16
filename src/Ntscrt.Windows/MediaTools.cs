@@ -12,6 +12,28 @@ internal static class MediaTools
         var variable = Environment.GetEnvironmentVariable("TAPETUBE_" + name.ToUpperInvariant())
             ?? Environment.GetEnvironmentVariable("NTSCRT_" + name.ToUpperInvariant());
         if (!string.IsNullOrWhiteSpace(variable)) return File.Exists(variable) ? Path.GetFullPath(variable) : throw new FileNotFoundException(Localization.T("Das konfigurierte Medienwerkzeug wurde nicht gefunden."), variable);
+        var selection = Path.Combine(Paths.Root, "runtime", "media-selection.ini");
+        if (File.Exists(selection))
+        {
+            var tools = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var inTools = false;
+            foreach (var raw in File.ReadLines(selection))
+            {
+                var line = raw.Trim();
+                if (line.StartsWith('[')) { inTools = line.Equals("[tools]", StringComparison.OrdinalIgnoreCase); continue; }
+                if (!inTools || line.StartsWith(';') || line.StartsWith('#')) continue;
+                var equals = line.IndexOf('=');
+                if (equals > 0) tools[line[..equals].Trim()] = line[(equals + 1)..].Trim();
+            }
+            if (tools.Count > 0)
+            {
+                if (!tools.TryGetValue("ffmpeg", out var selectedFfmpeg) || !tools.TryGetValue("ffprobe", out var selectedFfprobe) ||
+                    !Path.IsPathFullyQualified(selectedFfmpeg) || !Path.IsPathFullyQualified(selectedFfprobe))
+                    throw new InvalidDataException(Localization.T("Das konfigurierte Medienwerkzeug wurde nicht gefunden."));
+                var selected = name.Equals("ffmpeg", StringComparison.OrdinalIgnoreCase) ? selectedFfmpeg : selectedFfprobe;
+                return File.Exists(selected) ? selected : throw new FileNotFoundException(Localization.T("Das konfigurierte Medienwerkzeug wurde nicht gefunden."), selected);
+            }
+        }
         var configured = Components.ConfiguredPath(name, "TAPETUBE_" + name.ToUpperInvariant());
         if (configured != null) return File.Exists(configured) ? configured : throw new FileNotFoundException(Localization.T("Das konfigurierte Medienwerkzeug wurde nicht gefunden."), configured);
         var bundled = Path.Combine(Paths.Root, "runtime", "media", name + ".exe");

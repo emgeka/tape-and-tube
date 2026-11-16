@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-beta.2 — 2026-11-16
+
+- Existing FFmpeg installations are listed by version and folder. Setup checks matching, responsive ffmpeg/ffprobe pairs with a bounded native helper and saves the selected absolute paths. External tools are used in place and never copied or uninstalled by Tape & Tube.
+- One component page combines C++/DirectX status and actions with optional FFmpeg installation or existing-tool selection. Detected app/PATH tools are reused by default; missing required components block Next.
+- Setup's Install DirectX action downloads the pinned original Microsoft package, automatically extracts it and launches interactive elevated DXSETUP; the actual runtime is rechecked afterwards. No manual extraction path or executable search is needed.
+- Setup can optionally download and install a checksum-pinned FFmpeg/ffprobe build directly from its upstream distributor, retaining the original license, build information and documentation. Existing tools and skipping remain supported. No system PATH changes.
+- Effect expansion and a Linux edition are under evaluation; neither is implemented by this installer change.
+
 ## 0.1.0-beta.1 — Windows beta
 
 First Windows adaptation of [NTSCRT](https://github.com/finnmckenty/NTSCRT) by Finn McKenty, reimplementing the original project’s core workflow with a new WPF interface and Rust host integration.
