@@ -2,6 +2,8 @@
 
 Stand: 16.11.2026. Ziel: Tape & Tube soll beim Effektumfang mit NTSCRT mithalten und darüber hinaus eigene Vorteile bieten. Bestehende Open-Source-Prozessoren sollen flexibel eingebunden werden. Eine Linux-Ausgabe ist ausdrücklich in die Planung aufzunehmen. Diese Datei beschreibt Untersuchungen und Entscheidungen; sie kündigt keine bereits implementierten Effekte oder Linux-Binärpakete an.
 
+Fortschritt nach Veröffentlichung von Beta.2: Der [Entwicklungsplan in sechs Etappen](ROADMAP.md) hält die Reihenfolge fest. Die [Funktions- und Architekturübersicht zu NTSCRT v0.26.0](NTSCRT_COMPARISON.md) schließt Etappe 2 als Quellcodeanalyse ab und konkretisiert die folgenden allgemeinen Kandidaten. Der [getrennte Digitalvideo-/wgpu-Prototyp](../prototypes/processing-core/README.md) ist inzwischen unter Windows und am 17.11.2026 auch nativ unter Linux Mint 22.3/VirtualBox geprüft. Dort bestehen je 12 CPU-Tests, 433 externe C-ABI-Prüfungen und 29 Grafik-/Medienprüfungen mit Mesa-Software-Rendering. Der Standard-VM-Grafiktreiber unterstützt die erforderlichen Compute-Shader nicht. [Linux-Testbericht und Plattformvergleich](LINUX_CORE_TEST.md). Die veröffentlichte App hat diese Erweiterungen noch nicht.
+
 ## Geeignete Quellen
 
 | Projekt | Nutzen | Einbindung und nächster Nachweis |

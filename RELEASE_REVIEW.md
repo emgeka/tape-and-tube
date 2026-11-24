@@ -1,4 +1,10 @@
-# Release review — 0.1.0-beta.2
+# Release review — 0.1.0-beta.3 test candidate
+
+Local Windows installer for testing. Public release approval and fresh Windows 11 VM validation are pending. Own application and host code are GPL-3.0-only. Third-party projects retain their original licenses and attribution.
+
+The Windows test build passed the language, output and integration suites. Desktop verification covered changing the interface from German to French, opening the output panel at minimum window width, dragging both Screen Loop handles and importing an animated NTSCRT look. Two five-second MP4 exports from a still taken from the reference clip decoded completely. Package validation and fresh-machine installation are separate checks. See `docs/WINDOWS_ACCEPTANCE.md` for the results and remaining VM test.
+
+## Historical review — 0.1.0-beta.2
 
 The owner authorized publication on 2026-11-16 after reporting a successful Windows 11 VM installer test and export without flicker or black frames. Own application/host code remains GPL-3.0-only; third parties retain their licenses. This is a prerelease, not a blanket platform or licensing clearance.
 

@@ -1,4 +1,16 @@
-# v0.1.0-beta.2 — Tape & Tube for Windows
+# v0.1.0-beta.3 — Tape & Tube for Windows
+
+Tape & Tube 0.1.0-beta.3 is a Windows x64 prerelease and an adaptation of [NTSCRT](https://github.com/finnmckenty/NTSCRT) by Finn McKenty.
+
+- Digital camera formats, VCR, TV reception and Screen Loop join NTSC/VHS and CRT. Import NTSCRT looks, including animated looks.
+- Source crop, preview zoom, first and last frame controls, and direct access to output settings from the save buttons.
+- PNG, H.264 and HEVC MP4, and animated GIF. Supported HDR inputs are tone-mapped to SDR for editing and export.
+- Effect labels, choices and tooltips are available in all ten interface languages.
+- New CRT icon in the app and setup. The German setup overview is localized, and the optional FFmpeg download can be prepared and verified on the component page.
+
+Windows 11 in VirtualBox was tested with a short MP4 export with audio and all effects disabled. Digitalvideo, VCR, TV reception, Screen Loop and imported NTSCRT looks use the shared renderer and require a graphics adapter that supports compute shaders. The virtual graphics adapter selected in the test VM could not initialize that renderer. A CRTsim export from the reference clip was verified on the physical Windows host.
+
+## Previous release — v0.1.0-beta.2
 
 **Tape & Tube is a Windows adaptation of [NTSCRT](https://github.com/finnmckenty/NTSCRT) by Finn McKenty.** NTSCRT supplies the original concept, signal chain and workflow. Our C#/WPF application and Rust host integration are independently implemented around ntsc-rs, librashader and RetroArch community shaders. This beta covers a subset of NTSCRT's features; it is not an official NTSCRT release.
 

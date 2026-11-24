@@ -6,6 +6,14 @@
 
 ## Effektprozessoren und weitere Komponenten
 
+Der Windows-Entwicklungsbuild verwendet auch NTSCRTs MIT-lizenzierte VCR- und TV-Empfangssimulation aus `port/engine/src/glitch`. Die Regler und Band-/Deckwerte werden aus den Originaldefinitionen dieses bereits gepinnten Engine-Quellstands übernommen.
+
+Screen Loop nutzt aus demselben Quellstand die MIT-lizenzierte Rückkopplungs-Engine aus `port/engine/src/howl` und die fünf mitgelieferten NTSCRT-Presets aus `presets/Screen Loop`. Die Windows-Oberfläche und die Anbindung an Vorschau und MP4-Export gehören zum eigenen Host.
+
+Der gemeinsame Effektkern verwendet Finn McKentys **MIT-lizenzierte Digitalvideo-Module und Rust-/wgpu-Engine aus NTSCRT 0.28.1** (Revision `0ab60bf952b09a0c41ea4290979f23dadd963614`). Der [Originalhinweis](licenses/upstream/NTSCRT-MIT.txt) gilt für diese übernommenen Module. Unser [Host-Patch](prototypes/processing-core/engine-adapter/host-lifecycle.patch) ergänzt Adapterprüfung, Zustandsreset und eine CRT-Zwischengröße für kleine Ausgaben.
+
+Der Worker verwendet librashader `76462c030b75c4f2d56e5386c3d4d7d1128318b8` mit Finns Push-Constant-Patch, getrennt von der bisherigen C-API-DLL 0.12.0. Quellen, SHA-256 und Änderungen stehen in [upstream-sources.json](prototypes/processing-core/upstream-sources.json). Unter Windows gehören seine drei MinGW-Laufzeit-DLLs zum Worker: libstdc++, libgcc und winpthreads. Deren Originalhinweise und GCC Runtime Library Exception werden beim lokalen Build mitkopiert. Das Paketverfahren erfasst zusätzlich die Worker-Cargo-Abhängigkeiten, Originalarchive und den Host-Patch. Eine vollständige neue Binärfreigabe einschließlich eingebetteter nativer Build-Abhängigkeiten bleibt vor der nächsten Veröffentlichung erforderlich. Die öffentliche Beta.2 enthält diese neue Integration noch nicht.
+
 **Tape & Tube** liefert eigene Oberfläche, Ablaufsteuerung, Presets, Ausgabegeometrie und die Host-Anbindung. Die NTSC-/VHS-Simulation ist ntsc-rs; CRT-Effekte sind Arbeit der jeweiligen Shader-Autoren; librashader führt diese Shader aus; FFmpeg übernimmt Medienverarbeitung. Unsere GPL-3.0-only-Lizenz ersetzt keine dieser Fremdlizenzen.
 
 | Bestandteil | Quelle | Lizenzangabe des Projekts |
@@ -18,7 +26,7 @@
 
 Die Shader werden mit ihren ursprünglichen Dateien und Hinweisen geladen. Bibliotheken und Werkzeuge sind getrennt vom eigenen Quellcode abgelegt. NTSCRT von Finn McKenty ist das Originalprojekt, dessen Kern-Workflow hier für Windows adaptiert wird.
 
-Die lokalen Entwicklungswerkzeuge (.NET SDK, Rust und MinGW) sind Build-Werkzeuge und gehören nicht zu einem späteren App-Paket. Vor einer distributierbaren Ausgabe sind die für die tatsächlich enthaltenen Bibliotheken und Shader erforderlichen Lizenztexte, Hinweise und Quellcodeangebote zusammenzustellen.
+Die lokalen Entwicklungswerkzeuge (.NET SDK, Rust-Compiler und MinGW-Compiler) sind Build-Werkzeuge und gehören nicht zum App-Paket. Benötigte Laufzeitdateien sind davon getrennt zu betrachten; insbesondere verwendet der neue Worker die oben genannten MinGW-Laufzeit-DLLs. Vor einer distributierbaren Ausgabe sind die für die tatsächlich enthaltenen Bibliotheken und Shader erforderlichen Lizenztexte, Hinweise und Quellcodeangebote zusammenzustellen.
 
 Die Video-Vorschau ruft FFmpeg als getrennte Hilfsprozesse auf. Ab dem lokalen Entwicklungsstand 0.1.0-beta.2 kann der Installer einen festgelegten Build direkt beim Anbieter herunterladen, seine SHA-256-Prüfsumme prüfen und ihn nur für diese App installieren. Der Build wird nicht in unseren Installer eingebettet oder auf unserem Release gespiegelt. Originallizenz, README mit Build-Optionen/Quellreferenz und Dokumentation werden unter `licenses/ffmpeg` erhalten. Details und Grenzen: [FFmpeg-Integration](docs/FFMPEG_INSTALLATION.md). Eigene Builds bleiben über Umgebungsvariablen, Komponentenpfade, `runtime/media-tools.json` oder PATH verwendbar und behalten ihre jeweiligen Lizenzen.
 

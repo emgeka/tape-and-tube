@@ -1,5 +1,6 @@
 {
   "shaderRoot": null,
+  "coreWorker": null,
   "ntscLibrary": "ntscrt_ntsc.dll",
   "librashaderLibrary": "librashader.dll",
   "ffmpeg": null,

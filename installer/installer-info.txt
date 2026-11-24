@@ -8,10 +8,10 @@ All seven CRT presets, original notices, license review and matching own
 source ZIP are included. Known upstream shader-scope uncertainties are
 documented, following the project's adopted upstream-oriented policy.
 
-This beta is unsigned. Setup optionally downloads a checksum-pinned FFmpeg
-build directly from Gyan Doshi / gyan.dev (GPL v3), or uses your own tools.
-The download is not embedded in this installer. Original license and build
-documentation accompany the downloaded tools; see licenses\ffmpeg.
+This beta is unsigned. Setup can download and verify FFmpeg on the component
+page (Gyan Doshi / gyan.dev, GPL v3), or use an existing installation.
+Setup copies the prepared download into the app folder during installation.
+Original license and build documentation are in licenses\ffmpeg.
 Required Microsoft runtimes are checked. DirectX can be downloaded from
 Microsoft, verified and extracted automatically; DXSETUP then shows its
 own license and administrator prompts. System components are not silently

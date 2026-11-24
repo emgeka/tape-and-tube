@@ -8,6 +8,8 @@
 
 [Deutsche Dokumentation](docs/README.de.md) · [Third-party credits](THIRD_PARTY.md) · [Release notes](CHANGELOG.md)
 
+**Local development, 20 November 2026.** The Windows app integrates NTSCRT's MIT-licensed Rust/wgpu engine and digital-video codec. Select Webcam, MiniDV or CD-ROM in the digital video stage for preview and export. Selecting a format preserves the current NTSC and CRT settings. Existing presets keep the legacy renderer. See [integration and test details](docs/DIGITAL_VIDEO_INTEGRATION.md).
+
 ## Origin: NTSCRT
 
 [NTSCRT](https://github.com/finnmckenty/NTSCRT) originated as a macOS application and is the starting point for this project; it now also offers its own Windows preview. Finn McKenty’s concept, signal-chain organization and media-editing workflow shaped Tape & Tube, including the choice of NTSC/VHS processing and CRT shader families.

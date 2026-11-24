@@ -39,6 +39,22 @@ internal static class OutputSmoke
         Check(rejected == 5, "Ungültige oder übergroße Zielmaße werden abgelehnt");
         var custom = new OutputSettings(1080, 1920, OutputFit.Crop);
         Check(JsonSerializer.Deserialize<OutputSettings>(JsonSerializer.Serialize(custom)) == custom, "Ausgabegröße und Bildanpassung überstehen einen JSON-Roundtrip");
+        var snappedFit = new OutputSettings(150, 150).ScanlineGeometry(96, 64, 64, OutputSettings.MaxSide);
+        Check(snappedFit is { Width: 192, Height: 192, ContentHeight: 128, Top: 32 },
+            "Scanline-Raster richtet die Bildhöhe innerhalb der schwarzen Ränder aus");
+        var snappedPortrait = new OutputSettings(960, 1707, OutputFit.Crop).ScanlineGeometry(540, 960, 320, OutputSettings.MaxSide);
+        Check(snappedPortrait is { Width: 900, Height: 1600, ContentHeight: 1600 },
+            "Scanline-Raster erhält einen Hochkant-Beschnitt");
+        var gifLimit = new OutputSettings(480, 270).ScanlineGeometry(1920, 1080, 1080, VideoExporter.GifMaxAutomaticSide);
+        Check(gifLimit is { Width: 480, Height: 270 }, "Automatische GIF-Größe hält ihre Grenze bei aktivem Raster ein");
+        var gifInfo = new VideoInfo("", 1920, 1080, 30, "30/1", 150, 0);
+        var smallGif = VideoExporter.EstimateGif(gifInfo, null, null, new(), false, 0);
+        Check(smallGif is { Width: 480, Height: 270, Frames: 63, IsLarge: false }, "GIF-Schätzung übernimmt automatische Maße und Bildrate");
+        var bigGif = VideoExporter.EstimateGif(gifInfo, new(320, 200), new SourceCrop("1:1"), new(800, 30), false, 0);
+        Check(bigGif is { Width: 800, Height: 800, Frames: 150, IsLarge: true } && Math.Abs(bigGif.Megabytes - 76.8) < 0.001,
+            "GIF-Schätzung berücksichtigt Beschnitt und eigene Einstellungen sowie die 10-MB-Schwelle");
+        var snappedGif = VideoExporter.EstimateGif(gifInfo, null, null, new(800, 20), true, 240);
+        Check(snappedGif is { Width: 853, Height: 480, Frames: 100 }, "Die GIF-Schätzung berücksichtigt das Scanline-Raster");
 
         var source = PixelFrame.TestPattern();
         var settings = new RenderSettings(false, true, NtscProcessor.Defaults().ToJsonString(),

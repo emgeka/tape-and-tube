@@ -1,4 +1,10 @@
-# Publication — 0.1.0-beta.2
+# Publication
+
+## Beta.3 authorization — 2026-11-24
+
+The owner authorized public GitHub publication of v0.1.0-beta.3 as a prerelease, with the exact VM-tested Windows x64 installer and its matching source archive. The standalone release notes record the virtual GPU limitation. SHA256SUMS.txt lists the two uploaded assets.
+
+## Published beta — 0.1.0-beta.2
 
 The owner explicitly authorized publishing beta.2 on 2026-11-16, following successful Windows 11 VM installation and export feedback. Publish source and Windows installer as a public GitHub prerelease. Do not declare 0.1.0 stable.
 

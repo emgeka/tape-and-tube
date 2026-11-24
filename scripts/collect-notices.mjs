@@ -13,6 +13,8 @@ for(const source of supplementalSources){
   if(blob!==source.gitBlob)throw Error('Original upstream notice changed: '+source.file);
 }
 const entries=[];
+const core = path.join(root, 'prototypes/processing-core');
+const pins = JSON.parse(fs.readFileSync(path.join(core, 'upstream-sources.json'), 'utf8'));
 function copyNotices(directory, target) {
   if (!fs.existsSync(directory)) return [];
   const copied=[];
@@ -27,6 +29,7 @@ for (const pkg of metadata.packages) {
   if (pkg.name === 'ntscrt-ntsc') continue;
   const directory=path.dirname(pkg.manifest_path), target=path.join(destination,'rust',`${pkg.name}-${pkg.version}`);
   const copied=copyNotices(directory,target);
+  if(pkg.name==='ntscrt-engine'||pkg.name==='ntscrt-codec')copied.push(...copyNotices(path.join(core,'upstream',pins.ntscrt.directory),target));
   if(pkg.name==='ntsc-rs'||pkg.name==='ntsc-rs-macros') copied.push(...copyNotices(path.resolve(directory,'../..'),target));
   if(pkg.license_file && fs.existsSync(path.join(directory,pkg.license_file))) {
     fs.mkdirSync(target,{recursive:true});fs.copyFileSync(path.join(directory,pkg.license_file),path.join(target,path.basename(pkg.license_file)));

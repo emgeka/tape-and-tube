@@ -1,0 +1,57 @@
+diff --git a/port/engine/src/lib.rs b/port/engine/src/lib.rs
+--- a/port/engine/src/lib.rs
++++ b/port/engine/src/lib.rs
+@@ -398,6 +398,12 @@ impl Engine {
+             compatible_surface: None,
+         }))?;
+         let info = adapter.get_info();
++        anyhow::ensure!(adapter.get_downlevel_capabilities().flags.contains(wgpu::DownlevelFlags::COMPUTE_SHADERS),
++            "The selected graphics adapter does not support compute shaders");
++        anyhow::ensure!(info.device_type != wgpu::DeviceType::Cpu
++            || std::env::var("NTSCRT_ALLOW_SOFTWARE").as_deref() == Ok("1")
++            || std::env::var("LIBGL_ALWAYS_SOFTWARE").as_deref() == Ok("1"),
++            "Software graphics require explicit NTSCRT_ALLOW_SOFTWARE=1");
+         let (device, queue) = pollster::block_on(adapter.request_device(&wgpu::DeviceDescriptor {
+             label: Some("ntscrt-engine"),
+             required_features: wgpu::Features::empty(),
+@@ -545,6 +551,21 @@ impl Engine {
+     /// `digital_in_background` is on.
+     pub const DIGITAL_BACKGROUND_ABOVE: i64 = 6;
+ 
++    /// Tape & Tube: restart all temporal effects while retaining the GPU device.
++    pub fn reset_host_state(&mut self) {
++        self.chain = None;
++        self.digital = codec::DigitalVideoRenderer::new();
++        self.glitch = glitch::stage::Renderer::default();
++        self.howl = None;
++        self.source = None;
++        self.prepared = None;
++        self.next_source = 1;
++        self.last_prepare_ms = 0.0;
++        self.digital_rerun = None;
++        self.digital_ready = None;
++        self.last_interim = false;
++    }
++
+     pub fn adapter_info(&self) -> &wgpu::AdapterInfo {
+         &self.info
+     }
+@@ -763,6 +784,18 @@ impl Engine {
+         self.howl_feed(&mut enc, &chain_input, settings)?;
+         let (iw, ih) = (chain_input.width(), chain_input.height());
+         let render_size = match &settings.shader {
++            Some(_) if out.1 < ih => {
++                // Below one output row per source line a CRT pass can sample
++                // only the gaps between scanlines. Resolve the CRT first,
++                // then integrate its light into the smaller requested image.
++                let limit = self.device.limits().max_texture_dimension_2d.min(8192);
++                [2, 1].into_iter().map(|scale| {
++                    let h = ih * scale;
++                    let w = (f64::from(out.0) * f64::from(h) / f64::from(out.1)).round() as u32;
++                    (w, h)
++                }).find(|&(w, h)| w <= limit && h <= limit && u64::from(w) * u64::from(h) <= 24_000_000)
++                    .unwrap_or(out)
++            }
+             Some(_) => {
+                 let k = export::supersample_factor(ih, out.1);
+                 if k > 1 {

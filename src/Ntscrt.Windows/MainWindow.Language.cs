@@ -22,8 +22,10 @@ public partial class MainWindow
         try
         {
             Localization.SetPreference((string)item.Tag);
+            BuildCropControls();
             PlayButton.Content = _playing ? Localization.T("Pause") : Localization.T("Abspielen");
             UpdateTransport();
+            UpdatePreparedFramesLabel();
             if (_outputInputValid) UpdateOutputInfo();
             else OutputSizeInfo.Text = Localization.T("Bitte gültige ganze Maße eingeben: 1–8192 Pixel, zusammen höchstens 24 Megapixel.");
             if (_exportCancellation == null) Status.Text = Localization.T("Sprache geändert.");

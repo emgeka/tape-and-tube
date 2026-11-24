@@ -11,6 +11,20 @@ public partial class App : Application
         base.OnStartup(e);
         Localization.Initialize();
         Components.ConfigureNativeLibraries();
+        if (e.Args.Contains("--gif-smoke"))
+        {
+            var directory = Path.Combine(Paths.Root, "artifacts", "gif-fixtures");
+            Directory.CreateDirectory(directory);
+            try { await GifSmoke.RunStandaloneAsync(directory); Shutdown(0); }
+            catch (Exception ex) { File.WriteAllText(Path.Combine(directory, "error.txt"), ex.ToString()); Shutdown(1); }
+            return;
+        }
+        if (e.Args.Contains("--digital-smoke"))
+        {
+            try { await DigitalSmoke.RunAsync(); Shutdown(0); }
+            catch(Exception ex) { Directory.CreateDirectory(Paths.Root+"/artifacts");File.WriteAllText(Paths.Root+"/artifacts/digital-smoke-error.txt",ex.ToString());Shutdown(1); }
+            return;
+        }
         if (e.Args.Contains("--update-smoke"))
         {
             try { UpdateSmoke.Run(); Shutdown(0); }
@@ -57,7 +71,9 @@ public partial class App : Application
             }
             return;
         }
-        var window = new MainWindow();
+        MainWindow window;
+        try { window = new MainWindow(); }
+        catch(Exception ex) { Directory.CreateDirectory(Paths.Root+"/artifacts");File.WriteAllText(Paths.Root+"/artifacts/startup-error.txt",ex.ToString());Shutdown(1);return; }
         window.Show();
         if (e.Args.Contains("--demo")) window.LoadDemo();
         var videoArgument = Array.IndexOf(e.Args, "--video");

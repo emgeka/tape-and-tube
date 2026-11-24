@@ -3,12 +3,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace Ntscrt.Windows;
 
 public partial class MainWindow
 {
-    private OutputSettings? _previewOutputSettings;
+    private OutputGeometry? _previewLayout;
     private void CompareChanged(object sender, RoutedEventArgs e)
     {
         if (!_ready) return;
@@ -25,13 +26,25 @@ public partial class MainWindow
     {
         var comparing = SplitComparison.IsChecked == true && _source != null && _output != null;
         SplitComparison.IsEnabled = _source != null && _output != null;
-        Preview.Source = (ShowOriginal.IsChecked == true ? _source : _output ?? _source)?.Bitmap();
-        OriginalPreview.Source = comparing ? _source!.Bitmap() : null;
+        var frame = DisplayedPreviewFrame;
+        Preview.Source = frame?.Bitmap();
+        PreviewNavigation.Visibility = frame == null ? Visibility.Collapsed : Visibility.Visible;
+        OriginalPreview.Source = comparing
+            ? _previewCrop is { } crop
+                ? new CroppedBitmap(_source!.Bitmap(), crop.Rectangle(_source.Width, _source.Height))
+                : _source!.Bitmap()
+            : null;
         OriginalLayer.Visibility = DividerLayer.Visibility = ComparisonControls.Visibility = comparing ? Visibility.Visible : Visibility.Collapsed;
-        UpdateComparisonLayout();
+        UpdatePreviewNavigationLayout();
     }
-    private ComparisonLayout CurrentComparisonLayout() => ComparisonLayout.Calculate(PreviewHost.ActualWidth, PreviewHost.ActualHeight,
-        _source!.Width, _source.Height, _output!.Width, _output.Height, _previewOutputSettings?.Fit ?? OutputFit.Fit, ComparePosition.Value / 100);
+    private ComparisonLayout CurrentComparisonLayout()
+    {
+        var source = _source!;
+        var rect = _previewCrop?.Rectangle(source.Width, source.Height);
+        return ComparisonLayout.Calculate(PreviewHost.ActualWidth, PreviewHost.ActualHeight, rect?.Width ?? source.Width,
+            rect?.Height ?? source.Height, _output!.Width, _output.Height, OutputFit.Fit, ComparePosition.Value / 100,
+            _previewLayout, PreviewZoomChoice.Value, _previewPan, CurrentPreviewGrid(_output));
+    }
     private void UpdateComparisonLayout()
     {
         if (PreviewHost == null || _source == null || _output == null || OriginalLayer.Visibility != Visibility.Visible) return;
@@ -42,10 +55,16 @@ public partial class MainWindow
         OriginalMatte.Width = view.Width; OriginalMatte.Height = view.Height;
         Canvas.SetLeft(OriginalPreview, layout.Original.Left); Canvas.SetTop(OriginalPreview, layout.Original.Top);
         OriginalPreview.Width = layout.Original.Width; OriginalPreview.Height = layout.Original.Height;
-        Canvas.SetLeft(CompareDivider, layout.Divider - CompareDivider.Width / 2); Canvas.SetTop(CompareDivider, view.Top);
-        CompareDivider.Height = view.Height;
+        SetPreviewSampling(OriginalPreview, layout.Original, CurrentPreviewGrid(_output));
+        var visibleTop = Math.Max(0, view.Top);
+        var visibleBottom = Math.Min(PreviewHost.ActualHeight, view.Bottom);
+        CompareDivider.Visibility = layout.Divider >= 0 && layout.Divider <= PreviewHost.ActualWidth
+            ? Visibility.Visible : Visibility.Collapsed;
+        Canvas.SetLeft(CompareDivider, layout.Divider - CompareDivider.Width / 2);
+        Canvas.SetTop(CompareDivider, visibleTop);
+        CompareDivider.Height = Math.Max(0, visibleBottom - visibleTop);
     }
-    private void PreviewSizeChanged(object sender, SizeChangedEventArgs e) => UpdateComparisonLayout();
+    private void PreviewSizeChanged(object sender, SizeChangedEventArgs e) => UpdatePreviewNavigationLayout();
     private void SplitPositionChanged(object sender, RoutedPropertyChangedEventArgs<double> e) => UpdateComparisonLayout();
     private void CompareDividerDragged(object sender, DragDeltaEventArgs e)
     {

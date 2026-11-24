@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Win32;
 
@@ -23,35 +24,61 @@ public partial class MainWindow : Window
     private bool _ready, _busy, _pending, _closing;
     private int _version;
     private string? _controlsShader;
+    private string? _controlsRenderer;
 
     public MainWindow()
     {
         InitializeComponent();
+        DpiChanged += (_, _) => Dispatcher.InvokeAsync(UpdatePreviewNavigationLayout, System.Windows.Threading.DispatcherPriority.Loaded);
+        Mp4LoopChoice.ItemsSource = Enumerable.Range(1, VideoExporter.MaxLoops).Select(count => $"{count}×");
+        Mp4LoopChoice.SelectedIndex = 0;
         InitializeLanguage();
-        InitializeVideo();
         InitializeUpdates();
         _debounce.Tick += async (_, _) => { _debounce.Stop(); await Render(); };
+        _prepareTimer.Tick += (_, _) => _preparation = PreparePreviewAsync();
+        _stillMotionTimer.Tick += async (_, _) => await TickStillMotionAsync();
         try
         {
+            InitializeDigital();
+            RestoreAnalog(null);
+            InitializeScreenLoop();
             _ntsc = NtscProcessor.Defaults(); _schema = NtscProcessor.Schema();
-            foreach (var preset in Components.ShaderPresets())
+            foreach (var (name, path) in Components.AvailableShaderPresets())
             {
-                var path = Path.GetFullPath(preset, Paths.ShaderRoot);
-                var name = Path.GetFileNameWithoutExtension(path);
-                if (_shaders.ContainsKey(name)) name = preset.Replace('\\', '/');
-                if (_shaders.ContainsKey(name)) continue;
-                if (File.Exists(path)) { _shaders.Add(name, path); ShaderChoice.Items.Add(name); }
+                _shaders.Add(name, path);
+                ShaderChoice.Items.Add(name);
             }
             if (_shaders.Count == 0) throw new FileNotFoundException(Localization.T("Die CRT-Shader fehlen. Bitte scripts/setup.ps1 ausführen."));
             ShaderChoice.SelectedIndex = 0;
             BuildNtscControls();
+            InitializeCrop();
+            RefreshEffectAvailability();
+            InitializeKeyframes();
             _ready = true;
             Status.Text = Localization.T("Bereit · Originaleffekte von ntsc-rs und der RetroArch-Shader-Community");
         }
         catch (Exception ex) { Error(ex); }
     }
 
-    private void Changed(object sender, RoutedEventArgs e) => Schedule();
+    private void Changed(object sender, RoutedEventArgs e)
+    {
+        if (!_ready) return;
+        RefreshEffectAvailability();
+        RefreshKeyframeAvailability();
+        Schedule();
+    }
+
+    private void RefreshEffectAvailability()
+    {
+        var screenLoop = InScreenLoop;
+        DigitalPanel.IsEnabled = !screenLoop;
+        DigitalPausedHint.Visibility = screenLoop ? Visibility.Visible : Visibility.Collapsed;
+        var downscale = SelectedDownscaleEnabled;
+        WidthChoice.IsEnabled = downscale ?? (CrtEnabled.IsChecked == true || VcrEnabled.IsChecked == true ||
+            ReceptionEnabled.IsChecked == true || DigitalEnabled.IsChecked == true || screenLoop);
+        DownscaleMethodChoice.IsEnabled = WidthChoice.IsEnabled;
+        ScaleChoice.IsEnabled = downscale != false && CrtEnabled.IsChecked == true && OutputChoice.SelectedIndex == 0;
+    }
     private void OpenDemo(object sender, RoutedEventArgs e) => LoadDemo();
     internal async void LoadDemo()
     {
@@ -62,7 +89,7 @@ public partial class MainWindow : Window
         _source = PixelFrame.TestPattern();
         _output = null;
         EmptyHint.Visibility = Visibility.Collapsed;
-        UpdatePreview(); Schedule();
+        RefreshTimeline(); UpdatePreview(); Schedule();
     }
     private void Schedule()
     {
@@ -73,51 +100,119 @@ public partial class MainWindow : Window
     private void ShaderChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_ready) return;
-        _shaderValues.Clear(); _controlsShader = null; CrtControls.Children.Clear(); Schedule();
+        _shaderValues.Clear(); _controlsShader = null; CrtControls.Children.Clear();
+        _keyframeShaderParameters = [];
+        RefreshKeyframeAvailability();
+        Schedule();
     }
-    private RenderSettings Settings() => new(NtscEnabled.IsChecked == true, CrtEnabled.IsChecked == true,
-        _ntsc.ToJsonString(), _shaders[(string)ShaderChoice.SelectedItem],
-        int.Parse((string)((ComboBoxItem)WidthChoice.SelectedItem).Content, CultureInfo.InvariantCulture),
-        int.Parse((string)((ComboBoxItem)ScaleChoice.SelectedItem).Content, CultureInfo.InvariantCulture), (uint)_frameIndex, new(_shaderValues), _outputSettings);
+    private RenderSettings Settings(bool preview = true)
+    {
+        var scale = int.Parse((string)((ComboBoxItem)ScaleChoice.SelectedItem).Content, CultureInfo.InvariantCulture);
+        if (_importedLook is { } look)
+            return new(false, look.Crt, "{}", "", look.RetroWidth, scale, (uint)_frameIndex, [], _outputSettings,
+                DigitalCatalog.Profile, ImportedLook: look, Crop: look.Crop, SnapScanlines: SnapScanlinesChoice.IsChecked == true);
+        var shaderName = (string)ShaderChoice.SelectedItem;
+        var animation = AnimationPayload(shaderName, preview);
+        return new(NtscEnabled.IsChecked == true, CrtEnabled.IsChecked == true,
+            _ntsc.ToJsonString(), _shaders[shaderName],
+            int.Parse((string)((ComboBoxItem)WidthChoice.SelectedItem).Content, CultureInfo.InvariantCulture),
+            scale, (uint)_frameIndex, new(_shaderValues), _outputSettings,
+            OwnRenderer,
+            !InScreenLoop && DigitalEnabled.IsChecked == true ? new(_digitalValues) : null,
+            VcrEnabled.IsChecked == true || ReceptionEnabled.IsChecked == true ? ReadAnalogSettings() : null,
+            InScreenLoop ? new(_screenLoopValues) : null,
+            EffectTimeline: animation, Crop: _sourceCrop, SnapScanlines: SnapScanlinesChoice.IsChecked == true,
+            DownscaleMethod: SelectedDownscaleMethod, DownscaleEnabled: SelectedDownscaleEnabled);
+    }
 
     private async Task Render()
     {
         if ((_source == null && _video == null) || !_ready || _closing || _exportCancellation != null) return;
         if (_busy) { _pending = true; return; }
-        _busy = true; ExportButton.IsEnabled = false;
+        var liveStill = StillMotionActive;
+        _busy = true; _pending = false;
+        if (!liveStill || _completedPreviewVersion != _version) ExportButton.IsEnabled = false;
         int version = _version;
-        var source = _source; var video = _video; var index = _frameIndex;
+        var source = _source; var video = _video; var index = liveStill ? _stillMotionFrame : _frameIndex; var sourceId = _sourceIdentity;
+        var timeline = liveStill ? StillMotionClock(source!) : TimelineInfo;
         var settings = Settings(); var clock = Stopwatch.StartNew();
         using var cancellation = new CancellationTokenSource();
         _renderCancellation = cancellation;
-        Status.Text = Localization.T("Effekte werden berechnet…");
+        if (!_playing && !liveStill) Status.Text = Localization.T("Effekte werden berechnet…");
         try
         {
-            if (video != null) source = await video.ReadFrameAsync(index, cancellation.Token);
-            cancellation.Token.ThrowIfCancellationRequested();
-            var result = await Task.Run(() => _pipeline.Render(source!, settings), cancellation.Token);
-            if (_closing || version != _version) return;
-            _source = source;
-            _output = result.Frame;
-            _previewOutputSettings = settings.Output;
-            if (settings.Crt && _controlsShader != settings.Shader)
+            var token = cancellation.Token;
+            var ready = TakePreparedFrame(index);
+            if (ready == null)
             {
-                BuildShaderControls(result.Parameters); _controlsShader = settings.Shader;
+                await _preparation;
+                token.ThrowIfCancellationRequested();
+                ready = TakePreparedFrame(index);
             }
-            UpdatePreview();
+            if (ready == null)
+            {
+                if (!_playing && video != null && index > 0 && settings.Renderer == DigitalCatalog.Profile &&
+                    settings.ScreenLoop == null && settings.ImportedLook == null && settings.EffectTimeline == null &&
+                    settings.Digital?.GetValueOrDefault("fields") is not (2 or 3))
+                {
+                    // Show the changed look before rebuilding its exact temporal history.
+                    var provisional = await ComputePreviewAsync(index, source, video, settings, sourceId, timeline, true, token);
+                    if (_closing || version != _version) return;
+                    Present(provisional.Source, provisional.Rendered, settings);
+                }
+                ready = await ComputePreviewAsync(index, source, video, settings, sourceId, timeline, false, token);
+            }
+            if (_closing || version != _version) return;
+            var firstForVersion = _completedPreviewVersion != version;
+            _completedPreviewVersion = version;
+            var decoded = ready.Source;
+            var result = ready.Rendered;
+            Present(decoded, result, settings);
             ExportButton.IsEnabled = !_playing && _outputInputValid;
-            UpdateOutputInfo();
-            Status.Text = $"{source!.Width} × {source.Height} → {_output.Width} × {_output.Height} · {clock.ElapsedMilliseconds} ms · " + (_playing ? Localization.T("Video-Vorschau") : Localization.T("PNG bereit"));
+            if (liveStill)
+            {
+                if (firstForVersion) Status.Text = Localization.T("Laufende Störeffekte in der Vorschau");
+            }
+            else Status.Text = $"{decoded.Width} × {decoded.Height} → {result.Frame.Width} × {result.Frame.Height} · {clock.ElapsedMilliseconds} ms · " + (_playing ? Localization.T("Video-Vorschau") : Localization.T("PNG bereit"));
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { if (!_closing && version == _version) { PauseVideo(); Error(ex); } }
+        catch (Exception ex)
+        {
+            if (!_closing && version == _version)
+            {
+                if (liveStill) _stillMotionTimer.Stop();
+                PauseVideo();
+                Error(ex);
+            }
+        }
         finally
         {
             _busy = false;
             if (ReferenceEquals(_renderCancellation, cancellation)) _renderCancellation = null;
-            if (_closing) _pipeline.Dispose();
-            else if (_pending) { _pending = false; await Render(); }
+            if (_closing) await DisposePreviewPipelineAsync();
+            else if (_pending && !_debounce.IsEnabled) await Render();
+            else SchedulePreviewPreparation();
         }
+    }
+
+    private void Present(PixelFrame source, RenderResult result, RenderSettings settings)
+    {
+        _source = source;
+        _output = result.Frame;
+        _previewLayout = result.Layout;
+        _previewScanlineRows = result.ScanlineRows;
+        _previewCrop = settings.Crop;
+        if (settings.ImportedLook == null && settings.Crt &&
+            (_controlsShader != settings.Shader || _controlsRenderer != settings.Renderer))
+        {
+            BuildShaderControls(result.Parameters);
+            _controlsShader = settings.Shader;
+            _controlsRenderer = settings.Renderer;
+            _keyframeShaderParameters = result.Parameters;
+            RefreshKeyframeAvailability();
+        }
+        UpdatePreview();
+        UpdateOutputInfo();
     }
 
     private async void OpenImage(object sender, RoutedEventArgs e)
@@ -132,19 +227,19 @@ public partial class MainWindow : Window
             var source = PixelFrame.Read(dialog.FileName);
             await ClearVideo();
             if (_closing) return;
-            _source = source; _output = null;
+            _source = source; _output = null; _stillPath = dialog.FileName;
             Title = $"{Path.GetFileName(dialog.FileName)} · Tape & Tube";
             EmptyHint.Visibility = Visibility.Collapsed;
-            UpdatePreview(); Schedule();
+            RefreshTimeline(); UpdatePreview(); Schedule();
         }
         catch (Exception ex) { Error(ex); }
     }
     private void ExportImage(object sender, RoutedEventArgs e)
     {
-        if (_output == null || !ExportButton.IsEnabled || !_outputInputValid) return;
+        if (_output is not { } snapshot || !ExportButton.IsEnabled || !_outputInputValid) return;
         var dialog = new SaveFileDialog { Title = Localization.T("Bild speichern…"), Filter = "PNG|*.png", FileName = "tape-and-tube.png" };
         if (dialog.ShowDialog(this) != true) return;
-        try { _output.Save(dialog.FileName); Status.Text = Localization.T("PNG gespeichert: ") + dialog.FileName; }
+        try { snapshot.Save(dialog.FileName); Status.Text = Localization.T("PNG gespeichert: ") + dialog.FileName; }
         catch (Exception ex) { Error(ex); }
     }
 
@@ -160,9 +255,12 @@ public partial class MainWindow : Window
             if (node is not JsonObject d) continue;
             var id = d["id"]!.GetValue<string>(); var label = d["label"]!.GetValue<string>(); var kind = d["kind"]!.GetValue<string>();
             if (!_ntsc.ContainsKey(id)) continue;
+            var help = d["description"]?.GetValue<string>();
             if (kind is "group" or "bool")
             {
-                var toggle = new CheckBox { Content = label, IsChecked = _ntsc[id]!.GetValue<bool>(), ToolTip = d["description"]?.ToString() };
+                var toggle = new CheckBox { IsChecked = _ntsc[id]!.GetValue<bool>() };
+                Localization.BindEffectText(toggle, ContentControl.ContentProperty, label);
+                if (!string.IsNullOrEmpty(help)) Localization.BindEffectText(toggle, ToolTipProperty, help);
                 parent.Children.Add(toggle);
                 StackPanel? children = null;
                 if (kind == "group")
@@ -177,12 +275,15 @@ public partial class MainWindow : Window
             }
             else if (kind == "enum")
             {
-                parent.Children.Add(Label(label));
+                parent.Children.Add(EffectLabel(label));
                 var combo = new ComboBox { Margin = new Thickness(0, 2, 0, 8) };
+                Localization.BindEffectText(combo, System.Windows.Automation.AutomationProperties.NameProperty, label);
+                if (!string.IsNullOrEmpty(help)) Localization.BindEffectText(combo, ToolTipProperty, help);
                 foreach (var option in d["options"]!.AsArray())
                 {
                     var value = option!["value"]!.GetValue<int>();
-                    var item = new ComboBoxItem { Content = option["label"]!.GetValue<string>(), Tag = value };
+                    var item = EffectChoice(option["label"]!.GetValue<string>());
+                    item.Tag = value;
                     combo.Items.Add(item);
                     if (value == _ntsc[id]!.GetValue<int>()) combo.SelectedItem = item;
                 }
@@ -192,24 +293,41 @@ public partial class MainWindow : Window
             else if (kind is "number" or "int")
             {
                 double min = d["min"]!.GetValue<double>(), max = d["max"]!.GetValue<double>();
-                AddSlider(parent, label, min, max, _ntsc[id]!.GetValue<double>(), kind == "int" ? 1 : (max - min) / 1000,
-                    v => { if (kind == "int") _ntsc[id] = (int)Math.Round(v); else _ntsc[id] = v; Schedule(); }, integer: kind == "int");
+                var slider = AddSlider(parent, label, min, max, _ntsc[id]!.GetValue<double>(), kind == "int" ? 1 : (max - min) / 1000,
+                    v => { if (kind == "int") _ntsc[id] = (int)Math.Round(v); else _ntsc[id] = v; Schedule(); }, integer: kind == "int", effectText: true);
+                if (!string.IsNullOrEmpty(help) && slider.Parent is FrameworkElement row) Localization.BindEffectText(row, ToolTipProperty, help);
             }
         }
     }
     private static TextBlock Label(string text) => new() { Text = text, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 2), Foreground = System.Windows.Media.Brushes.LightSteelBlue };
-    private static void AddSlider(StackPanel parent, string label, double min, double max, double value, double step, Action<double> update, bool integer = false)
+    private static TextBlock EffectLabel(string text, string suffix = "")
+    {
+        var label = Label("");
+        Localization.BindEffectText(label, TextBlock.TextProperty, text, suffix);
+        return label;
+    }
+    private static ComboBoxItem EffectChoice(string text)
+    {
+        var item = new ComboBoxItem();
+        Localization.BindEffectText(item, ContentControl.ContentProperty, text);
+        return item;
+    }
+    private static Slider AddSlider(StackPanel parent, string label, double min, double max, double value, double step,
+        Action<double> update, bool integer = false, bool effectText = false, string suffix = "")
     {
         string Format(double v) => integer
             ? Math.Round(v).ToString("0", CultureInfo.InvariantCulture)
             : v.ToString("G5", CultureInfo.InvariantCulture);
-        parent.Children.Add(Label(label));
+        parent.Children.Add(effectText ? EffectLabel(label, suffix) : Label(label));
         var row = new DockPanel { Margin = new Thickness(0, 0, 0, 8) };
         var number = new TextBox { Width = integer ? 112 : 76, Margin = new Thickness(8, 0, 0, 0), Text = Format(value) };
-        System.Windows.Automation.AutomationProperties.SetName(number, label);
         DockPanel.SetDock(number, Dock.Right); row.Children.Add(number);
         var slider = new Slider { Minimum = min, Maximum = max, Value = Math.Clamp(value, min, max), TickFrequency = Math.Max(step, 0.000001), IsSnapToTickEnabled = step >= 1, VerticalAlignment = VerticalAlignment.Center };
-        System.Windows.Automation.AutomationProperties.SetName(slider, label);
+        foreach (var control in new FrameworkElement[] { number, slider })
+        {
+            if (effectText) Localization.BindEffectText(control, System.Windows.Automation.AutomationProperties.NameProperty, label, suffix);
+            else System.Windows.Automation.AutomationProperties.SetName(control, label);
+        }
         row.Children.Add(slider); parent.Children.Add(row);
         slider.ValueChanged += (_, _) => { number.Text = Format(slider.Value); update(slider.Value); };
         void Commit()
@@ -219,6 +337,7 @@ public partial class MainWindow : Window
         }
         number.LostKeyboardFocus += (_, _) => Commit();
         number.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) { Commit(); e.Handled = true; } };
+        return slider;
     }
     private void BuildShaderControls(IReadOnlyList<ShaderParameter> parameters)
     {
@@ -231,13 +350,26 @@ public partial class MainWindow : Window
     private void SavePreset(object sender, RoutedEventArgs e)
     {
         if (!_ready) return;
-        if (!_outputInputValid) { Error(new ArgumentException(Localization.T("Bitte zuerst gültige Ausgabemaße eingeben."))); return; }
-        var dialog = new SaveFileDialog { Title = Localization.T("Preset speichern…"), Filter = "Tape & Tube Preset|*.json", FileName = "look.json" };
+        if (_importedLook == null && !_outputInputValid) { Error(new ArgumentException(Localization.T("Bitte zuerst gültige Ausgabemaße eingeben."))); return; }
+        var dialog = new SaveFileDialog { Title = Localization.T("Preset speichern…"), Filter = "JSON|*.json", FileName = "look.json" };
         if (dialog.ShowDialog(this) != true) return;
         try
         {
-            File.WriteAllText(dialog.FileName, JsonSerializer.Serialize(new Preset("tape-and-tube", 1, NtscEnabled.IsChecked == true, CrtEnabled.IsChecked == true,
-                (string)ShaderChoice.SelectedItem, Settings().RetroWidth, Settings().Scale, _ntsc, new(_shaderValues), _outputSettings), new JsonSerializerOptions { WriteIndented = true }));
+            if (_importedLookText is string original)
+            {
+                File.WriteAllText(dialog.FileName, original);
+                Status.Text = Localization.T("Preset gespeichert.");
+                return;
+            }
+            var analog = ReadAnalogSettings();
+            var saveAnalog = analog.Active || AnalogCatalog.Current.Parameters.Any(p => analog.Values[p.Id] != p.Default);
+            var track = _effectTimeline.Enabled || _effectTimeline.Keys.Length > 0 ? _effectTimeline : null;
+            var version = _sourceCrop != null ? 5 : track != null ? 4 : saveAnalog ? 3 : _renderer == "legacy-v1" ? 1 : 2;
+            File.WriteAllText(dialog.FileName, JsonSerializer.Serialize(new LookPreset("tape-and-tube", version, NtscEnabled.IsChecked == true, CrtEnabled.IsChecked == true,
+                (string)ShaderChoice.SelectedItem, Settings().RetroWidth, Settings().Scale, _ntsc, new(_shaderValues), _outputSettings,_renderer,
+                DigitalEnabled.IsChecked==true?new(_digitalValues):null, saveAnalog ? analog : null, track, _sourceCrop,
+                SelectedDownscaleMethod, SelectedDownscaleEnabled),
+                new JsonSerializerOptions { WriteIndented = true }));
             Status.Text = Localization.T("Preset gespeichert.");
         }
         catch (Exception ex) { Error(ex); }
@@ -245,38 +377,78 @@ public partial class MainWindow : Window
     private void LoadPreset(object sender, RoutedEventArgs e)
     {
         if (!_ready) return;
-        var dialog = new OpenFileDialog { Title = Localization.T("Preset laden…"), Filter = "Tape & Tube Preset|*.json" };
+        var dialog = new OpenFileDialog { Title = Localization.T("Preset laden…"), Filter = "Tape & Tube / NTSCRT (*.json)|*.json" };
         if (dialog.ShowDialog(this) != true) return;
         try
         {
             if (new FileInfo(dialog.FileName).Length > 1_000_000) throw new InvalidDataException(Localization.T("Preset ist zu groß."));
-            var p = JsonSerializer.Deserialize<Preset>(File.ReadAllText(dialog.FileName)) ?? throw new InvalidDataException(Localization.T("Leeres Preset."));
-            if ((p.Kind != "ntscrt-windows" && p.Kind != "tape-and-tube") || p.Version != 1 || !_shaders.ContainsKey(p.Shader) || p.Ntsc == null || p.Parameters == null
-                || !new[] { 256, 320, 640, 1280 }.Contains(p.Width) || p.Scale < 2 || p.Scale > 4 || p.Parameters.Values.Any(v => !float.IsFinite(v)))
-                throw new InvalidDataException(Localization.T("Unbekanntes oder ungültiges Presetformat."));
+            var contents = File.ReadAllText(dialog.FileName);
+            if (NtscrtImportedLook.Parse(contents) is { } look)
+            {
+                ApplyImportedLook(look, contents, dialog.FileName);
+                Status.Text = Localization.T("Preset geladen.");
+                return;
+            }
+            var p = LookPreset.Parse(contents,_shaders.Keys);
             // Let the original library validate before changing any UI state.
             p.Output?.Validate();
             NtscProcessor.Process(PixelFrame.TestPattern(), p.Ntsc.ToJsonString(), 0);
-            _ready = false;
+            ApplyLookPreset(p);
+            Status.Text = Localization.T("Preset geladen.");
+        }
+        catch (Exception ex) { Error(ex); }
+    }
+
+    private void ApplyLookPreset(LookPreset p)
+    {
+        PauseVideo();
+        _ready = false;
+        try
+        {
             _ntsc = NtscProcessor.Defaults();
             foreach (var pair in p.Ntsc) _ntsc[pair.Key] = pair.Value?.DeepClone();
             _shaderValues.Clear(); foreach (var pair in p.Parameters) _shaderValues[pair.Key] = pair.Value;
             ShaderChoice.SelectedItem = p.Shader; _controlsShader = null; CrtControls.Children.Clear();
+            _keyframeShaderParameters = [];
             NtscEnabled.IsChecked = p.NtscEnabled; CrtEnabled.IsChecked = p.CrtEnabled;
-            WidthChoice.SelectedIndex = Array.IndexOf(new[] { 256, 320, 640, 1280 }, p.Width); ScaleChoice.SelectedIndex = p.Scale - 2;
+            SelectRetroWidth(p.Width); ScaleChoice.SelectedIndex = p.Scale - 2;
+            DownscaleEnabledChoice.SelectedIndex = p.DownscaleEnabled switch { true => 1, false => 2, _ => 0 };
+            if (p.DownscaleMethod == null) DownscaleMethodChoice.SelectedIndex = 0;
+            else DownscaleMethodChoice.SelectedValue = p.DownscaleMethod;
+            _renderer=p.Version==1?"legacy-v1":p.Renderer;
+            _digitalValues=p.Digital==null?DigitalCatalog.Defaults:new(p.Digital);
+            DigitalEnabled.IsChecked=p.Digital!=null;DigitalFormatChoice.SelectedIndex=0;BuildDigitalControls();
+            RestoreAnalog(p.Analog);
+            ScreenLoopEnabled.IsChecked = false;
+            RestoreKeyframes(p.Timeline);
+            RestoreCrop(p.Crop);
             RestoreOutput(p.Output);
-            BuildNtscControls(); _ready = true; Schedule();
-            Status.Text = Localization.T("Preset geladen.");
+            BuildNtscControls();
         }
-        catch (Exception ex) { _ready = true; Error(ex); }
+        finally { _ready = true; }
+        if (_importedLook != null) ApplyImportedLook(null);
+        else
+        {
+            RefreshTimeline();
+            Schedule();
+        }
     }
     private void Error(Exception ex) { Status.Text = Localization.T("Fehler: ") + ex.Message; }
     protected override void OnClosed(EventArgs e)
     {
-        _closing = true; _debounce.Stop(); _playback.Stop();
+        _closing = true;
+        _debounce.Stop();
+        _stillMotionTimer.Stop();
+        DiscardPreparedFrames();
+        CompositionTarget.Rendering -= PlaybackRendering;
         _loadCancellation?.Cancel(); _renderCancellation?.Cancel(); _video?.Cancel();
-        if (!_busy) _pipeline.Dispose();
+        if (!_busy) _ = DisposePreviewPipelineAsync();
         base.OnClosed(e);
     }
-    private sealed record Preset(string Kind, int Version, bool NtscEnabled, bool CrtEnabled, string Shader, int Width, int Scale, JsonObject Ntsc, Dictionary<string, float> Parameters, OutputSettings? Output = null);
+
+    private async Task DisposePreviewPipelineAsync()
+    {
+        await _preparation;
+        _pipeline.Dispose();
+    }
 }

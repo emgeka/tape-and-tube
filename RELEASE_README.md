@@ -2,7 +2,7 @@
 
 **Windows adaptation of [NTSCRT](https://github.com/finnmckenty/NTSCRT) by Finn McKenty.** The original macOS project is the starting point for the concept, signal chain and workflow; this Windows implementation covers its core NTSC/VHS and CRT stages with newly written application/host code.
 
-**Version 0.1.0-beta.2 — unsigned early beta.**
+**Version 0.1.0-beta.3 — unsigned Windows test candidate.**
 
 ![Tape & Tube with a synthetic original/output video comparison](docs/screenshot.jpg)
 
@@ -18,23 +18,23 @@ Select **Testbild** to try the effects immediately. Use **Bild öffnen…** or *
 
 ## Video tools
 
-Video preview and MP4 export additionally require **FFmpeg** and **ffprobe**. This review ZIP does not redistribute the computer's installed FFmpeg build. Either make an existing installation available on PATH, or place `ffmpeg.exe` and `ffprobe.exe` in the included `runtime/media/` folder. `TAPETUBE_FFMPEG` and `TAPETUBE_FFPROBE` can also point to these executables.
+Video preview and MP4 or animated GIF export require **FFmpeg** and **ffprobe**. This review ZIP does not redistribute the computer's installed FFmpeg build. Either make an existing installation available on PATH, or place `ffmpeg.exe` and `ffprobe.exe` in the included `runtime/media/` folder. `TAPETUBE_FFMPEG` and `TAPETUBE_FFPROBE` can also point to these executables.
 
 Still-image processing works without FFmpeg. Video preview is silent; MP4 exports include the first audio track from the original video.
 
 ## Output size
 
-Choose **Ausgabegröße** in the **Ausgabe** tab on the right: automatic, 720p, 1080p, 4K or custom dimensions. **Einpassen** preserves the whole image with black borders. **Ausfüllen** fills the output with a centered crop. PNG dimensions are exact; MP4 pads odd dimensions by at most one pixel for H.264.
+Use **Ausgabe** next to the save buttons to open the output settings. Choose automatic, 720p, 1080p, 4K or custom dimensions. **Einpassen** preserves the whole image with black borders. **Ausfüllen** fills the output with a centered crop. MP4 can pad odd dimensions by one pixel. Animated GIF has separate width and frame rate settings.
 
 ## Limits
 
 - Windows x64 with a Direct3D 11 capable GPU. Other systems and GPUs still need independent testing.
 - 4K effects may be slower than real time; video export renders every frame.
 - Variable frame rates are normalized to the preview frame rate.
-- SDR workflow; no dedicated HDR tone mapping.
+- Supported HDR sources are tone-mapped to SDR. Export remains SDR.
 - Unsigned beta. Release/Beta update notices can be checked automatically at startup; the user opens the download page and installs updates manually. Disable automatic checking under Updates if desired.
-- VirtualBox CRTSim exports may contain black/flickering frames; the reported original/preset exported correctly on physical hardware.
-- Missing-prerequisite handling on a fresh VM remains unverified. Installation/start/uninstallation with existing prerequisites have been tested.
+- Earlier VirtualBox CRTsim exports showed black or flickering frames. Follow-up exports from the reference clip succeeded on physical hardware.
+- The beta.3 installer still needs a fresh Windows 11 VM test.
 
 ## Licensing and review status
 

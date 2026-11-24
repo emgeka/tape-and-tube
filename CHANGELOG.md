@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-beta.3 — Windows test candidate
+
+- Added digital video, VCR, TV reception, Screen Loop, and import of animated NTSCRT looks.
+- Added source crop, preview zoom, first and last frame controls, and a direct shortcut to the output settings.
+- Added HEVC MP4 and animated GIF export, still-image animation, and HDR-to-SDR conversion for supported inputs.
+- Localized the built-in effect controls, choices and tooltips in ten languages.
+- Localized the German setup overview. When selected, FFmpeg is prepared on the component page before installation. The CRT icon appears in the Windows app and Setup.
+
 ## 0.1.0-beta.2 — 2026-11-16
 
 - Existing FFmpeg installations are listed by version and folder. Setup checks matching, responsive ffmpeg/ffprobe pairs with a bounded native helper and saves the selected absolute paths. External tools are used in place and never copied or uninstalled by Tape & Tube.

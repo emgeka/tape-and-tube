@@ -8,17 +8,24 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>x64</PlatformTarget>
     <AssemblyName>TapeTube</AssemblyName>
+    <ApplicationIcon>TapeTube.ico</ApplicationIcon>
     <Product>Tape &amp; Tube</Product>
     <Title>Tape &amp; Tube</Title>
     <Description>Analog video and CRT effects for Windows</Description>
-    <Version>0.1.0-beta.2</Version>
+    <Version>0.1.0-beta.3</Version>
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <RuntimeFrameworkVersion>10.0.14</RuntimeFrameworkVersion>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="TapeTube.Cli" />
+    <Resource Include="TapeTube.png" />
     <EmbeddedResource Include="Translations.json" LogicalName="Ntscrt.Windows.Translations.json" />
+    <EmbeddedResource Include="EffectTranslations.json" LogicalName="Ntscrt.Windows.EffectTranslations.json" />
+    <EmbeddedResource Include="DigitalCatalog.json" LogicalName="Ntscrt.Windows.DigitalCatalog.json" />
+    <EmbeddedResource Include="AnalogCatalog.json" LogicalName="Ntscrt.Windows.AnalogCatalog.json" />
+    <EmbeddedResource Include="ScreenLoopCatalog.json" LogicalName="Ntscrt.Windows.ScreenLoopCatalog.json" />
     <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
     <Content Include="../../runtime/*.dll" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

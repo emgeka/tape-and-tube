@@ -23,5 +23,10 @@
     "file": "WindowsDesktop-THIRD-PARTY-NOTICES.txt",
     "source": "https://github.com/dotnet/dotnet/blob/0427b9abbead3fa64c6655eb4290c537397131fa/src/wpf/THIRD-PARTY-NOTICES.TXT",
     "gitBlob": "c2ce2452c1dd7ff03eb862e1d8cd8f6117cee05b"
+  },
+  {
+    "file": "NTSCRT-MIT.txt",
+    "source": "https://github.com/finnmckenty/NTSCRT/blob/0ab60bf952b09a0c41ea4290979f23dadd963614/LICENSE",
+    "gitBlob": "2fd6ba8ef7e80bb896310aa10f09a7978c5480a9"
   }
 ]

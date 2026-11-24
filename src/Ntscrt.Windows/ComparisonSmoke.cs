@@ -31,6 +31,33 @@ internal static class ComparisonSmoke
         var geometry = new OutputSettings(321, 181).Geometry(400, 300);
         Check(odd.Original.Left == geometry.Left && odd.Original.Top == geometry.Top && odd.Original.Width == geometry.ContentWidth,
             "Vergleich übernimmt dieselbe Pixelrundung bei ungeraden Ausgabemaßen");
+        var zoomed = ComparisonLayout.Calculate(800, 600, 400, 300, 1600, 900, OutputFit.Fit, .5,
+            zoom: 2, pan: new Vector(100, -50));
+        Check(zoomed.Viewport == new Rect(-300, -200, 1600, 900) && zoomed.Original == new Rect(-100, -200, 1200, 900)
+            && zoomed.Divider == 500, "Zoom und Verschieben halten Original, Ausgabe und Trenner zusammen");
+        var size = new Size(800, 600);
+        var clamped = ComparisonLayout.ImageBounds(size, 300, 600, 2, new Vector(2000, -2000));
+        Check(clamped == new Rect(100, -600, 600, 1200), "Verschieben bleibt an den Bildrändern begrenzt");
+        var anchor = new Point(600, 400);
+        var anchorPan = ComparisonLayout.PanAtZoomAnchor(size, same.Viewport, anchor, 2);
+        var anchored = ComparisonLayout.ImageBounds(size, 960, 720, 2, anchorPan);
+        Check(anchored.Left + 600 * 2 == anchor.X && anchored.Top + 400 * 2 == anchor.Y,
+            "Beim Zoomen bleibt die Stelle unter dem Mauszeiger stehen");
+        var pixelGrid = new PreviewGrid(1, 0, new DpiScale(1, 1));
+        var integerFit = ComparisonLayout.ImageBounds(size, 320, 240, 1, default, pixelGrid);
+        Check(integerFit == new Rect(80, 60, 640, 480), "Ganzzahlskalierung passt das größte ganze Vielfache ein");
+        var tooSmall = ComparisonLayout.ImageBounds(size, 1920, 1080, 1, default, pixelGrid);
+        Check(tooSmall == ComparisonLayout.ImageBounds(size, 1920, 1080, 1, default),
+            "Eine größere Quelle bleibt beim Einpassen vollständig sichtbar");
+        var highDpi = new PreviewGrid(2, 120, new DpiScale(1.25, 1.25));
+        var letterbox = new OutputGeometry(960, 720, 960, 480, 0, 120);
+        var integerCompare = ComparisonLayout.Calculate(800, 600, 480, 240, 960, 720, OutputFit.Fit, .5, letterbox, grid: highDpi);
+        Check(Math.Abs(integerCompare.Original.Height * 1.25 / 240 - 2) < 1e-6
+            && Math.Abs(integerCompare.Original.Top * 1.25 - 135) < 1e-6 && integerCompare.Divider == 400,
+            "Der Vergleich richtet sichtbare Scanlines am physischen Raster eines 125-Prozent-Displays aus");
+        var integerPan = ComparisonLayout.ImageBounds(size, 960, 720, 2, new Vector(3000, 3000), highDpi);
+        Check(integerPan.Left <= 0 && integerPan.Top <= 0 && integerPan.Right >= size.Width && integerPan.Bottom >= size.Height,
+            "Verschieben bei Ganzzahlskalierung bleibt an den Bildrändern begrenzt");
         return checks;
     }
 }

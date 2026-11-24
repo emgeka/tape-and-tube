@@ -12,7 +12,7 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $SourceZip = [IO.Compression.ZipFile]::OpenRead((Join-Path $ReleaseDirectory $Manifest.source))
 try {
     # A reused package must not silently ship stale installer sources.
-    foreach ($Relative in @('scripts/build-installer.ps1','release.json','dependencies.json') +
+    foreach ($Relative in @('scripts/build-installer.ps1','release.json','dependencies.json','src/Ntscrt.Windows/TapeTube.ico','src/Ntscrt.Windows/TapeTube.png') +
         @(Get-ChildItem -LiteralPath (Join-Path $ProjectRoot 'installer') -File | ForEach-Object { 'installer/' + $_.Name })) {
         $Entry = $SourceZip.Entries | Where-Object { $_.FullName.Replace('\','/').EndsWith('/'+$Relative) }
         if (-not $Entry) { throw "Installer-Quelle fehlt im Quellpaket: $Relative. Frisches Paket bauen." }

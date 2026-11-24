@@ -19,6 +19,9 @@ internal static class Localization
     ];
     private sealed record Preferences(string Language);
     internal static readonly Catalog Texts = LoadCatalog();
+    internal static readonly Dictionary<string, Dictionary<string, string>> EffectTexts = LoadEffectTexts();
+    private static readonly HashSet<(string Text, string Suffix)> ActiveEffectTexts = [];
+    private static ResourceDictionary? _effectResources;
     private static readonly CultureInfo SystemUiCulture = CultureInfo.CurrentUICulture;
     public static string Preference { get; private set; } = "auto";
     // The UI culture is independent of JSON, effect values, filenames and preset identifiers.
@@ -32,6 +35,24 @@ internal static class Localization
             ?? throw new InvalidOperationException("Missing embedded translation catalog.");
         return JsonSerializer.Deserialize<Catalog>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
     }
+
+    private static Dictionary<string, Dictionary<string, string>> LoadEffectTexts()
+    {
+        using var stream = typeof(Localization).Assembly.GetManifestResourceStream("Ntscrt.Windows.EffectTranslations.json")
+            ?? throw new InvalidOperationException("Missing effect translation catalog.");
+        return JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(stream)!;
+    }
+
+    internal static void BindEffectText(FrameworkElement element, DependencyProperty property, string text, string suffix = "")
+    {
+        var key = (text, suffix);
+        if (ActiveEffectTexts.Add(key))
+            _effectResources![key] = EffectText(text) + suffix;
+        element.SetResourceReference(property, key);
+    }
+
+    internal static string EffectText(string english) =>
+        EffectTexts.TryGetValue(Language, out var catalog) ? catalog.GetValueOrDefault(english, english) : english;
     public static string Resolve(string preference, CultureInfo systemCulture)
     {
         if (Supported.Any(l => l.Code == preference)) return preference;
@@ -71,6 +92,13 @@ internal static class Localization
         foreach (var entry in Texts.Resources) Application.Current.Resources[entry.Key] = T(entry.Value);
         Application.Current.Resources["LanguageLabel"] = T("Sprache");
         Application.Current.Resources["SystemLanguage"] = T("Systemsprache");
+        var resources = new ResourceDictionary();
+        foreach (var (text, suffix) in ActiveEffectTexts)
+            resources[(text, suffix)] = EffectText(text) + suffix;
+        var merged = Application.Current.Resources.MergedDictionaries;
+        if (_effectResources == null) merged.Add(resources);
+        else merged[merged.IndexOf(_effectResources)] = resources;
+        _effectResources = resources;
         Changed?.Invoke();
     }
     public static string T(string german)

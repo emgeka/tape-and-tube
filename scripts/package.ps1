@@ -20,6 +20,12 @@ try {
     if ($Offline) { $PublishArguments += '--no-restore' }
     & $Dotnet @PublishArguments
     Assert-NativeExit 'Portable Windows-Ausgabe bauen'
+    $PublishArguments[1] = 'src/TapeTube.Cli/TapeTube.Cli.csproj'
+    & $Dotnet @PublishArguments
+    Assert-NativeExit 'Kommandozeilenprogramm bauen'
+    & "$ProjectRoot/prototypes/processing-core/prepare.ps1" -Offline:$Offline
+    & "$ProjectRoot/prototypes/processing-core/build.ps1" -Offline:$Offline
+    & "$PSScriptRoot/copy-core-runtime.ps1" -Destination $PackageDirectory
     foreach ($File in @('release.json','dependencies.json','components.json','LICENSE','COPYRIGHT.md','THIRD_PARTY.md','RELEASE_REVIEW.md')) {
         Copy-Item -LiteralPath $File -Destination $PackageDirectory
     }
@@ -51,6 +57,13 @@ try {
     if ($Offline) { $CargoMetadataArguments += '--offline' }
     $NativeMetadata = & $Cargo @CargoMetadataArguments
     Assert-NativeExit 'Rust-Abhängigkeiten lesen'
+    $CoreMetadataArguments = @('metadata','--format-version','1','--locked','--filter-platform','x86_64-pc-windows-gnu','--manifest-path','prototypes/processing-core/Cargo.toml')
+    if ($Offline) { $CoreMetadataArguments += '--offline' }
+    $CoreMetadata = & $Cargo @CoreMetadataArguments
+    Assert-NativeExit 'Worker-Abhängigkeiten lesen'
+    $CombinedMetadata = $NativeMetadata | ConvertFrom-Json
+    $CombinedMetadata.packages = @(($CombinedMetadata.packages + ($CoreMetadata | ConvertFrom-Json).packages) | Sort-Object -Property id -Unique)
+    $NativeMetadata = $CombinedMetadata | ConvertTo-Json -Depth 100 -Compress
     New-Item -ItemType Directory -Force 'artifacts/packaging' | Out-Null
     $MetadataFile = Join-Path $ProjectRoot "artifacts/packaging/native-metadata-$Stamp.json"
     $NativeMetadata | Set-Content -LiteralPath $MetadataFile -Encoding utf8
@@ -81,12 +94,32 @@ try {
     foreach ($File in @('README.md','RELEASE_README.md','RELEASE_REVIEW.md','RELEASE_NOTES.md','CHANGELOG.md','CONTRIBUTING.md','PUBLICATION.md','THIRD_PARTY.md','COPYRIGHT.md','LICENSE','dependencies.json','components.json','release.json','global.json','.gitignore','Start.ps1')) {
         Copy-Item -LiteralPath $File -Destination $SourceDirectory
     }
-    foreach ($Directory in @('src/Ntscrt.Windows','native/src','scripts')) {
+    foreach ($Directory in @('src/Ntscrt.Windows','src/TapeTube.Cli','native/src','scripts')) {
         $Destination = Join-Path $SourceDirectory $Directory
         New-Item -ItemType Directory -Force $Destination | Out-Null
         Get-ChildItem -LiteralPath $Directory -File | Where-Object { $_.Extension -in @('.cs','.rs','.xaml','.csproj','.ps1','.mjs','.json') } |
             Copy-Item -Destination $Destination
     }
+    Copy-Item -LiteralPath 'src/Ntscrt.Windows/TapeTube.ico','src/Ntscrt.Windows/TapeTube.png' -Destination (Join-Path $SourceDirectory 'src/Ntscrt.Windows')
+    foreach($CoreDirectory in @('','engine-adapter','runner','runner/src','digital-host','digital-host/src','digital-host/include','abi-smoke')) {
+        $Relative = ('prototypes/processing-core/'+$CoreDirectory).TrimEnd('/')
+        $Destination = Join-Path $SourceDirectory $Relative
+        New-Item -ItemType Directory -Force $Destination | Out-Null
+        Get-ChildItem -LiteralPath $Relative -File | Where-Object { $_.Extension -in @('.rs','.toml','.lock','.json','.ps1','.mjs','.sh','.md','.h','.cs','.csproj','.patch') } | Copy-Item -Destination $Destination
+    }
+    $CoreSources = Join-Path $PackageDirectory 'sources/core'
+    New-Item -ItemType Directory -Force $CoreSources | Out-Null
+    $Pins = Get-Content -Raw -LiteralPath 'prototypes/processing-core/upstream-sources.json' | ConvertFrom-Json
+    foreach($Name in @('ntscrt','librashader')) {
+        $Pin = $Pins.$Name
+        $Archive = Join-Path $ProjectRoot "artifacts/core-prototype/downloads/$($Pin.directory).zip"
+        if($Name -eq 'librashader' -and -not (Test-Path -LiteralPath $Archive)) {
+            $Archive = Join-Path $ProjectRoot 'artifacts/core-prototype/downloads/librashader-76462c03.zip'
+        }
+        if((Get-FileHash -LiteralPath $Archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Pin.sha256){throw "Core source checksum mismatch: $Name"}
+        Copy-Item -LiteralPath $Archive -Destination $CoreSources
+    }
+    Copy-Item -LiteralPath 'prototypes/processing-core/upstream-sources.json','prototypes/processing-core/engine-adapter/host-lifecycle.patch' -Destination $CoreSources
     New-Item -ItemType Directory -Force (Join-Path $SourceDirectory 'native') | Out-Null
     Copy-Item -LiteralPath 'native/Cargo.toml','native/Cargo.lock' -Destination (Join-Path $SourceDirectory 'native')
     Copy-Item -LiteralPath '.github' -Destination (Join-Path $SourceDirectory '.github') -Recurse

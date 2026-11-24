@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using Microsoft.Win32;
@@ -14,19 +15,40 @@ public partial class MainWindow
 
     private async void ExportVideo(object sender, RoutedEventArgs e)
     {
-        if (_video == null || _exportCancellation != null || _loadCancellation != null || !_outputInputValid) return;
+        if (!CanExportTimeline || TimelineInfo is not VideoInfo info || _exportCancellation != null || _loadCancellation != null || !_outputInputValid) return;
         PauseVideo();
-        var sourcePath = _video.Info.Path;
+        var sourcePath = info.IsStill ? _stillPath : info.Path;
+        var still = info.IsStill ? _source : null;
         var dialog = new SaveFileDialog
         {
-            Title = Localization.T("Video speichern…"),
-            Filter = Localization.T("MP4-Video (H.264 mit Originalton)|*.mp4"), DefaultExt = ".mp4", AddExtension = true,
-            FileName = Path.GetFileNameWithoutExtension(sourcePath) + "-tape-and-tube.mp4", OverwritePrompt = true
+            Title = Localization.T("Video oder GIF speichern…"),
+            Filter = Localization.T("MP4-Video (H.264 mit Originalton)|*.mp4") + "|MP4 (H.265 / HEVC)|*.mp4|" +
+                Localization.T("Animiertes GIF|*.gif"),
+            AddExtension = true,
+            FileName = (Path.GetFileNameWithoutExtension(sourcePath) ?? (InScreenLoop ? "screen-loop" : "animation"))
+                + "-tape-and-tube", OverwritePrompt = true
         };
         if (dialog.ShowDialog(this) != true) return;
+        var extension = Path.GetExtension(dialog.FileName);
+        var isGif = extension.Equals(".gif", StringComparison.OrdinalIgnoreCase);
+        if (!isGif && !extension.Equals(".mp4", StringComparison.OrdinalIgnoreCase))
+        {
+            Status.Text = Localization.T("Bitte .mp4 oder .gif als Dateiendung wählen.");
+            return;
+        }
+        var format = isGif ? VideoExportFormat.Gif :
+            dialog.FilterIndex == 2 ? VideoExportFormat.Hevc : VideoExportFormat.Mp4;
+        var quality = (Mp4Quality)Mp4QualityChoice.SelectedIndex;
+        var loops = isGif ? 1 : Mp4LoopChoice.SelectedIndex + 1;
+        GifExportSettings? gifSettings = null;
+        if (isGif && !TryGetGifSettings(out gifSettings))
+        {
+            Status.Text = Localization.T("GIF-Breite: 64–1920 px. GIF-Bildrate: 1–50 Bilder/s.");
+            return;
+        }
         using var cancellation = new CancellationTokenSource();
         _exportCancellation = cancellation;
-        var settings = Settings();
+        var settings = Settings(preview: false);
         InvalidateRender(); _debounce.Stop(); _pending = false;
         MediaActions.IsEnabled = false; Editor.IsEnabled = false; OutputOptions.IsEnabled = false;
         ExportPanel.Visibility = Visibility.Visible;
@@ -41,14 +63,21 @@ public partial class MainWindow
             ExportProgressBar.IsIndeterminate = p.Finalizing;
             ExportProgressBar.Value = 100.0 * p.CompletedFrames / p.TotalFrames;
             var remaining = p.CompletedFrames == 0 ? "" : Localization.F($" · etwa {TimeSpan.FromSeconds(clock.Elapsed.TotalSeconds * (p.TotalFrames - p.CompletedFrames) / p.CompletedFrames):hh\\:mm\\:ss} verbleibend");
-            ExportProgressText.Text = p.Finalizing ? Localization.T("MP4 wird abgeschlossen…") :
+            ExportProgressText.Text = p.Finalizing ? Localization.T(isGif ? "GIF wird abgeschlossen…" : "MP4 wird abgeschlossen…") :
                 Localization.F($"{100.0 * p.CompletedFrames / p.TotalFrames:0}% · Bild {p.CompletedFrames} / {p.TotalFrames} · {p.Width} × {p.Height}{remaining}");
         });
+        var stillSeconds = settings.ImportedLook?.Seconds ?? (OwnAnimationEnabled ? _effectTimeline.Seconds : _screenLoopSeconds);
         try
         {
-            var result = await Task.Run(() => VideoExporter.ExportAsync(sourcePath, dialog.FileName, settings,
-                progress, cancellation.Token, overwrite: true));
-            Status.Text = Localization.F($"Video gespeichert: {result.Path} · {result.Frames} Bilder · {result.Width} × {result.Height}");
+            var result = await Task.Run(() => still == null
+                ? VideoExporter.ExportAsync(info.Path, dialog.FileName, settings, progress, cancellation.Token,
+                    overwrite: true, format: format, quality: quality, loops: loops, gifSettings: gifSettings)
+                : VideoExporter.ExportStillAsync(still, sourcePath, dialog.FileName, stillSeconds, settings,
+                    progress, cancellation.Token, overwrite: true, fps: (int)info.FramesPerSecond, format: format,
+                    quality: quality, gifSettings: gifSettings));
+            Status.Text = isGif
+                ? Localization.F($"GIF gespeichert: {result.Path} · {result.Frames} Bilder · {result.Width} × {result.Height}")
+                : Localization.F($"Video gespeichert: {result.Path} · {result.Frames} Bilder · {result.Width} × {result.Height}");
         }
         catch (OperationCanceledException) { Status.Text = Localization.T("Videoexport abgebrochen. Die Zieldatei wurde nicht verändert."); }
         catch (Exception ex) { Error(ex); }
@@ -57,7 +86,7 @@ public partial class MainWindow
             _exportCancellation = null;
             MediaActions.IsEnabled = true; Editor.IsEnabled = true; OutputOptions.IsEnabled = true;
             ExportPanel.Visibility = Visibility.Collapsed;
-            VideoExportButton.IsEnabled = _video != null && _outputInputValid;
+            RefreshVideoExportButton();
             if (_closeAfterExport) Close();
             else if (_source != null)
             {
@@ -66,6 +95,25 @@ public partial class MainWindow
                 Status.Text = message;
             }
         }
+    }
+
+    private bool TryGetGifSettings([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out GifExportSettings? settings)
+    {
+        settings = null;
+        if (!ReadOptionalInt(GifWidthField.Text, GifExportSettings.MinWidth, GifExportSettings.MaxWidth, out var width)
+            || !ReadOptionalInt(GifFpsField.Text, 1, GifExportSettings.MaxFps, out var fps)) return false;
+        settings = new(width, fps);
+        return true;
+    }
+
+    private static bool ReadOptionalInt(string text, int min, int max, out int? value)
+    {
+        value = null;
+        if (string.IsNullOrWhiteSpace(text)) return true;
+        if (!int.TryParse(text.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var number) || number < min || number > max)
+            return false;
+        value = number;
+        return true;
     }
 
     private void CancelExport(object sender, RoutedEventArgs e)

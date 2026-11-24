@@ -21,9 +21,16 @@ function copy(relative){
 for(const file of ['README.md','RELEASE_README.md','RELEASE_REVIEW.md','RELEASE_NOTES.md','CHANGELOG.md','CONTRIBUTING.md','PUBLICATION.md','THIRD_PARTY.md','COPYRIGHT.md','LICENSE','dependencies.json','components.json','release.json','global.json','.gitignore','Start.ps1'])copy(file);
 for(const directory of ['src/Ntscrt.Windows','scripts'])
  for(const file of fs.readdirSync(path.join(root,directory)))if(/\.(cs|xaml|csproj|ps1|mjs|json)$/.test(file)&&fs.statSync(path.join(root,directory,file)).isFile())copy(directory+'/'+file);
+for(const file of ['src/Ntscrt.Windows/TapeTube.ico','src/Ntscrt.Windows/TapeTube.png'])copy(file);
 for(const file of ['native/Cargo.toml','native/Cargo.lock','native/src/lib.rs','docs/screenshot.jpg','docs/shader-license-audit.json','docs/shader-license-evidence.json','docs/librashader-release-evidence.json'])copy(file);
+function copyCore(directory){for(const entry of fs.readdirSync(path.join(root,directory),{withFileTypes:true})){
+ const relative=directory+'/'+entry.name;
+ if(entry.isDirectory()){if(!['upstream','bin','obj','target'].includes(entry.name))copyCore(relative);}
+ else if(/\.(rs|toml|lock|json|ps1|mjs|sh|md|h|cs|csproj|patch)$/.test(entry.name))copy(relative);
+}}
+copyCore('prototypes/processing-core');
 for(const file of fs.readdirSync(path.join(root,'licenses/upstream')))copy('licenses/upstream/'+file);
-for(const file of fs.readdirSync(path.join(root,'installer')))if(/\.(c|iss|txt|json)$/.test(file))copy('installer/'+file);
+for(const file of fs.readdirSync(path.join(root,'installer')))if(/\.(c|iss|txt|json|png)$/.test(file))copy('installer/'+file);
 function copyDocs(directory){for(const entry of fs.readdirSync(path.join(root,directory),{withFileTypes:true})){const relative=directory+'/'+entry.name;if(entry.isDirectory())copyDocs(relative);else if(/\.(md|ya?ml)$/.test(entry.name))copy(relative);}}
 copyDocs('docs');copyDocs('.github');
 // Validate only the explicit upload tree; never inspect or upload unrelated workspace data.
@@ -33,7 +40,7 @@ const hashes=[];
 for(const relative of files){
  if(forbidden.test(relative))throw Error('Forbidden upload file: '+relative);
  const bytes=fs.readFileSync(path.join(repository,relative));
- if(!relative.endsWith('.jpg')){
+ if(!/\.(jpg|png|ico)$/i.test(relative)){
   const text=bytes.toString('utf8');
   if(text.includes(root)||text.includes(root.replaceAll('\\','\\\\')))throw Error('Private workspace path: '+relative);
   if(secrets.test(text))throw Error('Credential-like content: '+relative);

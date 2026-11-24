@@ -35,6 +35,18 @@ internal static class Components
             .Select(n => $"crt/{n}.slangp");
         return configured.Select(n => n!.GetValue<string>()).ToArray();
     }
+    public static Dictionary<string, string> AvailableShaderPresets()
+    {
+        var shaders = new Dictionary<string, string>();
+        foreach (var preset in ShaderPresets())
+        {
+            var path = Path.GetFullPath(preset, Paths.ShaderRoot);
+            var name = Path.GetFileNameWithoutExtension(path);
+            if (shaders.ContainsKey(name)) name = preset.Replace('\\', '/');
+            if (File.Exists(path)) shaders.TryAdd(name, path);
+        }
+        return shaders;
+    }
     public static string NativePath(string key, string environment, string filename)
     {
         var configured = ConfiguredPath(key, environment);

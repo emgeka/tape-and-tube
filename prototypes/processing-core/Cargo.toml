@@ -1,0 +1,10 @@
+[workspace]
+members = ["digital-host", "engine-adapter", "runner"]
+exclude = ["upstream"]
+resolver = "2"
+
+[profile.release]
+debug = false
+
+[profile.dev]
+opt-level = 1

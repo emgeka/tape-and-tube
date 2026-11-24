@@ -22,6 +22,9 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.17763
 UninstallDisplayIcon={app}\TapeTube.exe
+SetupIconFile=..\src\Ntscrt.Windows\TapeTube.ico
+WizardSmallImageFile=..\src\Ntscrt.Windows\TapeTube.png
+WizardImageFile=installer-welcome.png
 DisableProgramGroupPage=yes
 DisableWelcomePage=no
 LicenseFile=..\LICENSE
@@ -37,7 +40,7 @@ SetupLogging=yes
 
 [Languages]
 Name: english; MessagesFile: compiler:Default.isl
-Name: german; MessagesFile: compiler:Languages\German.isl
+Name: german; MessagesFile: compiler:Languages\German.isl; InfoBeforeFile: installer-info-de.txt
 
 [Files]
 Source: "{#PackageDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "components.local.json,media-tools.json,media-selection.ini"
@@ -86,14 +89,14 @@ english.MediaFound=Available in this app or PATH
 german.MediaFound=Vorhanden in dieser App oder PATH
 english.MediaAbsent=Not available (optional for images)
 german.MediaAbsent=Nicht vorhanden (für Bilder optional)
-english.MediaPrepared=Ready for installation
-german.MediaPrepared=Bereit zur Installation
+english.MediaPrepared=Verified and ready to copy
+german.MediaPrepared=Geprüft und zum Kopieren bereit
 english.MediaPlanned=Download selected
 german.MediaPlanned=Download ausgewählt
 english.MediaSelected=Available · Version
 german.MediaSelected=Vorhanden · Version
-english.MediaDownloadNow=Download FFmpeg
-german.MediaDownloadNow=FFmpeg herunterladen
+english.MediaDownloadNow=Prepare FFmpeg
+german.MediaDownloadNow=FFmpeg vorbereiten
 english.ProbeFailed=Component check could not run. Installation cannot continue. See the setup log.
 german.ProbeFailed=Die Komponentenprüfung konnte nicht ausgeführt werden. Die Installation wird angehalten. Siehe Installationsprotokoll.
 english.PrereqHelp=C++ and DirectX are required for effects. C++ opens Microsoft's download; DirectX (about 96 MB) is downloaded, extracted and starts DXSETUP automatically. Confirm Microsoft's license/admin prompts yourself. Use Check again after installing C++. .NET is included.
@@ -122,10 +125,10 @@ english.MediaTitle=Optional video tools
 german.MediaTitle=Optionale Videowerkzeuge
 english.MediaDescription=Images work without FFmpeg. Video requires ffmpeg.exe and ffprobe.exe.
 german.MediaDescription=Bilder funktionieren ohne FFmpeg. Videos benötigen ffmpeg.exe und ffprobe.exe.
-english.MediaHelp=Download: FFmpeg {#FFmpegVersion}, Gyan Doshi / gyan.dev, about 34 MiB, GPL v3. Checksum verified; original notices, build details and source reference: licenses/ffmpeg. System installations and PATH are unchanged.
-german.MediaHelp=Download: FFmpeg {#FFmpegVersion}, Gyan Doshi / gyan.dev, ca. 34 MiB, GPL v3. Prüfsumme geprüft; Originalhinweise, Build-Details und Quellverweis: licenses/ffmpeg. Systeminstallationen und PATH bleiben unverändert.
-english.MediaDownload=Download and install FFmpeg for this app
-german.MediaDownload=FFmpeg für diese App herunterladen und installieren
+english.MediaHelp=When download is selected, Next downloads and verifies FFmpeg {#FFmpegVersion} here (about 34 MiB, Gyan Doshi / gyan.dev, GPL v3). Setup copies the prepared tools into the app folder during installation. Original notices and source links are in licenses/ffmpeg.
+german.MediaHelp=Bei gewähltem Download startet Weiter hier die Vorbereitung von FFmpeg {#FFmpegVersion} (ca. 34 MiB, Gyan Doshi / gyan.dev, GPL v3). Setup prüft den Download und kopiert die Dateien bei der Installation in den App-Ordner. Lizenz und Quellen stehen in licenses/ffmpeg.
+english.MediaDownload=Download FFmpeg for Tape && Tube
+german.MediaDownload=FFmpeg für Tape && Tube herunterladen
 english.MediaExisting=Use an existing installation (version and folder below)
 german.MediaExisting=Vorhandene Installation verwenden (Version und Ordner unten)
 english.MediaBrowse=Add folder...
@@ -140,6 +143,10 @@ english.MediaDownloadHelp=Only the selected, checksum-verified upstream build wi
 german.MediaDownloadHelp=Installiert wird ausschließlich der ausgewählte Upstream-Build mit geprüfter Prüfsumme.
 english.MediaFailed=FFmpeg could not be prepared. Check your connection and retry, or choose your own tools / skip FFmpeg on the component page. No unverified download will be installed.
 german.MediaFailed=FFmpeg konnte nicht vorbereitet werden. Verbindung prüfen und erneut versuchen oder auf der Komponentenseite eigene Werkzeuge / Überspringen wählen. Ungeprüfte Downloads werden nicht installiert.
+english.MediaIncomplete=The extracted FFmpeg package is incomplete.
+german.MediaIncomplete=Das entpackte FFmpeg-Paket ist unvollständig.
+english.MediaNotPrepared=Return to the component page to prepare FFmpeg, choose an existing installation or skip the video tools.
+german.MediaNotPrepared=Zur Komponentenseite zurückkehren und FFmpeg vorbereiten, eine vorhandene Installation wählen oder die Videowerkzeuge überspringen.
 english.MediaFolder=Folder containing ffmpeg.exe and ffprobe.exe (optional):
 german.MediaFolder=Ordner mit ffmpeg.exe und ffprobe.exe (optional):
 english.MediaInvalid=Select a working ffmpeg.exe/ffprobe.exe pair from the same folder and version. Add a folder if needed. Unresponsive or mismatched tools cannot be selected.
@@ -201,7 +208,7 @@ begin
          not FileExists(DownloadedRoot + '\LICENSE') or
          not FileExists(DownloadedRoot + '\README.txt') or
          not FileExists(DownloadedRoot + '\doc\ffmpeg.html') then
-        RaiseException('Incomplete FFmpeg archive');
+        RaiseException(CustomMessage('MediaIncomplete'));
       MediaReady := True;
       Log('FFmpeg {#FFmpegVersion}: pinned archive SHA-256 verified and extracted');
     except
@@ -229,7 +236,7 @@ begin
       Status := Status + ' (' + CustomMessage('MediaPlanned') + ')';
   end;
   MediaStatusLabel.Caption := CustomMessage('MediaStatus') + #13#10 + Status;
-  MediaButton.Enabled := not DirectXBusy and not (MediaReady and MediaDownload.Checked);
+  MediaButton.Enabled := MediaDownload.Checked and not MediaReady and not DirectXBusy;
 end;
 
 procedure MediaChoiceClick(Sender: TObject);
@@ -329,18 +336,21 @@ begin
   end;
 end;
 
-procedure DownloadMediaClick(Sender: TObject);
+function PrepareSelectedMedia: Boolean;
 var Error: String; BackEnabled: Boolean;
 begin
+  Result := True;
+  if not MediaDownload.Checked or MediaReady then Exit;
+  Result := False;
   if DirectXBusy then Exit;
   DirectXBusy := True;
   BackEnabled := WizardForm.BackButton.Enabled;
-  MediaDownload.Checked := True;
   PrereqPage.Surface.Enabled := False;
   WizardForm.NextButton.Enabled := False; WizardForm.BackButton.Enabled := False;
   try
     Error := PrepareMedia;
     if Error <> '' then MsgBox(Error, mbInformation, MB_OK);
+    Result := Error = '';
   finally
     DirectXBusy := False;
     PrereqPage.Surface.Enabled := True;
@@ -348,6 +358,11 @@ begin
     CheckPrerequisites;
     MediaChoiceClick(nil);
   end;
+end;
+
+procedure DownloadMediaClick(Sender: TObject);
+begin
+  PrepareSelectedMedia;
 end;
 
 procedure BrowseMediaClick(Sender: TObject);
@@ -366,6 +381,10 @@ end;
 procedure InitializeWizard;
 var Help: TNewStaticText; ActionLeft, LabelWidth: Integer;
 begin
+  if ActiveLanguage = 'german' then
+    WizardForm.LicenseMemo.Lines.Insert(0,
+      'Eigener Anwendungscode und Host-Anbindung stehen unter der GNU GPL Version 3 (GPL-3.0-only).' + #13#10 +
+      'Fremdkomponenten behalten ihre eigenen Lizenzen. Es folgt der englische Originaltext der GNU GPL Version 3.' + #13#10 + #13#10);
   PrereqPage := CreateCustomPage(wpSelectDir, CustomMessage('PrereqTitle'), CustomMessage('PrereqDescription'));
   ActionLeft := PrereqPage.SurfaceWidth - ScaleX(170);
   LabelWidth := ActionLeft - ScaleX(12);
@@ -445,23 +464,24 @@ end;
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
   Result := True;
-  if (CurPageID = PrereqPage.ID) and not CheckPrerequisites then begin
-    MsgBox(CustomMessage('PrereqMissing'), mbInformation, MB_OK); Result := False;
+  if (CurPageID <> PrereqPage.ID) or WizardSilent then Exit;
+  if not CheckPrerequisites then begin
+    MsgBox(CustomMessage('PrereqMissing'), mbInformation, MB_OK); Result := False; Exit;
   end;
-  if (CurPageID = PrereqPage.ID) then begin
-    if not ValidateMediaSelection then begin
-      MsgBox(CustomMessage('MediaInvalid'), mbInformation, MB_OK); Result := False;
-    end;
+  if not ValidateMediaSelection then begin
+    MsgBox(CustomMessage('MediaInvalid'), mbInformation, MB_OK); Result := False; Exit;
   end;
+  Result := PrepareSelectedMedia;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
   Result := '';
   if not CheckPrerequisites then begin Result := CustomMessage('PrereqMissing'); Exit; end;
-  { Repeat validation here: silent mode skips NextButtonClick. }
+  { Repeat validation for both modes. Only unattended setup prepares media here. }
   if not ValidateMediaSelection then begin
       Result := CustomMessage('MediaInvalid'); Exit;
   end;
-  Result := PrepareMedia;
+  if WizardSilent then Result := PrepareMedia
+  else if MediaDownload.Checked and not MediaReady then Result := CustomMessage('MediaNotPrepared');
 end;

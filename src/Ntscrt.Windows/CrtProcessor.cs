@@ -21,9 +21,38 @@ internal sealed class CrtProcessor : IDisposable
 
     public CrtProcessor()
     {
-        if (libra_instance_abi_version() != 2) throw new InvalidOperationException(Localization.T("Unpassende librashader-Schnittstelle (ABI 2 erforderlich)."));
+        CheckAbi();
         D3D11CreateDevice(nint.Zero, DriverType.Hardware, DeviceCreationFlags.BgraSupport,
             [FeatureLevel.Level_11_0], out _device, out _, out _context).CheckError();
+    }
+
+    private static void CheckAbi()
+    {
+        if (libra_instance_abi_version() != 2) throw new InvalidOperationException(Localization.T("Unpassende librashader-Schnittstelle (ABI 2 erforderlich)."));
+    }
+
+    internal static IReadOnlyList<ShaderParameter> DescribePreset(string path)
+    {
+        CheckAbi();
+        Check(libra_preset_create(path, out var preset));
+        try { return ReadParameters(ref preset); }
+        finally { Check(libra_preset_free(ref preset)); }
+    }
+
+    private static IReadOnlyList<ShaderParameter> ReadParameters(ref nint preset)
+    {
+        Check(libra_preset_get_runtime_params(ref preset, out var list));
+        try
+        {
+            var parameters = new List<ShaderParameter>();
+            for (ulong i = 0; i < list.Length; i++)
+            {
+                var p = Marshal.PtrToStructure<Param>(list.Parameters + checked((int)i * Marshal.SizeOf<Param>()));
+                parameters.Add(new(Marshal.PtrToStringUTF8(p.Name)!, Marshal.PtrToStringUTF8(p.Description)!, p.Initial, p.Minimum, p.Maximum, p.Step));
+            }
+            return parameters;
+        }
+        finally { Check(libra_preset_free_runtime_params(list)); }
     }
 
     public void Load(string path)
@@ -33,17 +62,7 @@ internal sealed class CrtProcessor : IDisposable
         nint next = 0;
         try
         {
-            Check(libra_preset_get_runtime_params(ref preset, out var list));
-            var parameters = new List<ShaderParameter>();
-            try
-            {
-                for (ulong i = 0; i < list.Length; i++)
-                {
-                    var p = Marshal.PtrToStructure<Param>(list.Parameters + checked((int)i * Marshal.SizeOf<Param>()));
-                    parameters.Add(new(Marshal.PtrToStringUTF8(p.Name)!, Marshal.PtrToStringUTF8(p.Description)!, p.Initial, p.Minimum, p.Maximum, p.Step));
-                }
-            }
-            finally { Check(libra_preset_free_runtime_params(list)); }
+            var parameters = ReadParameters(ref preset);
             Check(libra_d3d11_filter_chain_create(ref preset, _device.NativePointer, 0, out next));
             // librashader consumes the preset on success.
             preset = 0;

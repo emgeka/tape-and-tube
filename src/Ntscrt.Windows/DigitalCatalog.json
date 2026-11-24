@@ -1,0 +1,698 @@
+{
+  "schemaVersion": 1,
+  "revision": "0ab60bf952b09a0c41ea4290979f23dadd963614",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2026 Finn McKenty",
+  "source": "https://github.com/finnmckenty/NTSCRT",
+  "defaults": {
+    "frame_rate": 15,
+    "fields": 1,
+    "sensor": 0,
+    "smear": 0,
+    "aliasing": 0,
+    "sensor_noise": 0.4,
+    "low_light_noise": 0,
+    "noise_reduction": 0.5,
+    "ccd_response": 0,
+    "white_balance": 0,
+    "tint": 0,
+    "saturation": 1,
+    "sharpening": 0,
+    "sharpening_width": 1,
+    "codec": 0,
+    "block_size": 1,
+    "chroma": 2,
+    "chroma_upsampling": 0,
+    "quality": 0.749,
+    "keyframe_interval": 0,
+    "fixed_bitrate": 0,
+    "bitrate_limit": 0,
+    "rate_buffer": 1,
+    "deblocking": 0,
+    "generations": 0,
+    "data_loss": 0,
+    "loss_pattern": 0,
+    "concealment": 0,
+    "bit_errors": 0,
+    "datamosh": 0,
+    "mosh_motion": 0,
+    "mosh_speed": 0.5
+  },
+  "parameters": [
+    {
+      "default": 15,
+      "id": "frame_rate",
+      "kind": {
+        "maximum": 60,
+        "minimum": 1,
+        "percent": false,
+        "step": 1,
+        "type": "number",
+        "unit": "fps"
+      },
+      "label": "Frame rate"
+    },
+    {
+      "default": 1,
+      "id": "fields",
+      "kind": {
+        "choices": [
+          "Progressive",
+          "One field",
+          "Woven fields",
+          "Blended fields"
+        ],
+        "type": "choice"
+      },
+      "label": "Fields"
+    },
+    {
+      "default": 0,
+      "id": "sensor",
+      "kind": {
+        "choices": [
+          "Three chips",
+          "One chip (webcam)",
+          "One chip (camcorder)"
+        ],
+        "type": "choice"
+      },
+      "label": "Sensor"
+    },
+    {
+      "default": 0,
+      "id": "smear",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Vertical smear"
+    },
+    {
+      "default": 0,
+      "id": "aliasing",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Aliasing"
+    },
+    {
+      "default": 0.4,
+      "id": "sensor_noise",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Sensor noise"
+    },
+    {
+      "default": 0,
+      "id": "low_light_noise",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Low-light noise"
+    },
+    {
+      "default": 0.5,
+      "id": "noise_reduction",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Noise reduction"
+    },
+    {
+      "default": 0,
+      "id": "ccd_response",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "CCD response"
+    },
+    {
+      "default": 0,
+      "id": "white_balance",
+      "kind": {
+        "maximum": 1,
+        "minimum": -1,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "White balance"
+    },
+    {
+      "default": 0,
+      "id": "tint",
+      "kind": {
+        "maximum": 1,
+        "minimum": -1,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Tint"
+    },
+    {
+      "default": 1,
+      "id": "saturation",
+      "kind": {
+        "maximum": 2,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Saturation"
+    },
+    {
+      "default": 0,
+      "id": "sharpening",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Sharpening"
+    },
+    {
+      "default": 1,
+      "id": "sharpening_width",
+      "kind": {
+        "maximum": 4,
+        "minimum": 1,
+        "percent": false,
+        "step": null,
+        "type": "number",
+        "unit": "px"
+      },
+      "label": "Halo width"
+    },
+    {
+      "default": 0,
+      "id": "codec",
+      "kind": {
+        "choices": [
+          "DCT (MPEG, DV)",
+          "Block colors (Video 1)"
+        ],
+        "type": "choice"
+      },
+      "label": "Codec"
+    },
+    {
+      "default": 1,
+      "id": "block_size",
+      "kind": {
+        "choices": [
+          "4 px",
+          "8 px",
+          "16 px"
+        ],
+        "type": "choice"
+      },
+      "label": "Block size"
+    },
+    {
+      "default": 2,
+      "id": "chroma",
+      "kind": {
+        "choices": [
+          "4:4:4 (full)",
+          "4:2:2 (half)",
+          "4:2:0 (quarter)",
+          "4:1:1 (DV)"
+        ],
+        "type": "choice"
+      },
+      "label": "Color"
+    },
+    {
+      "default": 0,
+      "id": "chroma_upsampling",
+      "kind": {
+        "choices": [
+          "Smooth",
+          "Blocky"
+        ],
+        "type": "choice"
+      },
+      "label": "Color decode"
+    },
+    {
+      "default": 0.749,
+      "id": "quality",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Quality"
+    },
+    {
+      "default": 0,
+      "id": "keyframe_interval",
+      "kind": {
+        "maximum": 10,
+        "minimum": 0,
+        "percent": false,
+        "step": null,
+        "type": "number",
+        "unit": "s"
+      },
+      "label": "Keyframe interval"
+    },
+    {
+      "default": 0,
+      "id": "fixed_bitrate",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Fixed bitrate"
+    },
+    {
+      "default": 0,
+      "id": "bitrate_limit",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Bitrate limit"
+    },
+    {
+      "default": 1,
+      "id": "rate_buffer",
+      "kind": {
+        "maximum": 5,
+        "minimum": 0,
+        "percent": false,
+        "step": null,
+        "type": "number",
+        "unit": "s"
+      },
+      "label": "Buffer"
+    },
+    {
+      "default": 0,
+      "id": "deblocking",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Deblocking"
+    },
+    {
+      "default": 0,
+      "id": "generations",
+      "kind": {
+        "maximum": 20,
+        "minimum": 0,
+        "percent": false,
+        "step": 1,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Generations"
+    },
+    {
+      "default": 0,
+      "id": "data_loss",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Data loss"
+    },
+    {
+      "default": 0,
+      "id": "loss_pattern",
+      "kind": {
+        "choices": [
+          "Packets",
+          "DV tape",
+          "Clogged head"
+        ],
+        "type": "choice"
+      },
+      "label": "Loss pattern"
+    },
+    {
+      "default": 0,
+      "id": "concealment",
+      "kind": {
+        "choices": [
+          "Last picture",
+          "Gray",
+          "Green",
+          "Stretched"
+        ],
+        "type": "choice"
+      },
+      "label": "Lost blocks show"
+    },
+    {
+      "default": 0,
+      "id": "bit_errors",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Bit errors"
+    },
+    {
+      "default": 0,
+      "id": "datamosh",
+      "kind": {
+        "maximum": 1,
+        "minimum": 0,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Datamosh"
+    },
+    {
+      "default": 0,
+      "id": "mosh_motion",
+      "kind": {
+        "choices": [
+          "None",
+          "Pan",
+          "Tilt",
+          "Zoom",
+          "Swirl"
+        ],
+        "type": "choice"
+      },
+      "label": "Added motion"
+    },
+    {
+      "default": 0.5,
+      "id": "mosh_speed",
+      "kind": {
+        "maximum": 1,
+        "minimum": -1,
+        "percent": true,
+        "step": null,
+        "type": "number",
+        "unit": ""
+      },
+      "label": "Motion speed"
+    }
+  ],
+  "formats": [
+    {
+      "id": "webcam",
+      "name": "Webcam (2005)",
+      "suggestedRetroWidth": 320,
+      "values": {
+        "frame_rate": 15,
+        "fields": 1,
+        "sensor": 0,
+        "smear": 0,
+        "aliasing": 0.15,
+        "sensor_noise": 0.4,
+        "low_light_noise": 0,
+        "noise_reduction": 0.5,
+        "ccd_response": 0.5,
+        "white_balance": -0.15,
+        "tint": 0,
+        "saturation": 0.85,
+        "sharpening": 0.25,
+        "sharpening_width": 1,
+        "codec": 0,
+        "block_size": 1,
+        "chroma": 2,
+        "chroma_upsampling": 0,
+        "quality": 0.749,
+        "keyframe_interval": 0,
+        "fixed_bitrate": 0,
+        "bitrate_limit": 0,
+        "rate_buffer": 1,
+        "deblocking": 0,
+        "generations": 0,
+        "data_loss": 0,
+        "loss_pattern": 0,
+        "concealment": 0,
+        "bit_errors": 0,
+        "datamosh": 0,
+        "mosh_motion": 0,
+        "mosh_speed": 0.5
+      }
+    },
+    {
+      "id": "video_call",
+      "name": "Video call",
+      "suggestedRetroWidth": 320,
+      "values": {
+        "frame_rate": 15,
+        "fields": 1,
+        "sensor": 0,
+        "smear": 0,
+        "aliasing": 0,
+        "sensor_noise": 0.25,
+        "low_light_noise": 0,
+        "noise_reduction": 0.6,
+        "ccd_response": 0.3,
+        "white_balance": 0,
+        "tint": 0,
+        "saturation": 0.9,
+        "sharpening": 0,
+        "sharpening_width": 1,
+        "codec": 0,
+        "block_size": 1,
+        "chroma": 2,
+        "chroma_upsampling": 0,
+        "quality": 0.749,
+        "keyframe_interval": 4,
+        "fixed_bitrate": 0.8,
+        "bitrate_limit": 0,
+        "rate_buffer": 1,
+        "deblocking": 0.6,
+        "generations": 0,
+        "data_loss": 0.15,
+        "loss_pattern": 0,
+        "concealment": 0,
+        "bit_errors": 0,
+        "datamosh": 0,
+        "mosh_motion": 0,
+        "mosh_speed": 0.5
+      }
+    },
+    {
+      "id": "minidv",
+      "name": "MiniDV",
+      "suggestedRetroWidth": 720,
+      "values": {
+        "frame_rate": 30,
+        "fields": 1,
+        "sensor": 0,
+        "smear": 0,
+        "aliasing": 0.6,
+        "sensor_noise": 0.12,
+        "low_light_noise": 0,
+        "noise_reduction": 0,
+        "ccd_response": 1,
+        "white_balance": 0.4,
+        "tint": 0.2,
+        "saturation": 1.15,
+        "sharpening": 0.6,
+        "sharpening_width": 1,
+        "codec": 0,
+        "block_size": 1,
+        "chroma": 3,
+        "chroma_upsampling": 0,
+        "quality": 0.894,
+        "keyframe_interval": 0,
+        "fixed_bitrate": 0.3,
+        "bitrate_limit": 0,
+        "rate_buffer": 1,
+        "deblocking": 0,
+        "generations": 0,
+        "data_loss": 0,
+        "loss_pattern": 0,
+        "concealment": 0,
+        "bit_errors": 0,
+        "datamosh": 0,
+        "mosh_motion": 0,
+        "mosh_speed": 0.5
+      }
+    },
+    {
+      "id": "early_web",
+      "name": "Early web video",
+      "suggestedRetroWidth": 320,
+      "values": {
+        "frame_rate": 15,
+        "fields": 1,
+        "sensor": 0,
+        "smear": 0,
+        "aliasing": 0,
+        "sensor_noise": 0,
+        "low_light_noise": 0,
+        "noise_reduction": 0,
+        "ccd_response": 0,
+        "white_balance": 0,
+        "tint": 0,
+        "saturation": 1,
+        "sharpening": 0,
+        "sharpening_width": 1,
+        "codec": 0,
+        "block_size": 1,
+        "chroma": 2,
+        "chroma_upsampling": 0,
+        "quality": 0.651,
+        "keyframe_interval": 5,
+        "fixed_bitrate": 0.7,
+        "bitrate_limit": 0,
+        "rate_buffer": 1,
+        "deblocking": 0,
+        "generations": 0,
+        "data_loss": 0,
+        "loss_pattern": 0,
+        "concealment": 0,
+        "bit_errors": 0,
+        "datamosh": 0,
+        "mosh_motion": 0,
+        "mosh_speed": 0.5
+      }
+    },
+    {
+      "id": "cd_rom",
+      "name": "CD-ROM (Video 1)",
+      "suggestedRetroWidth": 240,
+      "values": {
+        "frame_rate": 12,
+        "fields": 1,
+        "sensor": 0,
+        "smear": 0,
+        "aliasing": 0,
+        "sensor_noise": 0,
+        "low_light_noise": 0,
+        "noise_reduction": 0,
+        "ccd_response": 0,
+        "white_balance": 0,
+        "tint": 0,
+        "saturation": 1,
+        "sharpening": 0,
+        "sharpening_width": 1,
+        "codec": 1,
+        "block_size": 1,
+        "chroma": 2,
+        "chroma_upsampling": 0,
+        "quality": 0.57,
+        "keyframe_interval": 1.25,
+        "fixed_bitrate": 0,
+        "bitrate_limit": 0,
+        "rate_buffer": 1,
+        "deblocking": 0,
+        "generations": 0,
+        "data_loss": 0,
+        "loss_pattern": 0,
+        "concealment": 0,
+        "bit_errors": 0,
+        "datamosh": 0,
+        "mosh_motion": 0,
+        "mosh_speed": 0.5
+      }
+    },
+    {
+      "id": "datamosh",
+      "name": "Datamosh",
+      "suggestedRetroWidth": 480,
+      "values": {
+        "frame_rate": 30,
+        "fields": 1,
+        "sensor": 0,
+        "smear": 0,
+        "aliasing": 0,
+        "sensor_noise": 0,
+        "low_light_noise": 0,
+        "noise_reduction": 0,
+        "ccd_response": 0,
+        "white_balance": 0,
+        "tint": 0,
+        "saturation": 1,
+        "sharpening": 0,
+        "sharpening_width": 1,
+        "codec": 0,
+        "block_size": 1,
+        "chroma": 2,
+        "chroma_upsampling": 0,
+        "quality": 0.826,
+        "keyframe_interval": 1,
+        "fixed_bitrate": 0.3,
+        "bitrate_limit": 0,
+        "rate_buffer": 1,
+        "deblocking": 0,
+        "generations": 0,
+        "data_loss": 0,
+        "loss_pattern": 0,
+        "concealment": 0,
+        "bit_errors": 0,
+        "datamosh": 1,
+        "mosh_motion": 0,
+        "mosh_speed": 0.5
+      }
+    }
+  ]
+}

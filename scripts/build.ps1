@@ -10,12 +10,15 @@ try {
     Copy-Item -LiteralPath '.tools/librashader/librashader.dll' -Destination 'runtime/librashader.dll' -Force
     Copy-Item -LiteralPath 'native/target/release/ntscrt_ntsc.dll' -Destination 'runtime/ntscrt_ntsc.dll' -Force
     if (-not $Offline) {
-        & $Dotnet restore 'src/Ntscrt.Windows/Ntscrt.Windows.csproj'
+        & $Dotnet restore 'src/TapeTube.Cli/TapeTube.Cli.csproj'
         Assert-NativeExit '.NET-Pakete laden'
     }
     # Keep a running version and its unsaved settings intact while building an update.
     $BuildDirectory = 'artifacts/builds/' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff')
-    & $Dotnet build 'src/Ntscrt.Windows/Ntscrt.Windows.csproj' -c Release --no-restore --output $BuildDirectory
+    & $Dotnet build 'src/TapeTube.Cli/TapeTube.Cli.csproj' -c Release --no-restore --output $BuildDirectory
     Assert-NativeExit 'Windows-App bauen'
+    & (Join-Path $ProjectRoot 'prototypes/processing-core/prepare.ps1') -Offline:$Offline
+    & (Join-Path $ProjectRoot 'prototypes/processing-core/build.ps1') -Offline:$Offline
+    & "$PSScriptRoot/copy-core-runtime.ps1" -Destination $BuildDirectory
     Set-Content -LiteralPath 'runtime/current-app.txt' -Value $BuildDirectory -Encoding utf8
 } finally { Pop-Location }

@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace Ntscrt.Windows;
 
-internal sealed record VideoInfo(string Path, int Width, int Height, double FramesPerSecond, string Rate, int FrameCount, double StartTime)
+internal sealed record VideoInfo(string Path, int Width, int Height, double FramesPerSecond, string Rate, int FrameCount, double StartTime, bool ToneMappedToSdr = false, bool IsStill = false)
 {
     public double Duration => FrameCount / FramesPerSecond;
 }
@@ -22,9 +22,14 @@ internal sealed class VideoSource : IAsyncDisposable
     private int _nextFrame;
     private int _cachedIndex = -1;
     private PixelFrame? _cached;
+    private readonly string? _sdrConversion;
     public VideoInfo Info { get; }
 
-    private VideoSource(VideoInfo info) => Info = info;
+    private VideoSource(VideoInfo info, string? sdrConversion)
+    {
+        Info = info;
+        _sdrConversion = sdrConversion;
+    }
     public static async Task<VideoSource> OpenAsync(string path, CancellationToken cancellation = default)
     {
         path = System.IO.Path.GetFullPath(path);
@@ -50,15 +55,41 @@ internal sealed class VideoSource : IAsyncDisposable
         if (!double.IsFinite(sar) || sar <= 0) sar = 1;
         width = checked((int)Math.Round(width * sar));
         if (stream.TryGetProperty("side_data_list", out var sides))
+        {
+            if (sides.EnumerateArray().Any(side => Number(side, "dv_profile") == 5))
+                throw new InvalidDataException(Localization.T("Dieses Dolby-Vision-Video hat keine unterstützte HDR-Basisspur."));
             foreach (var side in sides.EnumerateArray())
                 if (side.TryGetProperty("rotation", out var rotation) && Math.Abs(rotation.GetDouble() % 180) > 45)
                 { (width, height) = (height, width); break; }
+        }
         if (width <= 0 || height <= 0 || width > 16384 || height > 16384 || (long)width * height > 24_000_000)
             throw new InvalidDataException(Localization.T("Das Video überschreitet die unterstützte Bildgröße (24 Megapixel)."));
         var frames = Math.Max(1, checked((int)Math.Round(duration * fps)));
         var startTime = Number(stream, "start_time");
         if (!double.IsFinite(startTime)) startTime = 0;
-        return new(new(path, width, height, fps, rate, frames, startTime));
+        var transfer = Text(stream, "color_transfer");
+        var hdr = transfer is "smpte2084" or "arib-std-b67";
+        var wideGamut = Text(stream, "color_primaries") == "bt2020";
+        if (wideGamut && transfer is "" or "unknown" or "unspecified")
+            throw new InvalidDataException(Localization.T("Das BT.2020-Video enthält keine Angabe zur Helligkeitskurve."));
+        var sdrConversion = hdr || wideGamut ? BuildSdrConversion(stream, hdr) : null;
+        return new(new(path, width, height, fps, rate, frames, startTime, hdr), sdrConversion);
+    }
+
+    private static string BuildSdrConversion(JsonElement stream, bool hdr)
+    {
+        const string sdr = "zscale=primaries=bt709:transfer=bt709:matrix=bt709:range=limited,format=yuv444p";
+        if (!hdr) return sdr;
+
+        // PQ and HLG normally use BT.2020. Keep any explicit source primaries
+        // and matrix. Supply the usual values for untagged YUV camera clips.
+        var linearize = "zscale=transfer=linear:npl=100";
+        if (Text(stream, "color_primaries") is "" or "unknown" or "unspecified")
+            linearize += ":primariesin=bt2020";
+        if ((Text(stream, "color_space") is "" or "unknown" or "unspecified")
+            && Text(stream, "pix_fmt").StartsWith("yuv", StringComparison.Ordinal))
+            linearize += ":matrixin=bt2020nc";
+        return $"{linearize},format=gbrpf32le,tonemap=mobius,{sdr}";
     }
 
     private static string Text(JsonElement element, string property) => element.TryGetProperty(property, out var value) ? value.ToString() : "";
@@ -83,9 +114,17 @@ internal sealed class VideoSource : IAsyncDisposable
             if (_decoder == null || index < _nextFrame)
             {
                 StopDecoder();
+                var timeline = $"setpts=PTS-STARTPTS,fps={Info.Rate}";
+                var geometry = $"scale={Info.Width}:{Info.Height},setsar=1";
+                var filter = _sdrConversion == null
+                    ? $"{timeline},{geometry},trim=start_frame={index}"
+                    : $"{timeline},trim=start_frame={index},{_sdrConversion},{geometry}";
+                // Share the CPU with video decoding, effects and export encoding.
+                var filterThreads = _sdrConversion == null ? 1 : Math.Clamp(Environment.ProcessorCount / 2, 1, 4);
                 _decoder = MediaTools.Start("ffmpeg", ["-hide_banner", "-loglevel", "error", "-nostdin", "-threads", "2",
-                    "-protocol_whitelist", "file,pipe", "-i", Info.Path, "-map", "0:v:0", "-an", "-sn", "-dn", "-filter_threads", "1",
-                    "-vf", $"setpts=PTS-STARTPTS,fps={Info.Rate},scale={Info.Width}:{Info.Height},setsar=1,trim=start_frame={index}",
+                    "-protocol_whitelist", "file,pipe", "-i", Info.Path, "-map", "0:v:0", "-an", "-sn", "-dn",
+                    "-filter_threads", filterThreads.ToString(CultureInfo.InvariantCulture),
+                    "-vf", filter,
                     "-fps_mode", "passthrough", "-pix_fmt", "bgra", "-f", "rawvideo", "pipe:1"]);
                 _errors = _decoder.StandardError.ReadToEndAsync();
                 _nextFrame = index;
@@ -101,6 +140,8 @@ internal sealed class VideoSource : IAsyncDisposable
                     linked.Token.ThrowIfCancellationRequested();
                     await _decoder.WaitForExitAsync(linked.Token);
                     var error = await _errors!;
+                    if (_sdrConversion != null && error.Contains("No such filter", StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidDataException(Localization.T("Für dieses Video benötigt FFmpeg die Filter zscale und tonemap."));
                     throw new InvalidDataException(string.IsNullOrWhiteSpace(error) ? Localization.T("Das Video endet vor dem angeforderten Bild.") : error.Trim());
                 }
                 _nextFrame++;

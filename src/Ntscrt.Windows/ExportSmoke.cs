@@ -132,7 +132,7 @@ internal static class ExportSmoke
             catch (OperationCanceledException) { rejected = true; }
             Check(rejected && File.ReadAllBytes(protectedPath).SequenceEqual(sentinel), "Abbruch schützt eine bestehende Zieldatei");
         }
-        Check(Directory.GetFiles(directory, ".ntscrt-*.mp4").Length == 0, "Temporäre Dateien nach Abbruch entfernt");
+        Check(Directory.GetFiles(directory, ".tapetube-*.mp4").Length == 0, "Temporäre Dateien nach Abbruch entfernt");
         using (var cancelled = CancellationTokenSource.CreateLinkedTokenSource(token))
         {
             var rejected = false;
@@ -152,8 +152,35 @@ internal static class ExportSmoke
         try { await VideoExporter.ExportAsync(sourcePath, protectedPath, settings, cancellation: token); }
         catch (IOException) { overwriteRejected = true; }
         Check(overwriteRejected && File.ReadAllBytes(protectedPath).SequenceEqual(sentinel), "Vorhandene Ziele benötigen ausdrückliche Überschreibfreigabe");
+        await GifSmoke.RunAsync(directory, shiftedPath, Check, token);
+        await CheckStillWithoutKeys(directory, Check, token);
         File.WriteAllText(Path.Combine(Paths.Root, "artifacts", "export-smoke.json"), JsonSerializer.Serialize(new
         { passed = true, count = checks.Count, checks, outputPath, result }, new JsonSerializerOptions { WriteIndented = true }));
+    }
+
+    private static async Task CheckStillWithoutKeys(string directory, Action<bool, string> check, CancellationToken token)
+    {
+        var image = PixelFrame.TestPattern();
+        var ntsc = NtscProcessor.Defaults();
+        ntsc["composite_noise"] = true;
+        ntsc["composite_noise_intensity"] = 0.5;
+        var settings = new RenderSettings(true, false, ntsc.ToJsonString(), "", 96, 2, 0, [],
+            new(96, 64), DigitalCatalog.Profile);
+        var mp4 = Path.Combine(directory, "still-without-keys.mp4");
+        PixelFrame? first = null, last = null;
+        var result = await VideoExporter.ExportStillAsync(image, null, mp4, 0.5, settings,
+            cancellation: token, overwrite: true, fps: 24, frameObserver: (index, frame) =>
+            {
+                if (index == 0) first = frame;
+                last = frame;
+            });
+        await using var clip = await VideoSource.OpenAsync(mp4, token);
+        check(result.Frames == 12 && clip.Info is { FramesPerSecond: 24, FrameCount: 12 } &&
+            first != null && last != null && !first.Pixels.AsSpan().SequenceEqual(last.Pixels),
+            "MP4 aus einem Standbild ohne Keyframes übernimmt Bildrate und animiert NTSC-Rauschen");
+        var gif = await VideoExporter.ExportStillAsync(image, null, Path.Combine(directory, "still-without-keys.gif"), 0.5, settings,
+            cancellation: token, overwrite: true, fps: 12, format: VideoExportFormat.Gif);
+        check(gif.Frames == 6, "GIF aus einem Standbild ohne Keyframes übernimmt 12 Bilder pro Sekunde");
     }
 
     private static async Task<JsonDocument> Probe(string path, CancellationToken cancellation) => JsonDocument.Parse(

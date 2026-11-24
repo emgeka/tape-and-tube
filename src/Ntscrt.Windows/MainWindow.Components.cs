@@ -17,6 +17,13 @@ public partial class MainWindow
         text.AppendLine(Localization.T("Windows-Adaption von NTSCRT von Finn McKenty. Konzept, Signalkette und Workflow gehen auf das Originalprojekt zurück; Windows-Oberfläche und Host-Anbindung sind neu implementiert. Quelle: https://github.com/finnmckenty/NTSCRT"));
         text.AppendLine();
         text.AppendLine(Localization.T("Unser eigener Anwendungscode und die Host-Anbindung: GPL-3.0-only. Die Fremdprojekte behalten ihre eigenen Lizenzen.\n"));
+        text.AppendLine("NTSCRT · Digital video / VCR / TV reception / Screen Loop / Rust-wgpu engine · MIT · Copyright (c) 2026 Finn McKenty");
+        text.AppendLine("https://github.com/finnmckenty/NTSCRT/tree/" + DigitalCatalog.Revision + "/port");
+        text.AppendLine("Host patch: GPU capability checks, temporal reset and CRT intermediate sizing for small outputs.");
+        text.AppendLine("librashader (wgpu worker): 76462c030b75c4f2d56e5386c3d4d7d1128318b8 · MPL-2.0 OR GPL-3.0-only · NTSCRT push-constant patch");
+        text.AppendLine(Localization.T("Vorgesehen: ") + EffectPipeline.WorkerPath);
+        if (_pipeline.WorkerAdapter is string adapter) text.AppendLine("GPU: " + adapter);
+        text.AppendLine();
         var metadataPath = Path.Combine(Paths.Root, "dependencies.json");
         var metadata = File.Exists(metadataPath) ? JsonNode.Parse(File.ReadAllText(metadataPath))!.AsObject() : new JsonObject();
         text.AppendLine(Localization.T("ntsc-rs · NTSC-/VHS-Signalverarbeitung"));

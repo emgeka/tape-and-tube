@@ -1,0 +1,24 @@
+Tape & Tube ist die Windows-Adaption von NTSCRT von Finn McKenty.
+https://github.com/finnmckenty/NTSCRT
+
+Eigener Anwendungscode und Host-Anbindung stehen unter GPL-3.0-only.
+Die verwendeten Fremdprojekte behalten ihre eigenen Lizenzen und Urheberhinweise.
+
+Das Paket enthält alle sieben ausgewählten CRT-Presets, die Originalhinweise,
+den Lizenzprüfbericht und ein ZIP mit dem passenden Anwendungscode.
+Offene Fragen zum Lizenzumfang einzelner Shader sind dokumentiert.
+
+Diese Beta ist unsigniert. Setup kann FFmpeg vom Anbieter Gyan Doshi / gyan.dev
+herunterladen (GPL v3) oder vorhandene Werkzeuge verwenden. Der Download wird
+auf der Komponentenseite geprüft. Bei der Installation werden die vorbereiteten
+Dateien in den App-Ordner kopiert. Originalhinweise und Quellen stehen in
+licenses\ffmpeg.
+
+Setup prüft die erforderlichen Microsoft-Laufzeitkomponenten. Bei DirectX wird
+das Microsoft-Paket geprüft und entpackt, anschließend startet DXSETUP.
+Lizenz- und Administratorabfragen von Microsoft bestätigst du selbst. Danach
+prüft Setup erneut, ob die Laufzeit verfügbar ist.
+
+Bei früheren CRTsim-Exporten in VirtualBox traten schwarze Bilder auf.
+Mit demselben Ausgangsmaterial und Preset trat das auf dem Hauptrechner
+nicht auf.

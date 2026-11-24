@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Windows;
-using System.Windows.Threading;
+using System.Windows.Media;
 using Microsoft.Win32;
 
 namespace Ntscrt.Windows;
@@ -13,55 +13,59 @@ public partial class MainWindow
     private VideoSource? _video;
     private int _frameIndex;
     private bool _playing, _updatingTransport;
-    private readonly DispatcherTimer _playback = new() { Interval = TimeSpan.FromMilliseconds(30) };
     private readonly Stopwatch _playClock = new();
     private int _playStartFrame;
     private CancellationTokenSource? _loadCancellation, _renderCancellation;
 
-    private void InitializeVideo()
+    private async void PlaybackRendering(object? sender, EventArgs e)
     {
-        _playback.Tick += async (_, _) =>
+        if (!_playing || _busy || _debounce.IsEnabled || TimelineInfo is not VideoInfo info) return;
+        var elapsed = _playClock.Elapsed.TotalSeconds;
+        var target = _playStartFrame + (int)Math.Min(info.FrameCount - 1 - _playStartFrame, Math.Floor(elapsed * info.FramesPerSecond));
+        if (target == _frameIndex)
         {
-            if (!_playing || _video == null || _busy || _debounce.IsEnabled) return;
-            var target = Math.Min(_video.Info.FrameCount - 1,
-                _playStartFrame + (int)Math.Floor(_playClock.Elapsed.TotalSeconds * _video.Info.FramesPerSecond));
-            if (target == _frameIndex)
-            {
-                if (target == _video.Info.FrameCount - 1)
-                {
-                    if (LoopPlaybackButton.IsChecked == true)
-                    {
-                        if (_playClock.Elapsed.TotalSeconds < (_video.Info.FrameCount - _playStartFrame) / _video.Info.FramesPerSecond) return;
-                        SetFrame(0); InvalidateRender();
-                        _playStartFrame = 0; _playClock.Restart();
-                        await Render();
-                    }
-                    else PauseVideo();
-                }
-                return;
-            }
-            SetFrame(target);
-            InvalidateRender();
-            await Render();
-        };
+            if (target != info.FrameCount - 1 || elapsed < (info.FrameCount - _playStartFrame) / info.FramesPerSecond) return;
+            if (LoopPlaybackButton.IsChecked != true) { PauseVideo(); return; }
+            target = 0;
+            _playStartFrame = target;
+            _playClock.Restart();
+        }
+        else if ((_importedLook != null || OwnRenderer == DigitalCatalog.Profile) && target > _frameIndex + 1)
+        {
+            // The shared core needs every frame. Jumping ahead makes its history
+            // request rewind the same decoder, even during ordinary playback.
+            target = _frameIndex + 1;
+            _playStartFrame = target;
+            _playClock.Restart();
+        }
+        SetFrame(target);
+        InvalidateRender(discardPrepared: target == 0);
+        await Render();
     }
-    private void InvalidateRender()
+    private void InvalidateRender(bool discardPrepared = true)
     {
         _version++;
         _renderCancellation?.Cancel();
+        if (discardPrepared) DiscardPreparedFrames();
+        _stillMotionFrame = 0;
         ExportButton.IsEnabled = false;
     }
     private void PauseVideo()
     {
-        _playing = false; _playback.Stop(); _playClock.Stop();
+        _playing = false;
+        CompositionTarget.Rendering -= PlaybackRendering;
+        _playClock.Stop();
         PlayButton.Content = Localization.T("Abspielen");
         // Only a completed rendering of the selected position may be exported.
         ExportButton.IsEnabled = _output != null && !_busy && !_debounce.IsEnabled && _outputInputValid;
     }
     private async Task ClearVideo()
     {
+        _sourceIdentity=Guid.NewGuid().ToString("N");
+        ResetPreviewNavigation();
         PauseVideo(); InvalidateRender();
         var old = _video; _video = null; _frameIndex = 0;
+        _stillPath = null;
         VideoExportButton.IsEnabled = false;
         VideoTransport.Visibility = Visibility.Collapsed;
         if (old != null) await old.DisposeAsync();
@@ -93,14 +97,10 @@ public partial class MainWindow
             cancellation.Token.ThrowIfCancellationRequested();
             _video = next; next = null;
             _source = first; _output = null;
-            Title = $"{Path.GetFileName(path)} · Tape & Tube";
+            var conversionLabel = _video.Info.ToneMappedToSdr ? " · HDR → SDR" : "";
+            Title = $"{Path.GetFileName(path)}{conversionLabel} · Tape & Tube";
             EmptyHint.Visibility = Visibility.Collapsed;
-            VideoTransport.Visibility = Visibility.Visible;
-            _updatingTransport = true;
-            FrameSlider.Maximum = _video.Info.FrameCount - 1;
-            FrameSlider.Value = 0;
-            _updatingTransport = false;
-            UpdateTransport(); UpdatePreview();
+            RefreshTimeline(); UpdatePreview();
             Schedule();
         }
         catch (OperationCanceledException) { }
@@ -109,47 +109,86 @@ public partial class MainWindow
         {
             if (next != null) await next.DisposeAsync();
             if (ReferenceEquals(_loadCancellation, cancellation)) _loadCancellation = null;
-            VideoExportButton.IsEnabled = _video != null && _exportCancellation == null && _loadCancellation == null && _outputInputValid;
+            RefreshVideoExportButton();
         }
     }
+
+    private bool CanExportTimeline => TimelineInfo != null;
+
+    private void RefreshVideoExportButton() =>
+        VideoExportButton.IsEnabled = CanExportTimeline && _exportCancellation == null && _loadCancellation == null && _outputInputValid;
+
+    private void RefreshTimeline()
+    {
+        UpdateScreenLoopControls();
+        var info = TimelineInfo;
+        VideoTransport.Visibility = info == null ? Visibility.Collapsed : Visibility.Visible;
+        Mp4LoopOptions.Visibility = _video == null ? Visibility.Collapsed : Visibility.Visible;
+        if (info != null)
+        {
+            _updatingTransport = true;
+            FrameSlider.Maximum = info.FrameCount - 1;
+            _updatingTransport = false;
+            SetFrame(_frameIndex);
+        }
+        else _frameIndex = 0;
+        RefreshKeyframeAvailability();
+        RefreshVideoExportButton();
+        UpdateGifEstimate();
+        UpdateStillMotionAvailability();
+    }
+
     private void SetFrame(int index)
     {
-        if (_video == null) return;
-        _frameIndex = Math.Clamp(index, 0, _video.Info.FrameCount - 1);
+        if (TimelineInfo is not VideoInfo info) return;
+        _frameIndex = Math.Clamp(index, 0, info.FrameCount - 1);
         _updatingTransport = true; FrameSlider.Value = _frameIndex; _updatingTransport = false;
         UpdateTransport();
     }
     private void UpdateTransport()
     {
-        if (_video == null) return;
+        if (TimelineInfo is not VideoInfo info) return;
         static string Time(double seconds) => TimeSpan.FromSeconds(seconds).ToString(@"hh\:mm\:ss\.fff", CultureInfo.InvariantCulture);
-        VideoPosition.Text = Localization.F($"{Time(_frameIndex / _video.Info.FramesPerSecond)} / {Time(_video.Info.Duration)} · Bild {_frameIndex + 1} / {_video.Info.FrameCount}");
-        PreviousFrameButton.IsEnabled = _frameIndex > 0;
-        NextFrameButton.IsEnabled = _frameIndex < _video.Info.FrameCount - 1;
+        VideoPosition.Text = Localization.F($"{Time(_frameIndex / info.FramesPerSecond)} / {Time(info.Duration)} · Bild {_frameIndex + 1} / {info.FrameCount}");
+        FirstFrameButton.IsEnabled = PreviousFrameButton.IsEnabled = _frameIndex > 0;
+        LastFrameButton.IsEnabled = NextFrameButton.IsEnabled = _frameIndex < info.FrameCount - 1;
     }
     private void TogglePlayback(object sender, RoutedEventArgs e)
     {
-        if (_video == null) return;
+        if (TimelineInfo is not VideoInfo info) return;
         if (_playing)
         {
             PauseVideo();
+            SchedulePreviewPreparation();
             // If a frame was still calculating, its completion enables export.
             return;
         }
-        if (_frameIndex == _video.Info.FrameCount - 1) { SetFrame(0); InvalidateRender(); _ = Render(); }
-        _playStartFrame = _frameIndex; _playClock.Restart(); _playing = true;
-        ExportButton.IsEnabled = false; PlayButton.Content = Localization.T("Pause"); _playback.Start();
+        SetAudition(false);
+        _prepareTimer.Stop();
+        _playing = true;
+        if (_frameIndex == info.FrameCount - 1) { SetFrame(0); InvalidateRender(); _ = Render(); }
+        _playStartFrame = _frameIndex; _playClock.Restart();
+        ExportButton.IsEnabled = false;
+        PlayButton.Content = Localization.T("Pause");
+        CompositionTarget.Rendering += PlaybackRendering;
     }
     private void SeekVideo(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (_updatingTransport || _video == null || !_ready) return;
-        PauseVideo(); SetFrame((int)Math.Round(FrameSlider.Value)); Schedule();
+        if (_updatingTransport || !_ready) return;
+        JumpToFrame((int)Math.Round(FrameSlider.Value));
     }
-    private void PreviousFrame(object sender, RoutedEventArgs e) => StepVideo(-1);
-    private void NextFrame(object sender, RoutedEventArgs e) => StepVideo(1);
-    private void StepVideo(int direction)
+    private void FirstFrame(object sender, RoutedEventArgs e) => JumpToFrame(0);
+    private void LastFrame(object sender, RoutedEventArgs e)
     {
-        if (_video == null) return;
-        PauseVideo(); SetFrame(_frameIndex + direction); Schedule();
+        if (TimelineInfo is VideoInfo info) JumpToFrame(info.FrameCount - 1);
+    }
+    private void PreviousFrame(object sender, RoutedEventArgs e) => JumpToFrame(_frameIndex - 1);
+    private void NextFrame(object sender, RoutedEventArgs e) => JumpToFrame(_frameIndex + 1);
+    private void JumpToFrame(int index)
+    {
+        if (TimelineInfo == null) return;
+        PauseVideo();
+        SetFrame(index);
+        Schedule();
     }
 }

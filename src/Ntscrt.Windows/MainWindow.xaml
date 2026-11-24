@@ -1,9 +1,28 @@
-<Window x:Class="Ntscrt.Windows.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Tape &amp; Tube · Beta" Width="1400" Height="900" MinWidth="1040" MinHeight="680" Background="#10151C" Foreground="#E8EEF5" UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+<Window x:Class="Ntscrt.Windows.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Tape &amp; Tube · Beta" Icon="TapeTube.png" Width="1400" Height="900" MinWidth="1040" MinHeight="680" Background="#10151C" Foreground="#E8EEF5" UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+ <Window.Resources>
+  <Style x:Key="EffectCard" TargetType="Border">
+   <Setter Property="Background" Value="#141A22"/>
+   <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
+   <Setter Property="BorderThickness" Value="1"/>
+   <Setter Property="CornerRadius" Value="6"/>
+   <Setter Property="Padding" Value="12,4,12,6"/>
+   <Setter Property="Margin" Value="0,0,0,8"/>
+  </Style>
+  <Style x:Key="EffectSwitch" TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+   <Setter Property="FontSize" Value="15"/>
+   <Setter Property="FontWeight" Value="SemiBold"/>
+   <Setter Property="Margin" Value="0,5,0,0"/>
+  </Style>
+  <Style x:Key="EffectDetails" TargetType="Expander" BasedOn="{StaticResource {x:Type Expander}}">
+   <Setter Property="Header" Value="{DynamicResource DetailsLabel}"/>
+   <Setter Property="Margin" Value="0,5,0,1"/>
+  </Style>
+ </Window.Resources>
  <DockPanel Margin="24,20,24,16">
   <Grid DockPanel.Dock="Top" Margin="0,0,0,20">
    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-    <Border Width="38" Height="38" Background="#8CE3CF" CornerRadius="10" Margin="0,0,12,0"><Grid Margin="9"><Border BorderBrush="#183D35" BorderThickness="2" CornerRadius="5"/><Path Data="M 3 12 L 6 12 L 9 5 L 12 15 L 15 9 L 18 9" Stroke="#183D35" StrokeThickness="1.5" VerticalAlignment="Center"/></Grid></Border>
+    <Image Source="TapeTube.png" Width="44" Height="44" Margin="0,0,8,0"/>
     <StackPanel><TextBlock Text="Tape &amp; Tube" FontSize="23" FontWeight="SemiBold"/><TextBlock Text="{DynamicResource Ui001}" FontSize="12" Foreground="{StaticResource Muted}" Margin="0,2,0,0"/></StackPanel>
     <Border x:Name="BuildChannelBadge" BorderBrush="#34404E" BorderThickness="1" CornerRadius="4" Padding="6,3" Margin="14,0,0,0" VerticalAlignment="Center"><TextBlock Text="BETA" FontSize="10" Foreground="{StaticResource Muted}"/></Border>
    </StackPanel>
@@ -19,8 +38,9 @@
   <Border DockPanel.Dock="Top" Style="{StaticResource Card}" Padding="12" Margin="0,0,0,18">
    <DockPanel x:Name="MediaActions" LastChildFill="True">
     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top" Margin="16,0,0,0">
+     <Button Content="{DynamicResource Ui037}" Click="ShowOutputOptions" ToolTip="{DynamicResource OutputOptionsHint}"/>
      <Button x:Name="ExportButton" Content="{DynamicResource Ui003}" IsEnabled="False" Click="ExportImage" ToolTip="{DynamicResource Ui004}"/>
-     <Button x:Name="VideoExportButton" Content="{DynamicResource Ui005}" IsEnabled="False" Click="ExportVideo" Style="{StaticResource PrimaryButton}" Margin="0" ToolTip="{DynamicResource Ui006}"/>
+     <Button x:Name="VideoExportButton" Content="{DynamicResource VideoGifSaveLabel}" IsEnabled="False" Click="ExportVideo" Style="{StaticResource PrimaryButton}" Margin="0" ToolTip="{DynamicResource VideoGifSaveHintLabel}"/>
     </StackPanel>
     <WrapPanel>
     <Button Content="{DynamicResource Ui007}" Click="OpenImage" Style="{StaticResource PrimaryButton}"/>
@@ -30,6 +50,16 @@
     <Button Content="{DynamicResource Ui010}" Click="LoadPreset" Background="Transparent"/>
     <Button Content="{DynamicResource Ui011}" Click="SavePreset" Background="Transparent"/>
     </WrapPanel>
+   </DockPanel>
+  </Border>
+  <Border x:Name="ImportedLookNotice" DockPanel.Dock="Top" Visibility="Collapsed" Style="{StaticResource Card}" Padding="12" Margin="0,0,0,12"
+          IsEnabled="{Binding IsEnabled, ElementName=MediaActions}">
+   <DockPanel>
+    <Button DockPanel.Dock="Right" Content="{DynamicResource ImportedLookExitLabel}" Click="ExitImportedLook" Margin="12,0,0,0"/>
+    <StackPanel>
+     <TextBlock x:Name="ImportedLookName" TextTrimming="CharacterEllipsis" FontWeight="SemiBold"/>
+     <TextBlock Text="{DynamicResource ImportedLookHintLabel}" Foreground="{StaticResource Muted}" TextWrapping="Wrap"/>
+    </StackPanel>
    </DockPanel>
   </Border>
   <Border DockPanel.Dock="Bottom" BorderBrush="#29333F" BorderThickness="0,1,0,0" Padding="0,12,0,0" Margin="0,14,0,0">
@@ -50,15 +80,38 @@
      <TextBlock Text="{DynamicResource Ui016}" Style="{StaticResource SectionLabel}" Margin="0" VerticalAlignment="Center"/>
     </DockPanel>
     <Border Grid.Row="1" Background="#080B10" CornerRadius="10" BorderBrush="#29333F" BorderThickness="1" Padding="18">
-     <Grid x:Name="PreviewHost" SizeChanged="PreviewSizeChanged" ClipToBounds="True">
-      <Image x:Name="Preview" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
-      <Canvas x:Name="OriginalLayer" Visibility="Collapsed" IsHitTestVisible="False">
+     <Grid x:Name="PreviewHost" SizeChanged="PreviewSizeChanged" ClipToBounds="True" Background="Transparent"
+           MouseWheel="ZoomWithWheel" MouseLeftButtonDown="BeginPreviewPan" MouseMove="DragPreview"
+           MouseLeftButtonUp="EndPreviewPan" LostMouseCapture="PreviewCaptureLost">
+      <Canvas IsHitTestVisible="False" UseLayoutRounding="False">
+       <Image x:Name="Preview" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+      </Canvas>
+      <Canvas x:Name="OriginalLayer" Visibility="Collapsed" IsHitTestVisible="False" UseLayoutRounding="False">
        <Border x:Name="OriginalMatte" Background="Black"/>
        <Image x:Name="OriginalPreview" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
       </Canvas>
-      <Canvas x:Name="DividerLayer" Visibility="Collapsed">
+      <Canvas x:Name="DividerLayer" Visibility="Collapsed" UseLayoutRounding="False">
        <Thumb x:Name="CompareDivider" Width="32" Cursor="SizeWE" Focusable="False" DragDelta="CompareDividerDragged" ToolTip="{DynamicResource CompareHint}">
         <Thumb.Template><ControlTemplate TargetType="Thumb"><Grid Background="Transparent"><Border Width="2" Background="{StaticResource Accent}" HorizontalAlignment="Center"/><Border Width="32" Height="44" CornerRadius="10" Background="#142B28" BorderBrush="{StaticResource Accent}" BorderThickness="1" VerticalAlignment="Center"><TextBlock Text="↔" Foreground="{StaticResource Accent}" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></Grid></ControlTemplate></Thumb.Template>
+       </Thumb>
+      </Canvas>
+      <Canvas x:Name="ScreenLoopPadLayer" Visibility="Collapsed" UseLayoutRounding="False">
+       <Line x:Name="ScreenLoopPadLine" Stroke="#84C3FF" StrokeThickness="2" IsHitTestVisible="False"/>
+       <Thumb x:Name="ScreenLoopEndHandle" Width="34" Height="34" Cursor="SizeAll" Focusable="True"
+              ToolTip="{DynamicResource ScreenLoopEndLabel}" AutomationProperties.Name="{DynamicResource ScreenLoopEndLabel}"
+              DragStarted="ScreenLoopHandleStarted" DragDelta="ScreenLoopHandleDragged" DragCompleted="ScreenLoopHandleCompleted"
+              PreviewMouseLeftButtonDown="ScreenLoopHandlePressed" PreviewKeyDown="ScreenLoopHandleKey">
+        <Thumb.Template><ControlTemplate TargetType="Thumb">
+         <Grid><Ellipse Width="27" Height="27" Stroke="Transparent" StrokeThickness="9"/>
+          <Ellipse Width="27" Height="27" Stroke="#10151C" StrokeThickness="5"/>
+          <Ellipse Width="27" Height="27" Stroke="#84C3FF" StrokeThickness="2.5"/></Grid>
+        </ControlTemplate></Thumb.Template>
+       </Thumb>
+       <Thumb x:Name="ScreenLoopStartHandle" Width="16" Height="16" Cursor="SizeAll" Focusable="True"
+              ToolTip="{DynamicResource ScreenLoopStartLabel}" AutomationProperties.Name="{DynamicResource ScreenLoopStartLabel}"
+              DragStarted="ScreenLoopHandleStarted" DragDelta="ScreenLoopHandleDragged" DragCompleted="ScreenLoopHandleCompleted"
+              PreviewMouseLeftButtonDown="ScreenLoopHandlePressed" PreviewKeyDown="ScreenLoopHandleKey">
+        <Thumb.Template><ControlTemplate TargetType="Thumb"><Ellipse Fill="#8CE3CF" Stroke="#10151C" StrokeThickness="2"/></ControlTemplate></Thumb.Template>
        </Thumb>
       </Canvas>
       <StackPanel x:Name="EmptyHint" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="350">
@@ -69,13 +122,40 @@
       </StackPanel>
      </Grid>
     </Border>
-    <Border x:Name="ComparisonControls" Grid.Row="2" Visibility="Collapsed" Style="{StaticResource Card}" Padding="14,6" Margin="0,10,0,0">
-     <DockPanel><TextBlock DockPanel.Dock="Left" Text="{DynamicResource CompareOriginal}" VerticalAlignment="Center" Foreground="{StaticResource Muted}" Margin="0,0,14,0"/><TextBlock DockPanel.Dock="Right" Text="{DynamicResource CompareOutput}" VerticalAlignment="Center" Foreground="{StaticResource Muted}" Margin="14,0,0,0"/><Slider x:Name="ComparePosition" Minimum="0" Maximum="100" Value="50" SmallChange="1" LargeChange="10" IsMoveToPointEnabled="True" ValueChanged="SplitPositionChanged" AutomationProperties.Name="{DynamicResource ComparePositionLabel}"/></DockPanel>
-    </Border>
+    <StackPanel Grid.Row="2">
+     <WrapPanel x:Name="PreviewNavigation" Visibility="Collapsed" Margin="0,8,0,0">
+      <TextBlock Text="{DynamicResource PreviewZoomLabel}" VerticalAlignment="Center"/>
+      <Slider x:Name="PreviewZoomChoice" Minimum="1" Maximum="8" Value="1" SmallChange="0.25" LargeChange="1"
+              Width="120" Margin="10,0" VerticalAlignment="Center" ValueChanged="PreviewZoomChanged"
+              IsMoveToPointEnabled="True" ToolTip="{DynamicResource PreviewZoomHint}" AutomationProperties.Name="{DynamicResource PreviewZoomLabel}"/>
+      <TextBlock x:Name="PreviewZoomValue" Text="100%" VerticalAlignment="Center" Foreground="{StaticResource Muted}"/>
+      <Button x:Name="FitPreviewButton" Content="{DynamicResource PreviewFitLabel}"
+              Click="FitPreview" IsEnabled="False" Margin="10,0,12,0" Padding="8,3"/>
+      <CheckBox x:Name="IntegerPreviewChoice" Content="{DynamicResource PreviewIntegerLabel}"
+                Checked="IntegerPreviewChanged" Unchecked="IntegerPreviewChanged"
+                ToolTip="{DynamicResource PreviewIntegerHint}" VerticalAlignment="Center"/>
+      <CheckBox x:Name="StillMotionChoice" Content="{DynamicResource StillMotionLabel}" Visibility="Collapsed"
+                Margin="12,0,0,0" VerticalAlignment="Center" ToolTip="{DynamicResource StillMotionHint}"
+                Checked="StillMotionChanged" Unchecked="StillMotionChanged"/>
+     </WrapPanel>
+     <Border x:Name="ComparisonControls" Visibility="Collapsed" Style="{StaticResource Card}" Padding="14,6" Margin="0,10,0,0">
+      <DockPanel><TextBlock DockPanel.Dock="Left" Text="{DynamicResource CompareOriginal}" VerticalAlignment="Center" Foreground="{StaticResource Muted}" Margin="0,0,14,0"/><TextBlock DockPanel.Dock="Right" Text="{DynamicResource CompareOutput}" VerticalAlignment="Center" Foreground="{StaticResource Muted}" Margin="14,0,0,0"/><Slider x:Name="ComparePosition" Minimum="0" Maximum="100" Value="50" SmallChange="1" LargeChange="10" IsMoveToPointEnabled="True" ValueChanged="SplitPositionChanged" AutomationProperties.Name="{DynamicResource ComparePositionLabel}"/></DockPanel>
+     </Border>
+    </StackPanel>
     <Border x:Name="VideoTransport" Grid.Row="3" Visibility="Collapsed" Style="{StaticResource Card}" Margin="0,12,0,0" Padding="14,10">
      <StackPanel>
       <Slider x:Name="FrameSlider" Minimum="0" Maximum="1" TickFrequency="1" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" ValueChanged="SeekVideo" AutomationProperties.Name="{DynamicResource Ui020}"/>
-      <WrapPanel Margin="0,8,0,0"><Button x:Name="PreviousFrameButton" Content="{DynamicResource Ui021}" Click="PreviousFrame"/><Button x:Name="PlayButton" Content="{DynamicResource Ui022}" Click="TogglePlayback" MinWidth="100" Style="{StaticResource PrimaryButton}"/><Button x:Name="NextFrameButton" Content="{DynamicResource Ui023}" Click="NextFrame"/><ToggleButton x:Name="LoopPlaybackButton" Content="{DynamicResource LoopLabel}" Margin="0,0,12,0" ToolTip="{DynamicResource Ui024}"/><TextBlock x:Name="VideoPosition" VerticalAlignment="Center" Foreground="{StaticResource Muted}"/></WrapPanel>
+      <Canvas x:Name="KeyframeMarkers" Height="5" Margin="6,-4,6,0" Visibility="Collapsed" IsHitTestVisible="False" SizeChanged="ResizeKeyframeMarkers"/>
+      <WrapPanel Margin="0,8,0,0">
+       <Button x:Name="FirstFrameButton" Content="|◀" Click="FirstFrame" IsEnabled="False" ToolTip="{DynamicResource FirstFrameLabel}" AutomationProperties.Name="{DynamicResource FirstFrameLabel}"/>
+       <Button x:Name="PreviousFrameButton" Content="{DynamicResource Ui021}" Click="PreviousFrame"/>
+       <Button x:Name="PlayButton" Content="{DynamicResource Ui022}" Click="TogglePlayback" MinWidth="100" Style="{StaticResource PrimaryButton}"/>
+       <Button x:Name="NextFrameButton" Content="{DynamicResource Ui023}" Click="NextFrame"/>
+       <Button x:Name="LastFrameButton" Content="▶|" Click="LastFrame" IsEnabled="False" ToolTip="{DynamicResource LastFrameLabel}" AutomationProperties.Name="{DynamicResource LastFrameLabel}"/>
+       <ToggleButton x:Name="LoopPlaybackButton" Content="{DynamicResource LoopLabel}" Margin="0,0,12,0" ToolTip="{DynamicResource Ui024}"/>
+       <TextBlock x:Name="VideoPosition" VerticalAlignment="Center" Foreground="{StaticResource Muted}"/>
+       <TextBlock x:Name="PreparedFramesLabel" VerticalAlignment="Center" Foreground="{StaticResource Accent}"/>
+      </WrapPanel>
       <TextBlock Text="{DynamicResource Ui025}" Foreground="{StaticResource Muted}" FontSize="11" Margin="0,10,0,0"/>
      </StackPanel>
     </Border>
@@ -85,20 +165,136 @@
     <TabControl>
      <TabItem Header="{DynamicResource Ui027}">
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="18,18,18,14">
-       <StackPanel>
+       <StackPanel x:Name="EffectControls">
+        <Expander Header="{DynamicResource SourceCropLabel}" Margin="0,0,0,12">
+         <StackPanel>
+          <ComboBox x:Name="SourceRatioChoice" AutomationProperties.Name="{DynamicResource SourceCropLabel}" SelectionChanged="SourceRatioChanged">
+           <ComboBoxItem Content="{DynamicResource SourceCropNoneLabel}"/>
+          </ComboBox>
+          <StackPanel x:Name="SourceCropControls"/>
+         </StackPanel>
+        </Expander>
         <TextBlock Text="{DynamicResource Ui028}" Style="{StaticResource SectionLabel}"/>
-        <Border BorderBrush="#34404E" BorderThickness="0,0,0,1" Padding="0,0,0,18" Margin="0,0,0,18">
-         <StackPanel><TextBlock Text="{DynamicResource SignalStage}" FontSize="11" Foreground="{StaticResource Accent}" Margin="0,0,0,4"/><CheckBox x:Name="NtscEnabled" Content="NTSC / VHS" FontSize="16" FontWeight="SemiBold" IsChecked="True" Checked="Changed" Unchecked="Changed"/><TextBlock Text="{DynamicResource Ui029}" Foreground="{StaticResource Muted}" FontSize="12" Margin="28,0,0,8"/><Expander Header="{DynamicResource Ui030}"><StackPanel x:Name="NtscControls"/></Expander></StackPanel>
+        <Border Style="{StaticResource EffectCard}">
+         <StackPanel>
+          <StackPanel x:Name="DigitalPanel">
+           <CheckBox x:Name="DigitalEnabled" Content="{DynamicResource DigitalEnabledLabel}" Style="{StaticResource EffectSwitch}" Checked="DigitalToggleChanged" Unchecked="DigitalToggleChanged"/>
+           <Expander Style="{StaticResource EffectDetails}">
+            <StackPanel>
+             <TextBlock Text="{DynamicResource DigitalHintLabel}" TextWrapping="Wrap" Foreground="{StaticResource Muted}" Margin="0,0,0,8"/>
+             <TextBlock Text="{DynamicResource DigitalFormatLabel}" Foreground="{StaticResource Muted}" Margin="0,0,0,4"/>
+             <ComboBox x:Name="DigitalFormatChoice" AutomationProperties.Name="{DynamicResource DigitalFormatLabel}" SelectedIndex="0" SelectionChanged="DigitalFormatChanged"><ComboBoxItem Content="{DynamicResource DigitalCustomLabel}"/></ComboBox>
+             <StackPanel x:Name="DigitalControls" IsEnabled="{Binding IsChecked, ElementName=DigitalEnabled}" Margin="0,8,0,0"/>
+            </StackPanel>
+           </Expander>
+          </StackPanel>
+          <TextBlock x:Name="DigitalPausedHint" Text="{DynamicResource DigitalPausedLabel}" Visibility="Collapsed"
+                     Foreground="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,4,0,2"/>
+         </StackPanel>
         </Border>
-        <StackPanel><TextBlock Text="{DynamicResource Ui031}" FontSize="11" Foreground="{StaticResource Accent}" Margin="0,0,0,4"/><CheckBox x:Name="CrtEnabled" Content="CRT" FontSize="16" FontWeight="SemiBold" IsChecked="True" Checked="Changed" Unchecked="Changed"/><TextBlock Text="{DynamicResource Ui032}" Foreground="{StaticResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="28,0,0,16"/>
-         <TextBlock Text="Shader" Foreground="{StaticResource Muted}" Margin="0,0,0,6"/><ComboBox x:Name="ShaderChoice" SelectionChanged="ShaderChanged" Margin="0,0,0,14"/>
-         <Grid Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="{DynamicResource Ui033}" Foreground="{StaticResource Muted}" Margin="0,0,0,6"/><ComboBox x:Name="WidthChoice" SelectionChanged="Changed"><ComboBoxItem Content="256"/><ComboBoxItem Content="320" IsSelected="True"/><ComboBoxItem Content="640"/><ComboBoxItem Content="1280"/></ComboBox></StackPanel><StackPanel Grid.Column="2"><TextBlock Text="{DynamicResource Ui034}" Foreground="{StaticResource Muted}" Margin="0,0,0,6"/><ComboBox x:Name="ScaleChoice" SelectionChanged="Changed" ToolTip="{DynamicResource Ui035}"><ComboBoxItem Content="2"/><ComboBoxItem Content="3" IsSelected="True"/><ComboBoxItem Content="4"/></ComboBox></StackPanel></Grid>
-         <Expander Header="{DynamicResource Ui036}" IsExpanded="True"><StackPanel x:Name="CrtControls"/></Expander>
-        </StackPanel>
+        <Border Style="{StaticResource EffectCard}">
+         <StackPanel>
+          <CheckBox x:Name="NtscEnabled" Content="NTSC / VHS" Style="{StaticResource EffectSwitch}" Checked="Changed" Unchecked="Changed"/>
+          <Expander Style="{StaticResource EffectDetails}">
+           <StackPanel>
+            <TextBlock Text="{DynamicResource Ui029}" Foreground="{StaticResource Muted}" TextWrapping="Wrap"/>
+            <StackPanel x:Name="NtscControls" IsEnabled="{Binding IsChecked, ElementName=NtscEnabled}"/>
+           </StackPanel>
+          </Expander>
+         </StackPanel>
+        </Border>
+        <Border Style="{StaticResource EffectCard}">
+         <StackPanel>
+          <CheckBox x:Name="VcrEnabled" Content="{DynamicResource VcrLabel}" Style="{StaticResource EffectSwitch}" Checked="AnalogToggleChanged" Unchecked="AnalogToggleChanged"/>
+          <Expander Style="{StaticResource EffectDetails}">
+           <StackPanel x:Name="VcrControls" IsEnabled="{Binding IsChecked, ElementName=VcrEnabled}">
+            <Expander Header="{DynamicResource TapeLabel}"><StackPanel x:Name="TapeControls"/></Expander>
+            <Expander Header="{DynamicResource DeckLabel}"><StackPanel x:Name="DeckControls"/></Expander>
+           </StackPanel>
+          </Expander>
+         </StackPanel>
+        </Border>
+        <Border Style="{StaticResource EffectCard}">
+         <StackPanel>
+          <CheckBox x:Name="ReceptionEnabled" Content="{DynamicResource ReceptionLabel}" Style="{StaticResource EffectSwitch}" Checked="AnalogToggleChanged" Unchecked="AnalogToggleChanged"/>
+          <Expander Style="{StaticResource EffectDetails}">
+           <StackPanel x:Name="ReceptionControls" IsEnabled="{Binding IsChecked, ElementName=ReceptionEnabled}"/>
+          </Expander>
+         </StackPanel>
+        </Border>
+        <Border Style="{StaticResource EffectCard}">
+         <StackPanel>
+          <CheckBox x:Name="CrtEnabled" Content="CRT" Style="{StaticResource EffectSwitch}" Checked="Changed" Unchecked="Changed"/>
+          <Expander Style="{StaticResource EffectDetails}">
+           <StackPanel>
+            <TextBlock Text="{DynamicResource Ui032}" Foreground="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+            <StackPanel IsEnabled="{Binding IsChecked, ElementName=CrtEnabled}">
+             <TextBlock Text="Shader" Foreground="{StaticResource Muted}" Margin="0,0,0,4"/>
+             <ComboBox x:Name="ShaderChoice" AutomationProperties.Name="Shader" SelectionChanged="ShaderChanged"/>
+             <TextBlock Text="{DynamicResource EffectScaleLabel}" Foreground="{StaticResource Muted}" Margin="0,8,0,4"/>
+             <ComboBox x:Name="ScaleChoice" AutomationProperties.Name="{DynamicResource EffectScaleLabel}" SelectionChanged="Changed" ToolTip="{DynamicResource Ui035}">
+              <ComboBoxItem Content="2"/><ComboBoxItem Content="3" IsSelected="True"/><ComboBoxItem Content="4"/>
+             </ComboBox>
+             <StackPanel x:Name="CrtControls" Margin="0,8,0,0"/>
+            </StackPanel>
+           </StackPanel>
+          </Expander>
+         </StackPanel>
+        </Border>
+        <Border Style="{StaticResource EffectCard}">
+         <StackPanel x:Name="ScreenLoopPanel">
+          <CheckBox x:Name="ScreenLoopEnabled" Content="Screen Loop" Style="{StaticResource EffectSwitch}" Checked="ToggleScreenLoop" Unchecked="ToggleScreenLoop"/>
+          <Expander Style="{StaticResource EffectDetails}">
+           <StackPanel>
+            <TextBlock Text="{DynamicResource ScreenLoopHintLabel}" TextWrapping="Wrap" Foreground="{StaticResource Muted}" Margin="0,0,0,8"/>
+            <ComboBox x:Name="ScreenLoopPresetChoice" AutomationProperties.Name="{DynamicResource ScreenLoopLoadLabel}" SelectedIndex="0" SelectionChanged="ChooseScreenLoopPreset" Margin="0,0,0,8">
+             <ComboBoxItem Content="{DynamicResource DigitalCustomLabel}"/>
+            </ComboBox>
+            <WrapPanel>
+             <Button Content="{DynamicResource ScreenLoopLoadLabel}" Click="OpenScreenLoopPreset"/>
+             <Button Content="{DynamicResource ScreenLoopSaveLabel}" Click="SaveScreenLoopPreset"/>
+            </WrapPanel>
+            <StackPanel x:Name="ScreenLoopSettingsPanel" IsEnabled="{Binding IsChecked, ElementName=ScreenLoopEnabled}">
+             <StackPanel x:Name="ScreenLoopStillOptions"/>
+             <Expander Header="{DynamicResource ScreenLoopFramingLabel}"><StackPanel x:Name="ScreenLoopFraming"/></Expander>
+             <Expander Header="{DynamicResource ScreenLoopMovementLabel}"><StackPanel x:Name="ScreenLoopMovement"/></Expander>
+             <Expander Header="{DynamicResource ScreenLoopCameraLabel}"><StackPanel x:Name="ScreenLoopCamera"/></Expander>
+             <Expander Header="{DynamicResource ScreenLoopSignalLabel}"><StackPanel x:Name="ScreenLoopSignal"/></Expander>
+            </StackPanel>
+           </StackPanel>
+          </Expander>
+         </StackPanel>
+        </Border>
+        <Expander Header="{DynamicResource EffectProcessingLabel}">
+         <StackPanel>
+          <TextBlock Text="{DynamicResource DownscaleSwitchLabel}" Foreground="{StaticResource Muted}" Margin="0,0,0,4"/>
+          <ComboBox x:Name="DownscaleEnabledChoice" SelectedIndex="0" SelectionChanged="DownscaleEnabledChanged"
+                    AutomationProperties.Name="{DynamicResource DownscaleSwitchLabel}">
+           <ComboBoxItem Content="{DynamicResource DownscaleAutoLabel}"/>
+           <ComboBoxItem Content="{DynamicResource DownscaleOnLabel}"/>
+           <ComboBoxItem Content="{DynamicResource DownscaleOffLabel}"/>
+          </ComboBox>
+          <TextBlock Text="{DynamicResource EffectWidthLabel}" Foreground="{StaticResource Muted}" Margin="0,10,0,4"/>
+          <ComboBox x:Name="WidthChoice" AutomationProperties.Name="{DynamicResource EffectWidthLabel}" SelectionChanged="RetroWidthChanged">
+           <ComboBoxItem Content="256"/><ComboBoxItem Content="320" IsSelected="True"/><ComboBoxItem Content="640"/><ComboBoxItem Content="1280"/>
+          </ComboBox>
+          <TextBlock Text="{DynamicResource DownscaleMethodLabel}" Foreground="{StaticResource Muted}" Margin="0,10,0,4"/>
+          <ComboBox x:Name="DownscaleMethodChoice" SelectedIndex="0" SelectedValuePath="Tag" IsEnabled="False"
+                    SelectionChanged="DownscaleMethodChanged" AutomationProperties.Name="{DynamicResource DownscaleMethodLabel}">
+           <ComboBoxItem Content="{DynamicResource DownscaleAutoLabel}"/>
+           <ComboBoxItem Tag="nearest" Content="{DynamicResource DownscaleNearestLabel}"/>
+           <ComboBoxItem Tag="nearest+" Content="{DynamicResource DownscaleNearestPlusLabel}"/>
+           <ComboBoxItem Tag="bilinear" Content="{DynamicResource DownscaleBilinearLabel}"/>
+           <ComboBoxItem Tag="bicubic" Content="{DynamicResource DownscaleBicubicLabel}"/>
+           <ComboBoxItem Tag="lanczos" Content="Lanczos"/>
+           <ComboBoxItem Tag="area" Content="{DynamicResource DownscaleAreaLabel}"/>
+          </ComboBox>
+         </StackPanel>
+        </Expander>
        </StackPanel>
       </ScrollViewer>
      </TabItem>
-     <TabItem Header="{DynamicResource Ui037}">
+     <TabItem x:Name="OutputTab" Header="{DynamicResource Ui037}">
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="18">
        <StackPanel>
         <StackPanel x:Name="OutputOptions">
@@ -106,9 +302,77 @@
          <TextBlock Text="{DynamicResource Ui041}" Foreground="{StaticResource Muted}" Margin="0,0,0,6"/><ComboBox x:Name="OutputChoice" SelectionChanged="OutputChoiceChanged" AutomationProperties.Name="{DynamicResource Ui042}" Margin="0,0,0,14"><ComboBoxItem Content="{DynamicResource Ui043}" IsSelected="True"/><ComboBoxItem Content="720p · 1280 × 720"/><ComboBoxItem Content="1080p · 1920 × 1080"/><ComboBoxItem Content="4K · 3840 × 2160"/><ComboBoxItem Content="{DynamicResource Ui044}"/></ComboBox>
          <StackPanel x:Name="CustomOutputFields" Visibility="Collapsed" Margin="0,0,0,14"><TextBlock Text="{DynamicResource Ui045}" Foreground="{StaticResource Muted}" Margin="0,0,0,6"/><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="28"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBox x:Name="OutputWidth" Text="1920" TextChanged="CustomOutputChanged" AutomationProperties.Name="{DynamicResource Ui046}"/><TextBlock Grid.Column="1" Text="×" VerticalAlignment="Center" HorizontalAlignment="Center"/><TextBox Grid.Column="2" x:Name="OutputHeight" Text="1080" TextChanged="CustomOutputChanged" AutomationProperties.Name="{DynamicResource Ui047}"/></Grid></StackPanel>
          <TextBlock Text="{DynamicResource Ui048}" Foreground="{StaticResource Muted}" Margin="0,0,0,6"/><ComboBox x:Name="OutputFitChoice" IsEnabled="False" SelectionChanged="OutputFitChanged" AutomationProperties.Name="{DynamicResource Ui049}" Margin="0,0,0,14"><ComboBoxItem Content="{DynamicResource Ui050}" IsSelected="True"/><ComboBoxItem Content="{DynamicResource Ui051}"/></ComboBox>
+         <CheckBox x:Name="SnapScanlinesChoice" Content="{DynamicResource SnapScanlinesLabel}" Checked="SnapScanlinesChanged" Unchecked="SnapScanlinesChanged" Margin="0,0,0,10"/>
          <Border Background="#11171E" CornerRadius="6" Padding="12"><TextBlock x:Name="OutputSizeInfo" Text="{DynamicResource Ui052}" Foreground="{StaticResource Accent}" TextWrapping="Wrap" LineHeight="20"/></Border>
+         <TextBlock Text="{DynamicResource Mp4QualityLabel}" Foreground="{StaticResource Muted}" Margin="0,18,0,6"/>
+         <ComboBox x:Name="Mp4QualityChoice" SelectedIndex="1" AutomationProperties.Name="{DynamicResource Mp4QualityLabel}">
+          <ComboBoxItem Content="{DynamicResource Mp4QualityStandard}"/>
+          <ComboBoxItem Content="{DynamicResource Mp4QualityHigh}"/>
+          <ComboBoxItem Content="{DynamicResource Mp4QualityVeryHigh}"/>
+          <ComboBoxItem Content="{DynamicResource Mp4QualityMaximum}"/>
+         </ComboBox>
+         <StackPanel x:Name="Mp4LoopOptions" Visibility="Collapsed" Margin="0,14,0,0">
+          <TextBlock Text="{DynamicResource Mp4LoopCountLabel}" Foreground="{StaticResource Muted}" Margin="0,0,0,6"/>
+          <ComboBox x:Name="Mp4LoopChoice" AutomationProperties.Name="{DynamicResource Mp4LoopCountLabel}"/>
+         </StackPanel>
+         <TextBlock Text="GIF" Style="{StaticResource SectionLabel}" Margin="0,20,0,6"/>
+         <Grid>
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <StackPanel>
+           <TextBlock Text="{DynamicResource GifWidthLabel}" Foreground="{StaticResource Muted}" Margin="0,0,0,6"/>
+           <TextBox x:Name="GifWidthField" MaxLength="4" TextChanged="GifOptionsChanged" AutomationProperties.Name="{DynamicResource GifWidthLabel}"/>
+          </StackPanel>
+          <StackPanel Grid.Column="2">
+           <TextBlock Text="{DynamicResource GifFpsLabel}" Foreground="{StaticResource Muted}" Margin="0,0,0,6"/>
+           <TextBox x:Name="GifFpsField" MaxLength="2" TextChanged="GifOptionsChanged" AutomationProperties.Name="{DynamicResource GifFpsLabel}"/>
+          </StackPanel>
+         </Grid>
+         <TextBlock Text="{DynamicResource GifAutoLabel}" Foreground="{StaticResource Muted}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+         <TextBlock x:Name="GifEstimateText" Foreground="{StaticResource Accent}" Margin="0,8,0,0"
+                    Visibility="Collapsed" TextWrapping="Wrap"/>
+         <TextBlock x:Name="GifWarningText" Foreground="#F1C780" Margin="0,4,0,0"
+                    Visibility="Collapsed" TextWrapping="Wrap" Text="{DynamicResource GifLargeLabel}"/>
         </StackPanel>
         <Border BorderBrush="#34404E" BorderThickness="0,1,0,0" Margin="0,24,0,0" Padding="0,22,0,0"><StackPanel><TextBlock Text="{DynamicResource Ui053}" Style="{StaticResource SectionLabel}"/><TextBlock Text="{DynamicResource Ui054}" TextWrapping="Wrap" Foreground="{StaticResource Ink}" LineHeight="20" Margin="0,0,0,14"/><TextBlock Text="{DynamicResource Ui055}" TextWrapping="Wrap" Foreground="{StaticResource Muted}" FontSize="12" LineHeight="20"/></StackPanel></Border>
+       </StackPanel>
+      </ScrollViewer>
+     </TabItem>
+     <TabItem Header="{DynamicResource AnimationTabLabel}">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="18">
+       <StackPanel>
+        <TextBlock x:Name="KeyframesUnavailable" Visibility="Collapsed" Text="{DynamicResource KeyframesUnavailableLabel}"
+                   TextWrapping="Wrap" Foreground="{StaticResource Muted}"/>
+        <StackPanel x:Name="KeyframeEditor">
+         <CheckBox x:Name="AnimationEnabled" Content="{DynamicResource AnimationEnabledLabel}" Style="{StaticResource EffectSwitch}"
+                   Checked="ToggleOwnAnimation" Unchecked="ToggleOwnAnimation"/>
+         <TextBlock Text="{DynamicResource KeyframeWorkflowLabel}" TextWrapping="Wrap" Foreground="{StaticResource Muted}" Margin="0,8,0,12"/>
+         <StackPanel x:Name="AnimationControls">
+          <StackPanel x:Name="AnimationStillSettings" Margin="0,0,0,12">
+           <TextBlock Text="{DynamicResource StillAnimationHintLabel}" TextWrapping="Wrap" Foreground="{StaticResource Muted}"/>
+           <StackPanel x:Name="AnimationStillOptions"/>
+           <TextBlock Text="{DynamicResource StillAnimationFpsLabel}" Foreground="{StaticResource Muted}" Margin="0,8,0,4"/>
+           <ComboBox x:Name="AnimationFpsChoice" AutomationProperties.Name="{DynamicResource StillAnimationFpsLabel}"
+                     SelectionChanged="ChangeStillAnimationRate"/>
+          </StackPanel>
+          <CheckBox x:Name="KeyframeAudition" Content="{DynamicResource KeyframeAuditionLabel}"
+                    Checked="ToggleKeyframeAudition" Unchecked="ToggleKeyframeAudition"/>
+          <Button x:Name="CaptureKeyframeButton" Content="{DynamicResource KeyframeCaptureLabel}" Click="CaptureKeyframe"
+                  HorizontalAlignment="Left" Style="{StaticResource PrimaryButton}" Margin="0,0,0,12"/>
+          <TextBlock Text="{DynamicResource KeyframeListLabel}" Foreground="{StaticResource Muted}" Margin="0,0,0,4"/>
+          <ComboBox x:Name="KeyframeChoice" AutomationProperties.Name="{DynamicResource KeyframeListLabel}"
+                    SelectionChanged="SelectKeyframe" Margin="0,0,0,8"/>
+          <StackPanel x:Name="SelectedKeyframeControls">
+           <TextBlock Text="{DynamicResource KeyframeEasingLabel}" Foreground="{StaticResource Muted}" Margin="0,0,0,4"/>
+           <ComboBox x:Name="KeyframeEasing" AutomationProperties.Name="{DynamicResource KeyframeEasingLabel}"
+                     SelectionChanged="ChangeKeyframeEasing" Margin="0,0,0,8"/>
+           <WrapPanel>
+            <Button Content="{DynamicResource KeyframeEditLabel}" Click="EditKeyframe"/>
+            <Button Content="{DynamicResource KeyframeMoveLabel}" Click="MoveKeyframe"/>
+            <Button Content="{DynamicResource KeyframeDeleteLabel}" Click="DeleteKeyframe"/>
+           </WrapPanel>
+          </StackPanel>
+         </StackPanel>
+        </StackPanel>
        </StackPanel>
       </ScrollViewer>
      </TabItem>

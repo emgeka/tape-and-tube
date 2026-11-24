@@ -1,5 +1,7 @@
 # Tape & Tube — Windows-Beta
 
+**Lokaler Entwicklungsstand vom 20.11.2026:** Digitalvideo aus Finn McKentys NTSCRT ist in Vorschau und Export integriert. Webcam, MiniDV und CD-ROM stehen unter **Effekte → Digitalvideo-Format**. Dies gehört noch nicht zum öffentlichen Beta.2-Installer. [Bedienung, Herkunft und Tests](DIGITAL_VIDEO_INTEGRATION.md).
+
 ![Tape & Tube mit dem synthetischen Testbild und der NTSC-/CRT-Effektkette](screenshot.jpg)
 
 **Windows-Adaption von [NTSCRT](https://github.com/finnmckenty/NTSCRT) von Finn McKenty.** Das ursprüngliche macOS-Projekt ist der Ausgangspunkt unserer Arbeit: Konzept, Aufbau der NTSC-/VHS- und CRT-Signalkette sowie der grundlegende Bedienablauf gehen auf NTSCRT zurück.
@@ -81,6 +83,14 @@ Die große Vorschau steht links; **Original anzeigen** schaltet zum Vergleich au
 
 **Vorher/Nachher:** Mit **Vergleichen** oberhalb der Vorschau werden links das Original und rechts die bearbeitete Ausgabe gleichzeitig sichtbar. Den vertikalen Trenner direkt im Bild ziehen oder den Regler darunter verwenden (auch per Pfeiltasten, Pos1/Ende). Das funktioniert bei Bildern und während der Video-Wiedergabe; beide Seiten zeigen dieselbe fertig berechnete Bildposition. Ausgabegröße, Einpassen und Beschnitt gelten für beide Seiten. **Original anzeigen** und der geteilte Vergleich schließen einander aus. Gespeicherte PNGs und MP4s enthalten ausschließlich die bearbeitete Ausgabe, ohne Trenner oder Vergleichsansicht.
 
+Mit dem **Zoom**-Regler unter dem Bild oder dem Mausrad kannst du die Vorschau bis auf 800 % der eingepassten Ansicht vergrößern. Ziehe das vergrößerte Bild mit der linken Maustaste, um den sichtbaren Bereich zu verschieben. Im Vorher-nachher-Vergleich bewegen sich beide Bilder gemeinsam. **Ansicht einpassen** zeigt wieder das ganze Bild. Zoom und Verschieben wirken nur auf die Vorschau.
+
+**Ganzzahlskalierung** richtet die Scanlines in der Vorschau auf ganze physische Bildschirmzeilen aus. Die Anzeigegröße ändert sich beim Zoomen dann in Stufen. Ist das Bild für eine ganze Bildschirmzeile pro Scanline zu groß, wird es weiterhin vollständig eingepasst. Die Option startet ausgeschaltet und wirkt nur auf die Vorschau.
+
+Während ein Video pausiert, berechnet Tape & Tube bis zu zwölf Folgebilder für die Vorschau. Der Puffer ist auf 96 MiB für Quell- und Effektbilder begrenzt und fasst bei hoher Auflösung entsprechend weniger Bilder. Die Zahl der vorbereiteten Bilder steht beim Player. Beim Fortsetzen verwendet die Vorschau diese Bilder zuerst. Positionssprünge und Änderungen an den Effekten, am Beschnitt oder an den Ausgabemaßen leeren den Puffer.
+
+Bei einem Standbild ohne aktive Animation kannst du unter der Vorschau **Störeffekte bewegen** einschalten. Rauschen und andere zeitabhängige Effekte laufen dann mit bis zu 30 Bildern pro Sekunde. **Bild speichern…** sichert das beim Klick aktuelle Effektbild als PNG. Für einen animierten Export verwendest du weiterhin die Zeitleiste oder Screen Loop.
+
 ## Sprache
 
 Oben rechts stehen **Systemsprache** und zehn Sprachen zur Auswahl: Deutsch, English, Español, Français, Português (Brasil), Italiano, Русский, 简体中文 (vereinfachtes Chinesisch), 日本語 und 한국어. Die automatische Auswahl folgt der Windows-Anzeigesprache einschließlich regionaler Varianten; Portugiesisch wird pt-BR, Chinesisch wird zh-Hans zugeordnet. Für nicht unterstützte Sprachen wird Englisch verwendet. Die manuelle Wahl wird unter `%LOCALAPPDATA%/TapeTube/ui-settings.json` für künftige Starts gespeichert. Sie ist unabhängig von Medien, Presets und Komponentenpfaden.
@@ -101,15 +111,124 @@ Im rechten Reiter **Ausgabe** befindet sich **Ausgabegröße**. Die Schaltfläch
 
 Die tatsächlichen Maße für PNG und MP4 stehen direkt darunter. PNG behält auch ungerade eigene Maße exakt bei; MP4 ergänzt nötigenfalls rechts beziehungsweise unten einen Randpixel für gerade Kodiermaße. Ungültige Maße sperren den Export, bis sie korrigiert sind.
 
-Die CRT-Eingangsbreite bestimmt weiterhin die Retro-Auflösung und den Effektcharakter. Bei einer festen Ausgabegröße ist der frühere CRT-Skalierungsfaktor deaktiviert. Der CRT-Shader rendert unmittelbar in der für das Ziel benötigten Auflösung, damit Phosphormaske und Scanlines nicht bloß aus einem kleinen fertigen Bild hochskaliert werden. Die Vorschau berechnet ebenfalls diese Auflösung; 4K kann daher langsamer sein. Extrem große Beschnitt-Zwischenbilder werden auf die vorhandenen Textur- und Speichergrenzen begrenzt und anschließend angepasst.
+**Am Scanline-Raster ausrichten** passt auf Wunsch die Ausgabegröße an, damit jede Scanline auf gleich viele Pixelzeilen fällt. Das Raster richtet sich nach dem Quellausschnitt und der internen Effektauflösung. Einpassen und Beschnitt gelten weiterhin. Die aktualisierten Maße stehen unter der Option und gelten auch für die Vorschau. Wenn kein passendes Vielfaches innerhalb der unterstützten Maße liegt, bleibt die gewählte Ausgabegröße erhalten. GIFs mit automatischer Größe halten dabei weiterhin die Grenze von 480 Pixeln an der längsten Seite ein.
+
+Die **Interne Effektbreite** unter **Effekte → Verarbeitung** bestimmt die Retro-Auflösung und den Effektcharakter. Die Skalierung unter **Effekte → CRT → Details** steht bei automatischer Ausgabegröße zur Verfügung. Bei einer festen Ausgabegröße rendert der CRT-Shader unmittelbar in der für das Ziel benötigten Auflösung, damit Phosphormaske und Scanlines nicht bloß aus einem kleinen fertigen Bild hochskaliert werden. Die Vorschau berechnet ebenfalls diese Auflösung; 4K kann daher langsamer sein. Extrem große Beschnitt-Zwischenbilder werden auf die vorhandenen Textur- und Speichergrenzen begrenzt und anschließend angepasst.
+
+Unter **Effekte → Verarbeitung → Skalierungsmethode** kannst du für eigene Looks zwischen **Nächster Nachbar**, **Nächster Nachbar (stabilisiert)**, **Bilinear**, **Bikubisch**, **Lanczos** und **Flächenmittel** wählen. **Automatisch** verwendet das bisherige Verhalten des Looks. Die Wahl gilt für die interne Effektauflösung und wird im Look-Preset mitgespeichert. Vorschau, Export, CLI und MCP übernehmen die gespeicherte Methode.
+
+**Effekte → Verarbeitung → Interne Verkleinerung** bietet **Automatisch**, **Ein** und **Aus**. **Automatisch** behält die bisherigen Regeln bei. Mit **Ein** gilt die gewählte interne Breite auch ohne CRT oder andere Effekte. Mit **Aus** wird die Verkleinerungsstufe übersprungen. Die übrigen Effekte und die separate Ausgabegröße gelten weiterhin. Eigene Looks speichern die Auswahl für Vorschau und Export.
 
 Die Ausgabegröße und die Bildanpassung werden in eigenen Presets mitgespeichert. Bisherige Presets ohne diese Felder laden weiterhin mit automatischer Ausgabegröße.
 
+## Effekte und NTSCRT-Looks
+
+Unter **Effekte → Quellbeschnitt** legst du das Seitenverhältnis und den Ausschnitt fest. **Horizontal**, **Vertikal** und **Quellzoom** ändern seine Position und Größe. Der Ausschnitt wird vor dem ersten Effekt auf Bilder und jedes Videoframe angewendet. Die Vorschau sowie PNG und MP4 verwenden denselben Ausschnitt. **Original anzeigen** zeigt weiterhin die vollständige Quelle. Im Vergleich siehst du links den gewählten Ausschnitt vor den Effekten. Unter **Ausgabe** legst du fest, wie das fertige Bild in die Zielgröße passt.
+
+Im lokalen Entwicklungsbuild startet Tape & Tube mit ausgeschalteten Effekten. Schalte die gewünschten Stufen unter **Effekte** ein. Jede Stufe hat einen einklappbaren Bereich **Details**. Die Karte für Screen Loop befindet sich ebenfalls unter **Effekte**. Beim Laden eines normalen Tape-&-Tube-Presets gelten die darin gespeicherten Schalter. Für Screen Loop gibt es eigene Presets.
+
+Im lokalen Entwicklungsbuild lädt **Preset laden…** normale NTSCRT-Look-Dateien im JSON-Format der Versionen 1 und 2. Die Effekte und Übergänge aus der Datei werden in Vorschau und Export ausgewertet. Auf einem Video verteilt sich die Animation über die Videolänge. Für ein Standbild gelten die in der Datei gespeicherte Dauer und Bildrate.
+
+Die Effekte und der Quellbeschnitt eines importierten Looks sind während der Anwendung schreibgeschützt. **Preset speichern…** speichert den Inhalt des importierten Looks als JSON. **Importierten Look verlassen** führt zu den zuvor eingestellten Effekten und zum vorherigen Quellbeschnitt zurück. NTSCRT-Ansichtseinstellungen bleiben in der JSON-Datei erhalten. Die Vorschau und Ausgabegröße bestimmst du in Tape & Tube.
+
+## Eigene Keyframes
+
+Lade ein Bild oder Video und wähle **Animation → Animation aktivieren**. Wähle auf der Zeitleiste ein Bild und klicke **Keyframe hier speichern**. Damit hältst du die aktuellen Effektwerte an dieser Position fest. Markierungen unter der Zeitleiste zeigen die gespeicherten Positionen. Bei einem Standbild kannst du die Dauer zwischen 0,5 und 120 Sekunden und die Bildrate auf 12, 24, 30 oder 60 Bilder pro Sekunde einstellen. Zeitabhängige Effekte wie NTSC-Rauschen lassen sich auch ohne Keyframes animieren und über **Video / GIF speichern…** exportieren.
+
+Die Liste **Gespeicherte Keyframes** springt zum gewählten Keyframe. **Werte bearbeiten** lädt dessen Werte in die Effektregler. **Regler live prüfen** zeigt beim Pausieren die aktuellen Reglerwerte. Mit **Keyframe hier speichern** übernimmst du sie an der gewählten Position. Wähle für jeden Keyframe, wie er in den nächsten übergeht. Der gesamte Track wird mit **Preset speichern…** in einem Tape-&-Tube-Preset gespeichert und beim MP4-Export verwendet.
+
+Die Schalter der Effektstufen, der gewählte Shader und die Größen gelten für die ganze Animation. Die Auswertung nutzt die Übergänge von NTSCRT und behandelt strukturelle Digitalvideo-Einstellungen wie Codec und Bildrate als feste Einstellungen. Ein aktiver Screen Loop oder ein importierter NTSCRT-Look pausiert den eigenen Track.
+
+## Kommandozeile
+
+`TapeTube.Cli.exe` liegt im Windows-Build neben `TapeTube.exe`. `describe` listet die Ausgabeformate, CRT-Shader und Digitalvideo-Formate als JSON. `render` verwendet dieselbe Effekt- und Exportberechnung wie die App. Die Dateiendung wählt PNG, MP4 oder GIF.
+
+```powershell
+.\TapeTube.Cli.exe describe
+.\TapeTube.Cli.exe describe digital
+.\TapeTube.Cli.exe describe crt --shader crtsim
+.\TapeTube.Cli.exe render --input "clip.mp4" --output "fertig.mp4" --preset "look.json" --codec hevc --quality very-high
+.\TapeTube.Cli.exe render --input "clip.mp4" --output "drei-durchlaeufe.mp4" --loops 3
+.\TapeTube.Cli.exe render --input "clip.mp4" --output "scanlines.png" --width 1920 --height 1080 --snap
+.\TapeTube.Cli.exe render --input "clip.mp4" --output "animation.gif" --gif-width 640 --gif-fps 24
+.\TapeTube.Cli.exe render --input "clip.mp4" --output "vhs.mp4" --effects '{"ntsc":{"values":{"composite_noise":true,"composite_noise_intensity":0.35}}}'
+.\TapeTube.Cli.exe render --input "clip.mp4" --output "fertig.mp4" --preset "look.json" --width 961 --height 541 --dry-run
+.\TapeTube.Cli.exe render --input "clip.mp4" --output "bild.png" --frame 120 --width 960 --height 540
+.\TapeTube.Cli.exe render --input "clip.mp4" --output "bilder.png" --time "0,1.5,3"
+.\TapeTube.Cli.exe render --input "clip.mp4" --output "nahaufnahme.png" --frame 120 --zoom 4 --zoom-at "0.75,0.25"
+.\TapeTube.Cli.exe render --input "bild.png" --output "animation.gif" --preset "look.json" --seconds 3 --fps 24
+```
+
+Unterstützt werden Tape-&-Tube-, NTSCRT- und Screen-Loop-Presets. Eine PNG-Ausgabe aus einem Video verwendet das mit `--frame` gewählte Bild ab Index 0. Breite und Höhe werden gemeinsam angegeben. Vorhandene Dateien lassen sich mit `--overwrite` gezielt ersetzen. Die Kommandozeile schreibt das Ergebnis als JSON in die Standardausgabe und Fehler in die Fehlerausgabe. `--help` listet alle Optionen.
+
+`--dry-run` liest die Quelldaten für Bildgröße und Zeitbasis, löst Preset und Effektparameter auf und zeigt das geplante Format, die Maße und die Dauer als JSON. MP4-Durchläufe, gerade MP4-Kodiermaße, GIF-Bildrate und das Scanline-Raster fließen in das Ergebnis ein. Der Probelauf schreibt keine Datei und meldet, ob Ziel und Zielordner vorhanden sind. Die Berechnung der Effekte und die Prüfung des Encoders erfolgen beim tatsächlichen Export.
+
+`--time` exportiert bis zu 256 PNGs an Zeitpunkten in Sekunden. Jeder Zeitpunkt wird dem nächstliegenden Bild zugeordnet. Liegt er hinter dem Ende, wird das letzte Bild verwendet. Bei mehreren Zeitpunkten bekommt jede Datei eine laufende Nummer und die Frame-Nummer, etwa `bilder-001-frame-000000.png`. Bei einem einzelnen Zeitpunkt gilt der angegebene Ausgabename. Die JSON-Ausgabe und der Probelauf führen die Dateien in der Reihenfolge der Anfrage auf. Bei Standbildern gelten Dauer und Bildrate der Animation.
+
+Mit `--zoom` (1× bis 12×) exportierst du eine Nahaufnahme des fertig berechneten PNG-Bildes. `--zoom-at X,Y` wählt den Mittelpunkt des Ausschnitts zwischen `0,0` (links oben) und `1,1` (rechts unten). Standard ist die Bildmitte. Die Bildmaße bleiben gleich und die Pixel werden ohne Glättung vergrößert. Der Probelauf zeigt die genauen Ausschnittsmaße.
+
+`describe` liefert ohne Argumente eine Übersicht. Für Parameter und Standardwerte wählst du `processing`, `ntsc`, `digital`, `vcr`, `reception`, `crt`, `screen-loop` oder `all`. Bei CRT zeigt der Katalog die im jeweiligen Shader deklarierten Startwerte, Bereiche und Schrittweiten. Mit `--shader` lässt sich der CRT-Katalog auf einen installierten Shader eingrenzen.
+
+Mit `--effects` kannst du Effekte für einen einzelnen Renderauftrag einschalten und deren Werte direkt setzen. Das funktioniert mit einem Tape-&-Tube- oder Screen-Loop-Preset sowie ohne Preset. Importierte NTSCRT-Looks bleiben schreibgeschützt. Die Preset-Datei bleibt unverändert.
+
+- Verwende `ntsc`, `digital`, `vcr`, `reception`, `crt` oder `screenLoop` mit `enabled` und einem optionalen Objekt `values`. Einzelne Werte schalten ihre Stufe automatisch ein, sofern du `enabled` leer lässt. Parameter-IDs und Wertebereiche findest du über `describe`.
+- Mit `digital.format` wählst du ein Digitalvideo-Format wie `minidv`. Mit `crt.shader` wählst du einen installierten Shader wie `crtsim`.
+- `processing` akzeptiert `mode` (`auto`, `on` oder `off`), `width` (16–1280) und `method` aus dem Katalog. Direkte Parameterwerte gelten im gesamten Renderauftrag, auch an vorhandenen Keyframes.
+
+## Lokaler MCP-Server
+
+Ein MCP-Client kann `TapeTube.Cli.exe mcp` als lokalen Prozess über seine Standardein- und -ausgabe (`stdio`) starten. In Clients mit einer `mcpServers`-Konfiguration sieht der Eintrag beispielsweise so aus. Ersetze den Beispielpfad durch den absoluten Pfad zu deiner `TapeTube.Cli.exe`.
+
+```json
+{
+  "mcpServers": {
+    "tape-and-tube": {
+      "command": "C:/Apps/TapeTube/TapeTube.Cli.exe",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+Das Werkzeug `describe` listet Ausgabeformate, MP4-Codecs und Qualitätsstufen, CRT-Shader und Digitalvideo-Formate. `render` exportiert PNG, MP4 oder GIF, je nach Endung von `output`. Bei MP4 kannst du mit `codec: "hevc"` H.265 und mit `quality: "very-high"` die Qualitätsstufe **Sehr hoch** wählen. Die weiteren Stufen heißen `standard`, `high` (Voreinstellung) und `maximum`. Gib für `input`, `output` und das optionale `preset` absolute Dateipfade an. `overwrite` muss ausdrücklich `true` sein, um eine vorhandene Zieldatei zu ersetzen. Der Server verarbeitet jeweils einen Renderauftrag.
+
+`describe` akzeptiert optional `stage` und `shader`. Eine Abfrage mit `{"stage":"crt","shader":"crtsim"}` liefert die Regler für CRTsim. Mit `{"stage":"all"}` erhältst du den gesamten Effektkatalog.
+
+`render` akzeptiert dieselben direkten Effektwerte als Objekt `effects`. Ein Beispiel ist `"effects":{"digital":{"format":"minidv"},"crt":{"shader":"crtsim"}}`.
+
+Bei `dryRun: true` liefert `render` den gleichen Probelauf wie die Kommandozeile.
+
+Mit `times: [0, 1.5, 3]` kannst du für PNG dieselben Zeitpunkte angeben. Wähle entweder `times` oder den einzelnen Frame mit `frame`.
+
+Für eine PNG-Nahaufnahme verwendest du beispielsweise `zoom: 4` und `zoomAt: [0.75, 0.25]`. Das funktioniert für einzelne Positionen und für die ganze PNG-Serie.
+
+Für Videoquellen zählt `loops` die Durchläufe im exportierten MP4. Mit `loops: 3` erscheinen Bild und Ton dreimal in derselben Datei.
+
+Mit `snap: true` wird die Ausgabe an das Scanline-Raster angepasst. Die Rückgabe enthält die tatsächliche Breite und Höhe.
+
+Für GIFs legen `gifWidth` und `gifFps` die Ausgabe unabhängig von den MP4-Maßen und der Bildrate der Standbild-Zeitleiste fest.
+
+## Animiertes GIF exportieren
+
+Wähle **Video / GIF speichern…** und im Speicherdialog **Animiertes GIF**. Die Option steht für Videos und für Standbilder mit aktiver Animation oder aktivem Screen Loop zur Verfügung. Der Export übernimmt Quellbeschnitt und Effekte und wiederholt das GIF endlos.
+
+Unter **Ausgabe → GIF** kannst du **64–1920 Pixel Breite** und **1–50 Bilder pro Sekunde** wählen. Die Höhe folgt dem Seitenverhältnis des Quellausschnitts. Das optionale Scanline-Raster kann die Maße weiter anpassen. Die GIF-Einstellungen wirken auf den Export aus Videos und aus animierten Standbildern.
+
+Bei leerer GIF-Breite gilt die allgemeine Ausgabegröße. Steht sie auf **Wie Vorschau**, ist die längste GIF-Seite auf 480 Pixel begrenzt. Bei leerer GIF-Bildrate verwendet der Export die bisherige Automatik mit bis zu 12,5 Bildern pro Sekunde. Eine gewählte höhere Bildrate kann vorhandene Bilder wiederholen. GIF hat keine Tonspur.
+
+Sobald ein Video oder ein animiertes Standbild geladen ist, zeigt der GIF-Bereich die geschätzte Dateigröße und die Bildmaße. Bei einer Schätzung über 10 MB erscheint ein Hinweis. Wie groß die Datei tatsächlich wird, hängt vom Bildinhalt und von der Kompression ab.
+
 ## Video-Vorschau
 
-Über **Video öffnen…** ein Video wählen, dann **Abspielen** drücken. **Loop** wiederholt die Vorschau vom Anfang, bis sie pausiert oder Loop ausgeschaltet wird. Die Zeitleiste sowie **◀ Bild** und **Bild ▶** pausieren die Wiedergabe und wählen ein einzelnes Bild. Sobald dessen Effekte fertig berechnet sind, wird **Bild speichern…** oben rechts freigegeben. Während der Wiedergabe bleibt PNG-Export deaktiviert, damit keine unklare Position exportiert wird.
+Unter **Effekte → Screen Loop** findest du NTSCRTs Video-Rückkopplung. Nach dem Laden eines Bilds oder Videos kannst du den Modus einschalten oder unter **Details** eines der fünf mitgelieferten Presets auswählen. Der Player zeigt den berechneten Loop. Bei einem Standbild ist die Dauer zwischen 0,5 und 60 Sekunden einstellbar. **Video speichern…** erstellt ein MP4 und übernimmt bei Videos die vorhandene Tonspur.
 
-Bei hoher Last überspringt die Wiedergabe Bilder, um der Spielzeit zu folgen. Das gewählte pausierte Bild wird vollständig verarbeitet. Variable Bildraten werden für diese erste Vorschau auf die durchschnittliche Bildrate vereinheitlicht; die Bildnummern beziehen sich auf dieses Vorschau-Zeitraster. Rotation und Pixel-Seitenverhältnis werden beim Dekodieren berücksichtigt. Die Vorschau ist für SDR ausgelegt; eine gesonderte HDR-Tonwertumsetzung ist nicht enthalten.
+Ziehe den **grünen Punkt** im bearbeiteten Vorschaubild, um den Fluchtpunkt zu verschieben. Ziehe den **blauen Ring**, um das Ziel seiner Bewegung zu setzen. Ziehe den Ring zurück auf den Punkt, um die Bewegung aufzuheben. Mit den Pfeiltasten kannst du einen fokussierten Griff fein verschieben. Ein Doppelklick oder **Pos1** zentriert den grünen Punkt beziehungsweise setzt den blauen Ring zurück. Änderungen über die Griffe werden in den Reglern und im Screen-Loop-Preset übernommen.
+
+Screen Loop verwendet die aktuelle NTSC-, VCR-, Empfangs- und CRT-Kette. Digitalvideo wird währenddessen übersprungen. Voreinstellungen für Screen Loop lassen sich getrennt von normalen Looks im NTSCRT-Format der Version 2 speichern und laden. Die erste Vorschau braucht Vorlauf. Ein Sprung weit nach hinten oder eine Einstellungsänderung an einer späten Position kann wegen der Bildhistorie dauern. Fluchtpunkt und Drift werden in diesem Build mit Reglern eingestellt.
+
+Über **Video öffnen…** ein Video wählen, dann **Abspielen** drücken. **Loop** wiederholt die Vorschau vom Anfang, bis sie pausiert oder Loop ausgeschaltet wird. Die Zeitleiste sowie **◀ Bild** und **Bild ▶** pausieren die Wiedergabe und wählen ein einzelnes Bild. Im lokalen Entwicklungsbuild springen **|◀** und **▶|** direkt zum ersten bzw. letzten Bild. Sobald dessen Effekte fertig berechnet sind, wird **Bild speichern…** oben rechts freigegeben. Während der Wiedergabe bleibt PNG-Export deaktiviert, damit keine unklare Position exportiert wird.
+
+Bei hoher Last kann der bisherige Renderer Bilder überspringen, um der Spielzeit zu folgen. Der neue Renderer verarbeitet die Bilder der Reihe nach, damit Effekte mit Bildhistorie korrekt bleiben. Variable Bildraten werden auf die durchschnittliche Bildrate vereinheitlicht. Die Bildnummern beziehen sich auf dieses Vorschau-Zeitraster. Rotation und Pixel-Seitenverhältnis werden beim Dekodieren berücksichtigt. Im lokalen Entwicklungsbuild werden PQ- und HLG-Videos beim Einlesen automatisch nach SDR umgewandelt. Im Fenstertitel erscheint dann **HDR → SDR**.
 
 Der Dekoder hält nur ein Bild im Cache und streamt die folgenden Bilder. Rückwärtssprünge dekodieren erneut vom Anfang und können deshalb bei langen Videos dauern. Währenddessen bleiben die Bedienelemente nutzbar; ein neuer Suchvorgang bricht den bisherigen ab.
 
@@ -117,9 +236,15 @@ FFmpeg und ffprobe werden als unsichtbare lokale Hilfsprozesse genutzt. Auf dies
 
 ## Videoexport
 
-**Video speichern…** oben rechts speichert das gesamte geladene Video mit den beim Start gewählten Effekten als H.264-MP4 (CRF 18, 8 Bit, YUV 4:2:0, SDR BT.709). Dabei wird jedes Bild auf dem gleichen Zeitraster wie in der Vorschau berechnet. Bei variabler Quellbildrate wird dieses Raster auch im Export verwendet. Die erste Tonspur wird als AAC mit 192 kbit/s übernommen; weitere Tonspuren und Untertitel werden nicht exportiert. Videos ohne Ton bleiben ohne Ton.
+Unter **Video / GIF speichern…** kannst du im Feld **Dateityp** zwischen H.264 und H.265 (HEVC) wählen. H.264 ist voreingestellt. HEVC benötigt FFmpeg mit dem Encoder `libx265`, der im vom Installer angebotenen FFmpeg-Build enthalten ist. Beide Codecs exportieren MP4 mit 8 Bit, YUV 4:2:0 und SDR BT.709.
 
-Ein später Toneinsatz bleibt erhalten. Ton vor dem ersten Videobild wird abgeschnitten; fehlender Ton am Ende wird durch Stille ergänzt. Ungerade Bildmaße erhalten rechts beziehungsweise unten höchstens einen schwarzen Randpixel, damit H.264-kompatible gerade Abmessungen entstehen.
+Unter **Ausgabe → MP4-Qualität** stehen **Standard**, **Hoch** (Voreinstellung), **Sehr hoch** und **Maximum** zur Wahl. Die Stufen verwenden bei beiden Codecs die CRF-Werte 23, 18, 14 und 10. Höhere Qualität ergibt in der Regel größere Dateien. Die Auswahl gilt für MP4 aus Videos und animierten Standbildern.
+
+Bei einem geladenen Video legt **Ausgabe → MP4-Durchläufe** fest, wie oft Bild und Ton in der Datei hintereinander stehen. Aus einem sechs Sekunden langen Clip werden bei **3×** achtzehn Sekunden. Wählbar sind **1×** (Voreinstellung) bis **50×**. Der Wiederholen-Schalter im Player steuert die Vorschau.
+
+Das gesamte geladene Video wird mit den beim Start gewählten Effekten auf dem gleichen Zeitraster wie in der Vorschau berechnet. Das gilt auch bei variabler Quellbildrate. Der Export übernimmt die erste Tonspur als AAC mit 192 kbit/s. Videos ohne Ton bleiben ohne Ton.
+
+Ein später Toneinsatz bleibt erhalten. Ton vor dem ersten Videobild wird abgeschnitten. Fehlender Ton am Ende wird durch Stille ergänzt. Ungerade Bildmaße erhalten rechts beziehungsweise unten höchstens einen schwarzen Randpixel, damit gerade Kodiermaße entstehen.
 
 Während des Exports sind die Einstellungen gesperrt. Fortschritt und Restzeitschätzung werden angezeigt; **Abbrechen** beendet den Vorgang. Die Ausgabe wird zunächst in einer temporären Datei im Zielordner erzeugt und erst nach erfolgreichem Abschluss unter dem gewählten Namen abgelegt. Bei Abbruch bleibt eine bereits vorhandene Zieldatei unverändert. Das Quellvideo selbst lässt sich nicht als Exportziel wählen. Beim Schließen der App wird ein laufender Export abgebrochen und aufgeräumt.
 
@@ -162,7 +287,7 @@ Ergebnisse stehen in `artifacts/smoke.json`; `source.png`, `ntsc.png`, `crt.png`
 - Die CPU verarbeitet NTSC vor dem GPU-Upload. Dadurch entfällt für Standbilder ein GPU-Readback vor ntsc-rs. Die CRT-Ausgabe wird für Vorschau und PNG wieder ausgelesen.
 - `dependencies.json` hält die Ursprungsprojekte und Versionen fest; `native/Cargo.lock` hält die Rust-Abhängigkeiten fest.
 - librashader **0.12.0**, ABI 2. Bewusster eigener Ausgangsstand; keine Behauptung identischer Ausgabe zum älteren, von NTSCRT verwendeten Commit.
-- Eigene Windows-Presets mit Formatkennung `ntscrt-windows`, Version 1. Vollständige NTSCRT-Look-Dateien werden nicht importiert.
+- Eigene Windows-Presets verwenden die Formatkennung `tape-and-tube`. Der gemeinsame Verarbeitungskern liest die NTSCRT-Looks mit dem Parser und der Keyframe-Auswertung des Originalprojekts.
 
 ## Nächster Ausbau
 

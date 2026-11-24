@@ -1,0 +1,15 @@
+[package]
+name = "tapetube-digital-host"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-only"
+description = "Experimental versioned C boundary for NTSCRT's unchanged CPU digital stage"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+ntscrt-codec = { path = "../upstream/NTSCRT-0.28.1/port/codec" }
+serde_json = "1"
+

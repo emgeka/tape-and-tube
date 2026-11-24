@@ -13,11 +13,25 @@ internal sealed record PixelFrame(int Width, int Height, byte[] Pixels)
         var decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
         return FromBitmap(decoder.Frames[0]);
     }
+    internal static (int Width, int Height) ReadDimensions(string path)
+    {
+        using var stream = File.OpenRead(path);
+        var decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnDemand);
+        return ImageDimensions(decoder.Frames[0]);
+    }
+
+    private static (int Width, int Height) ImageDimensions(BitmapSource bitmap)
+    {
+        var dimensions = (bitmap.PixelWidth, bitmap.PixelHeight);
+        if ((long)dimensions.PixelWidth * dimensions.PixelHeight > 24_000_000)
+            throw new InvalidOperationException(Localization.T("Der Prototyp unterstützt Bilder bis 24 Megapixel."));
+        return dimensions;
+    }
+
     public static PixelFrame FromBitmap(BitmapSource bitmap)
     {
         // Bound allocation before decompression/copying into our processing buffer.
-        if ((long)bitmap.PixelWidth * bitmap.PixelHeight > 24_000_000)
-            throw new InvalidOperationException(Localization.T("Der Prototyp unterstützt Bilder bis 24 Megapixel."));
+        _ = ImageDimensions(bitmap);
         var converted = new FormatConvertedBitmap(bitmap, PixelFormats.Bgra32, null, 0);
         var bytes = new byte[checked(converted.PixelWidth * converted.PixelHeight * 4)];
         converted.CopyPixels(bytes, converted.PixelWidth * 4, 0);

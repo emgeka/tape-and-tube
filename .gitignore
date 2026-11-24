@@ -18,3 +18,5 @@ runtime/current-installer.txt
 runtime/media/
 *.user
 *.suo
+prototypes/processing-core/upstream/
+prototypes/processing-core/target/
