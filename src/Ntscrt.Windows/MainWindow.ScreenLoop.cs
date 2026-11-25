@@ -143,7 +143,7 @@ public partial class MainWindow
 
     private void OpenScreenLoopPreset(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFileDialog { Title = Localization.T("Screen-Loop-Preset laden…"), Filter = "JSON|*.json" };
+        var dialog = PresetDialogs.Open(screenLoop: true);
         if (dialog.ShowDialog(this) != true) return;
         try
         {

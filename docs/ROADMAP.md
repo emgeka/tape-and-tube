@@ -2,6 +2,14 @@
 
 Stand: 20.11.2026, nach Veröffentlichung von 0.1.0-beta.2. Ziel ist zunächst Funktionsparität mit NTSCRT auf Windows. Darauf bauen eigene Erweiterungen und eine Linux-Ausgabe auf. Herkunft und ursprüngliche Lizenzen bleiben sichtbar; externe Komponenten bleiben gezielt austauschbar.
 
+## Unabhängigkeit von NTSCRT
+
+Nutzervorgabe vom 24.11.2026: Tape & Tube so weiterentwickeln, dass die Arbeit auch bei einer plötzlichen Einstellung von NTSCRT fortgesetzt werden kann.
+
+- Die verwendeten Quellmodule, Presets, Originalhinweise, Revision und unsere Patches im eigenen Projekt oder in einem von uns kontrollierten Quellpaket dauerhaft verfügbar halten. Der Umfang beschränkt sich auf die tatsächlich verwendeten Bestandteile.
+- Installation, Ausführung und regulärer Build sollen ohne Zugriff auf das NTSCRT-Repository funktionieren. Neue NTSCRT-Versionen gezielt prüfen und übernehmen. Fehlerbehebungen am eingebundenen Stand können lokal erfolgen.
+- Stand vom 24.11.2026: Die 94 verwendeten NTSCRT-Dateien liegen bytegleich unter `prototypes/processing-core/vendor/NTSCRT-0.28.1/`. Windows-Build, Preset-Paketierung und Linux-Testskript greifen auf diese Kopie zu. Der GitHub-Quellentwurf enthält sie einschließlich Shaderquellen und Lizenztexten. In einem frischen lokalen Git-Checkout wurde der Windows-Effektkern ohne das NTSCRT-Vollarchiv und ohne Netzwerk gebaut. Beide Patches wurden angewandt und ließen sich erneut prüfen. Mit dem neu gebauten Kern bestanden 45 Export- und 193 Integrationsprüfungen. Für Drittkomponenten wie librashader und Cargo-Abhängigkeiten wurden vorhandene lokale Caches verwendet. Ein nativer Linux-Lauf der geänderten Vorbereitung steht noch aus.
+
 ## Aktuelle Priorität: NTSCRT-Funktionen zuerst
 
 Der Nutzer hat am 20.11.2026 die Reihenfolge festgelegt. Wir schließen zuerst die Lücken zu NTSCRT für Windows und verschieben eigenständige Features auf die Zeit danach. Fehlerbehebungen sowie gemessene Leistungsoptimierungen bleiben Teil der Arbeit, wenn sie die Nutzung der übernommenen Funktionen beeinträchtigen. Der bereits umgesetzte HDR-Import ist abgeschlossen und löst keinen weiteren HDR-Ausbau in dieser Phase aus.
@@ -113,7 +121,33 @@ Nutzeridee vom 17.11.2026: **Eine Vielzahl auswählbarer Presets, die stimmige �
 - Historische Zuordnungen anhand geeigneter Referenzen prüfen; recherchierte Rekonstruktionen und frei interpretierte Looks erkennbar unterscheiden.
 - Vorhandene Presets erhalten und neue Looks weiter anpassbar halten. Zuordnungsvorschlag: Effektgrundlagen in Etappe 4, Auswahl und Presetgestaltung in Etappe 5. Umfang und konkrete Presetliste sind noch offen.
 
-Gemeinsames Gestaltungskonzept: **Bildquelle → Übertragung und Empfang → Aufnahme/Wiedergabe → Bildschirm einer gewählten Epoche.** Die konkreten Modelle und historischen Zuordnungen sind noch zu untersuchen.
+Gemeinsames Gestaltungskonzept: **Bildquelle → Übertragung und Empfang → Aufnahme/Wiedergabe → Bildschirm einer gewählten Epoche.**
+
+#### Vorschlag für die erste historische Bibliothek vom 24.11.2026
+
+Basic gruppiert Looks nach der gewünschten Bildwirkung. Zeitangaben stehen als Orientierung in der Beschreibung, weil mehrere Aufnahme- und Wiedergabeformen gleichzeitig verbreitet waren. Die vier bereits enthaltenen Looks bilden den Anfang. Zwei Varianten erschließen die vorhandenen VCR- und Empfangsstufen.
+
+| Kategorie | Look | Zeitbezug und sichtbarer Unterschied | Grundlage |
+| --- | --- | --- | --- |
+| Fernsehen und VHS | VHS auf Röhre | Heimvideo der 1980er und 1990er mit weichen Farbkanten und sichtbaren Scanlines | Vorhandener Basic-Look mit ntsc-rs und `crt-easymode`. VHS kam 1976 auf den Markt. [JVCKENWOOD](https://www.jvckenwood.com/en/80-100-20th/) |
+| Fernsehen und VHS | Oft abgespielte VHS | Dieselbe Wiedergabesituation mit kurzen Bandaussetzern und Störungen am unteren Bildrand | Neuer Vorschlag aus VCR-Bandzustand `Used`, zurückhaltender Kopfumschaltstörung und demselben CRT-Profil. Vorschau gegen „VHS auf Röhre“ abstimmen. |
+| Fernsehen und VHS | Antennen-TV mit Geisterbild | Analoges Fernsehen mit einem schwachen, seitlich versetzten Doppelbild | Neuer Vorschlag aus TV-Empfang mit `ghost_level` und `ghost_delay`, Composite-Signal und CRT. Mehrwegeempfang ist ein historisch belegter Auslöser. [ITU-R zu Mehrwegeempfang](https://www.itu.int/dms_pub/itu-r/oth/0C/07/R0C070000640002PDFE.pdf) |
+| Camcorder | MiniDV | Digitale Camcorder-Aufnahme ab Mitte der 1990er mit typischer Standardauflösung | Vorhandener NTSCRT-Look. Sony führte MiniDV-Handycams 1995 ein. Die konkrete Einstellkombination ist eine Annäherung. [Sony-Geschäftsbericht 1996](https://www.sony.com/en/SonyInfo/IR/library/ar/ar_sony_1996.pdf) |
+| Frühes Computervideo | CD-ROM (Video 1) | Frühes PC-Video mit niedriger Auflösung und sichtbaren Kompressionsblöcken | Vorhandener NTSCRT-Look. Die Bezeichnung verweist auf Microsoft Video 1. [FFmpeg-Codec-Referenz](https://ffmpeg.org/doxygen/trunk/msvideo1_8c_source.html) |
+| Frühes Computervideo | Webcam (2005) | Weiches, niedrig aufgelöstes Webcam-Bild als Bildeindruck der 2000er | Vorhandener NTSCRT-Look. Die Jahreszahl stammt aus dem Originalnamen. |
+
+Für den ersten Katalog genügen eine stabile ID, Kategorie, Titel, Kurzbeschreibung, Zeitbezug, Signalnorm soweit belegt, Herkunft und die Effektwerte. Die Karten zeigen Titel und Bildwirkung, die Herkunft bleibt im Detail sichtbar. Für die ersten analogen Varianten gilt die Kennzeichnung **NTSC-inspiriert**. PAL-, SECAM- und konkrete Röhrenmodelle bleiben eigene Recherchepunkte. [Library of Congress zu analogen Videoquellen](https://loc.gov/preservation/digital/formats/content/video_source.shtml)
+
+Erste Abnahme mit demselben Standbild und Bewegungsclip für alle Karten. VHS-Aussetzer und Antennen-Geisterbild müssen als unterschiedliche Bildfehler erkennbar sein. Der Wechsel zwischen Looks lässt Quellbeschnitt und Ausgabegröße stehen. Bei einem zeitabhängigen Look soll der Videoexport denselben Effekt am gleichen Zeitpunkt wie die Vorschau zeigen.
+
+- Windows-Testbuild vom 24.11.2026 (`20261124-141522-315`): Die sechs Karten stehen in drei Kategorien. Der Test über die Karten bestätigt, dass alle sechs Quellbeschnitt und Ausgabegröße übernehmen. Für die zwei neuen Looks unterscheiden sich die gerenderten Bilder und der geprüfte Vorschauframe stimmt mit dem Effektframe vor der MP4-Kodierung überein.
+- Ergänzung vom 24.11.2026 nach Rückfrage des Nutzers: Auch Finn McKentys vollständige NTSCRT-Looks für Basic prüfen. **Clean CRT** ergänzt die Auswahl um einen Röhren-Look ohne Signalstörungen. **Clean VHS** bietet Bandwiedergabe ohne CRT. **CRT aperture mask** kombiniert eine verschlissene EP-Kassette mit einer sichtbaren Streifenmaske. Diese drei Originaldateien haben die Animation deaktiviert und enthalten keinen Quellbeschnitt. **5 second blips** ist ein zusätzlicher Kandidat für animierte Looks und verwendet eine Fünf-Sekunden-Zeitleiste. Originaldateien und Credits erhalten. Der Basic-Aufruf soll den Beschnitt und die Ausgabegröße des Nutzers respektieren. [Original-Presets aus NTSCRT 0.28.1](https://github.com/finnmckenty/NTSCRT/tree/0ab60bf952b09a0c41ea4290979f23dadd963614/presets)
+- Ergänzung vom 24.11.2026: Die eigenen Retro-Looks über die Jahrzehnte sollen ebenfalls in **Basic → Looks** stehen. Vorschlag für die Bedienung: nach dem Bildeindruck gruppieren und bei wachsender Auswahl zusätzlich nach Jahrzehnt filtern. Eine Herkunftsangabe auf der Karte kennzeichnet eigene Tape-&-Tube-Looks und NTSCRT-Originale. Eigene Gesamtlooks kombinieren passende Signalquelle, Empfang oder Aufnahme und Bildschirm zu einer direkt anwendbaren Voreinstellung.
+- Windows-Testbuild vom 24.11.2026 (`20261124-142139-823`): **Clean VHS**, **Clean CRT** und **CRT aperture mask** sind als NTSCRT-Originale in Basic auswählbar. Die Originaldateien und der MIT-Hinweis sind enthalten. Alle neun Karten erhalten Quellbeschnitt und Ausgabegröße. Für jedes der drei Originale stimmt der geprüfte Vorschauframe mit dem entsprechenden Frame vor der MP4-Kodierung überein.
+- Nutzeridee vom 24.11.2026: Alle NTSCRT-Looks mit der Installation in einem eigenen Verzeichnis ablegen, damit sie sich ohne Entpacken öffnen lassen. Ausgestaltungsvorschlag: Die 44 Original-Looks unverändert unter `presets/NTSCRT/` mit Versions- und Lizenzhinweis ausliefern. Die fünf Screen-Loop-Presets bleiben im eigenen Unterordner `Screen Loop/` und werden über die Screen-Loop-Steuerung geladen. **Preset laden…** öffnet den NTSCRT-Ordner beim ersten Aufruf und merkt sich danach den zuletzt verwendeten Ordner. Basic zeigt weiterhin eine kuratierte Auswahl. Für das nächste Paket sowohl die Installationsdateien als auch die eingebetteten Originale im Tape-&-Tube-Quellpaket prüfen.
+- Windows-Prüfpaket vom 24.11.2026 (`20261124-142856-967`): Alle 49 JSON-Dateien entsprechen bytegenau dem gepinnten Originalarchiv. Der Dateidialog öffnete `presets/NTSCRT/` und lud **Clean VHS** direkt. Die drei eingebetteten Originale sind auch in der Tape-&-Tube-Quellcode-ZIP vollständig enthalten. Die portable Prüfung aus einem getrennten Verzeichnis ist bestanden.
+- Nutzervorgabe vom 24.11.2026: Den mitgelieferten NTSCRT-Umfang möglichst weit reduzieren. Vorschlag für das nächste Release: Die 44 Looks, fünf Screen-Loop-Presets und Originalhinweise bleiben im Windows-Paket. Das vollständige NTSCRT-Archiv mit 32,65 MiB entfällt dort. Das passende Quellpaket enthält die verwendeten Dateien aus `port/engine` und `port/codec`, die relevanten Lizenztexte, die gepinnte Revision, Build-Dateien und die tatsächlich angewandten Patches. Vor dem Ersetzen des vollständigen Archivs den Windows-Effektkern aus dem reduzierten Quellpaket ohne Zugriff auf den vollständigen NTSCRT-Checkout bauen und Vorschau sowie Export prüfen.
+- Windows-Prüfpaket vom 24.11.2026 (`20261124-143800-066`): Das ZIP sank von 123,33 auf 90,73 MiB. Die 49 Original-Presets sind bytegleich. Das separate Quellpaket ist 1,66 MiB groß und enthält 94 ausgewählte Dateien aus dem gepinnten NTSCRT-Archiv. Der Effektkern ließ sich in einem getrennten, kurzen Windows-Pfad ohne das vollständige NTSCRT-Archiv bauen. Mit diesem Kern bestanden 45 Exportprüfungen und 193 Integrationsprüfungen. Auch die portable Paketprüfung ist bestanden.
 
 ### Basic- und Expert-Modus
 
@@ -125,6 +159,15 @@ Nutzeridee vom 17.11.2026: **Basic und Expert als zwei Bedienmodi vorsehen. Basi
 - Ausgestaltungsvorschlag: Beide Modi verwenden dieselbe Effektkette und denselben Look-Zustand. Ein Moduswechsel verändert oder verwirft keine Einstellungen; im Expert-Modus angepasste Looks bleiben beim Wechsel nach Basic erhalten.
 - Ausgestaltungsvorschlag: Eigene Looks im Expert-Modus als Presets speichern und anschließend auch in Basic auswählen können. Standardmodus, sichtbare Basisregler und genauer Moduswechsel sind noch gemeinsam festzulegen.
 - Zuordnungsvorschlag: Etappe 5, Bedienung und Presetverwaltung. Als Featureidee festgehalten, noch kein Umsetzungsauftrag.
+
+**Vorschlag für den ersten Windows-Stand vom 24.11.2026**
+
+- **Basic** als vorgeschlagener Einstieg beim ersten Start. Sobald ein Medium geladen ist, zeigt die Seitenleiste eine kleine Auswahl vorhandener Looks mit Namen, kurzem Bildeindruck und Herkunft. Der Vergleich bleibt in der Vorschau erreichbar, der Export in der Medienleiste.
+- Nutzervorgabe vom 24.11.2026: **Beim Schließen den zuletzt aktiven Modus (Basic oder Expert) lokal speichern und beim nächsten Start wiederherstellen.** Abnahme: Expert wählen, die App schließen und in Expert wieder starten. Danach zu Basic wechseln und denselben Ablauf mit Basic wiederholen.
+- **Expert** zeigt die heutigen Effektstufen und die Animationssteuerung. Der Umschalter ändert nur die Ansicht. Der aktuelle Look, die Keyframes und die Wiedergabeposition bleiben beim Wechsel erhalten.
+- Eingebaute Basic-Looks ändern die Effektstufen. Quellbeschnitt und Ausgabegröße bleiben beim Anwenden erhalten. Der bestehende Dateiimport übernimmt weiterhin die Einstellungen, die in der geöffneten Datei gespeichert sind. Eigene Expert-Looks können später in dieselbe Bibliothek aufgenommen werden.
+- Abnahme: Ein Testbild oder Video laden, einen Look anwenden und exportieren. In Expert einen Effektwert ändern, nach Basic und zurück wechseln und dieselben Werte sowie dieselbe Vorschauposition vorfinden. Historische Kategorien ausarbeiten, sobald dieser Ablauf funktioniert.
+- Windows-Testbuild vom 24.11.2026 (`20261124-140809-928`): Basic bietet VHS auf Röhre, MiniDV, Webcam (2005) und CD-ROM (Video 1). Expert zeigt Effekte und Animation, die Ausgabe ist in beiden Modi erreichbar. Der letzte Modus wurde nach regulärem Schließen in beiden Richtungen beim Neustart wiederhergestellt.
 
 ### Vergleichsvorschau nebeneinander
 
@@ -170,15 +213,18 @@ Nutzeridee vom 23.11.2026: **Standbilder in gängigen Bildformaten ausgeben kön
 
 - Ergänzung des Nutzers vom 24.11.2026: **TIFF und BMP ebenfalls als Exportformate vorsehen.**
 - Ausgestaltungsvorschlag: Neben dem vorhandenen PNG auch JPEG, WebP, TIFF und BMP im Dialog **Bild speichern…** anbieten. Für verlustbehaftete Formate soll die Qualität einstellbar sein. Quellbeschnitt, Effekte und Ausgabegröße gelten für jedes Format.
+- Windows-Testbuild vom 24.11.2026 (`20261124-134401-371`): Alle fünf Bildformate sind im Speicherdialog verfügbar. Unter **Ausgabe** lässt sich die Qualität für JPEG und verlustbehaftetes WebP einstellen. WebP ist standardmäßig verlustfrei und benötigt FFmpeg mit `libwebp`.
 - Nutzeridee vom 24.11.2026: **Auch weitere Videoformate für den Export prüfen.**
 - Ergänzung des Nutzers vom 24.11.2026: **MOV und WebM als Exportcontainer sowie VP9 als Videocodec vorsehen.**
 - Ausgestaltungsvorschlag: MP4 mit H.264 als Standard für die Weitergabe beibehalten. MOV mit ProRes 422 für den Videoschnitt und WebM mit VP9 und Opus für die Einbindung im Web anbieten. Bei FFmpeg-abhängigen Formaten den jeweils verfügbaren Encoder prüfen. Videoformate mit Ton mit dem Referenzclip auf Synchronität und Wiedergabe testen. Die Formatauswahl bei den Ausgabeoptionen berücksichtigen.
+- Windows-Testbuild vom 24.11.2026 (`20261124-135201-778`): Der Speicherdialog bietet MOV mit ProRes 422 und PCM sowie WebM mit VP9 und Opus an. Tape & Tube prüft die benötigten FFmpeg-Encoder. Automatisierte Tests mit einem zeitversetzten Testclip bestätigen Bildanzahl, Bildrate, Auflösung und Tonversatz für beide Formate.
 
 ## Komponenten und Credits übersichtlicher anzeigen
 
 Nutzeridee vom 24.11.2026: **Die Hardware- und Softwareangaben in Komponenten & Credits strukturiert statt als Fließtext anzeigen.**
 
 - Ausgestaltungsvorschlag: Hardware und den tatsächlich verwendeten Grafikadapter in einem eigenen Abschnitt anzeigen. Softwarekomponenten erhalten pro Eintrag Felder für Aufgabe, Version, Status, Lizenz und Quelle. Die Herkunft von Tape & Tube und die Danksagungen bleiben in einem eigenen Abschnitt gut auffindbar. Technische Details und Dateipfade lassen sich bei Bedarf aufklappen.
+- Windows-Testbuild vom 24.11.2026 (`20261124-135732-823`): **Komponenten & Credits** ist in **Projekt**, **Software** und **Hardware** gegliedert. Bibliothekspfade stehen in aufklappbaren Details. Das Hardware-Register zeigt die dem Prozess verfügbaren logischen CPU-Kerne und die tatsächlich initialisierten Grafikadapter.
 
 ## Seitenverhältnis für die Ausgabe sperren
 

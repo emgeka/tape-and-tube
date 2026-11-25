@@ -30,9 +30,11 @@ fetch_extract() {
     printf '%s  %s\n' "$expected" "$archive" | sha256sum --check --status || { echo "Checksum mismatch: $archive_name" >&2; exit 1; }
     if [[ ! -d "$target_parent/$expected_dir" ]]; then unzip -q "$archive" -d "$target_parent"; fi
 }
-fetch_extract NTSCRT-0.28.1.zip e83ddb47030090f4114ff4df6dabbd63e275216db2e3e3ee747c9f6f04226bd0 \
-    https://codeload.github.com/finnmckenty/NTSCRT/zip/refs/tags/v0.28.1 \
-    "$upstream_root" NTSCRT-0.28.1
+ntscrt_directory="$(node -p 'require(process.argv[1]).ntscrt.directory' "$proto_root/upstream-sources.json")"
+ntscrt_vendor="$proto_root/vendor/$ntscrt_directory"
+engine_source="$upstream_root/$ntscrt_directory"
+if [[ ! -d "$ntscrt_vendor" ]]; then echo "Missing checked-in NTSCRT sources: $ntscrt_vendor" >&2; exit 1; fi
+if [[ ! -d "$engine_source" ]]; then cp -R -- "$ntscrt_vendor" "$upstream_root"; fi
 fetch_extract librashader-76462c03.zip 48bf30a981b91d284f9dfd2df53ea227c7420cf4c15e40e7cd0d7b99ec385739 \
     https://codeload.github.com/SnowflakePowered/librashader/zip/76462c030b75c4f2d56e5386c3d4d7d1128318b8 \
     "$upstream_root" librashader-76462c030b75c4f2d56e5386c3d4d7d1128318b8
@@ -40,18 +42,15 @@ fetch_extract shaders.zip e219396f38deec9a762fb6ef1c5d690fcd36e90e64e66a1c782fbb
     https://github.com/libretro/slang-shaders/archive/cb01f2f238700eed7ec1c859be1737a9fbcdcb7c.zip \
     "$project_root/assets" slang-shaders-cb01f2f238700eed7ec1c859be1737a9fbcdcb7c
 shader_source="$upstream_root/librashader-76462c030b75c4f2d56e5386c3d4d7d1128318b8"
-patch_file="$upstream_root/NTSCRT-0.28.1/port/librashader-wgpu-push-constants.patch"
-if ! git -C "$shader_source" apply --reverse --check "$patch_file" 2>/dev/null; then
-    git -C "$shader_source" apply --check "$patch_file"
-    git -C "$shader_source" apply "$patch_file"
-fi
+apply_prepared_patch() {
+    local source_root="$1" patch_file="$2"
+    if ! GIT_CEILING_DIRECTORIES="$upstream_root" git -C "$source_root" apply --reverse --check "$patch_file" 2>/dev/null; then
+        GIT_CEILING_DIRECTORIES="$upstream_root" git -C "$source_root" apply "$patch_file"
+    fi
+}
+apply_prepared_patch "$shader_source" "$engine_source/port/librashader-wgpu-push-constants.patch"
 export CARGO_TARGET_DIR="$project_root/artifacts/core-prototype/target"
-engine_source="$upstream_root/NTSCRT-0.28.1"
-host_patch="$proto_root/engine-adapter/host-lifecycle.patch"
-if ! git -C "$engine_source" apply --reverse --check "$host_patch" 2>/dev/null; then
-    git -C "$engine_source" apply --check "$host_patch"
-    git -C "$engine_source" apply "$host_patch"
-fi
+apply_prepared_patch "$engine_source" "$proto_root/engine-adapter/host-lifecycle.patch"
 export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-2}"
 export CMAKE_GENERATOR=Ninja
 export CMAKE_POLICY_VERSION_MINIMUM=3.5

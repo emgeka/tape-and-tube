@@ -58,7 +58,7 @@
     <Button DockPanel.Dock="Right" Content="{DynamicResource ImportedLookExitLabel}" Click="ExitImportedLook" Margin="12,0,0,0"/>
     <StackPanel>
      <TextBlock x:Name="ImportedLookName" TextTrimming="CharacterEllipsis" FontWeight="SemiBold"/>
-     <TextBlock Text="{DynamicResource ImportedLookHintLabel}" Foreground="{StaticResource Muted}" TextWrapping="Wrap"/>
+     <TextBlock x:Name="ImportedLookHint" Text="{DynamicResource ImportedLookHintLabel}" Foreground="{StaticResource Muted}" TextWrapping="Wrap"/>
     </StackPanel>
    </DockPanel>
   </Border>
@@ -162,8 +162,22 @@
    </Grid>
    <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Center" Background="Transparent" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" ToolTip="{DynamicResource Ui026}"/>
    <Border Grid.Column="2" Style="{StaticResource Card}" Padding="0" ClipToBounds="True">
-    <TabControl>
-     <TabItem Header="{DynamicResource Ui027}">
+    <DockPanel>
+     <DockPanel DockPanel.Dock="Top" Margin="18,12,18,6">
+      <ComboBox x:Name="WorkspaceModeChoice" DockPanel.Dock="Right" Width="126" SelectionChanged="WorkspaceModeChanged"
+                AutomationProperties.Name="{DynamicResource WorkspaceModeLabel}">
+       <ComboBoxItem Content="{DynamicResource WorkspaceBasicLabel}"/>
+       <ComboBoxItem Content="{DynamicResource WorkspaceExpertLabel}"/>
+      </ComboBox>
+      <TextBlock Text="{DynamicResource WorkspaceModeLabel}" Foreground="{StaticResource Muted}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,8,0"/>
+     </DockPanel>
+     <TabControl x:Name="WorkspaceTabs">
+     <TabItem x:Name="BasicTab" Header="{DynamicResource BasicLooksLabel}">
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="18">
+       <StackPanel x:Name="BasicLooks"/>
+      </ScrollViewer>
+     </TabItem>
+     <TabItem x:Name="ExpertEffectsTab" Header="{DynamicResource Ui027}">
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="18,18,18,14">
        <StackPanel x:Name="EffectControls">
         <Expander Header="{DynamicResource SourceCropLabel}" Margin="0,0,0,12">
@@ -304,6 +318,15 @@
          <TextBlock Text="{DynamicResource Ui048}" Foreground="{StaticResource Muted}" Margin="0,0,0,6"/><ComboBox x:Name="OutputFitChoice" IsEnabled="False" SelectionChanged="OutputFitChanged" AutomationProperties.Name="{DynamicResource Ui049}" Margin="0,0,0,14"><ComboBoxItem Content="{DynamicResource Ui050}" IsSelected="True"/><ComboBoxItem Content="{DynamicResource Ui051}"/></ComboBox>
          <CheckBox x:Name="SnapScanlinesChoice" Content="{DynamicResource SnapScanlinesLabel}" Checked="SnapScanlinesChanged" Unchecked="SnapScanlinesChanged" Margin="0,0,0,10"/>
          <Border Background="#11171E" CornerRadius="6" Padding="12"><TextBlock x:Name="OutputSizeInfo" Text="{DynamicResource Ui052}" Foreground="{StaticResource Accent}" TextWrapping="Wrap" LineHeight="20"/></Border>
+         <TextBlock Text="{DynamicResource ImageQualityLabel}" Foreground="{StaticResource Muted}" Margin="0,14,0,6" TextWrapping="Wrap"/>
+         <DockPanel Margin="0,0,0,8">
+          <TextBlock DockPanel.Dock="Right" Width="34" TextAlignment="Right" Foreground="{StaticResource Accent}"
+                     Text="{Binding ElementName=ImageQualityChoice, Path=Value, StringFormat={}{0:0}}"/>
+          <Slider x:Name="ImageQualityChoice" Minimum="1" Maximum="100" Value="90" TickFrequency="1" IsSnapToTickEnabled="True"
+                  AutomationProperties.Name="{DynamicResource ImageQualityLabel}"/>
+         </DockPanel>
+         <CheckBox x:Name="LosslessWebpChoice" Content="{DynamicResource LosslessWebpLabel}" IsChecked="True"
+                   ToolTip="{DynamicResource WebpNeedsFfmpegLabel}" Margin="0,0,0,10"/>
          <TextBlock Text="{DynamicResource Mp4QualityLabel}" Foreground="{StaticResource Muted}" Margin="0,18,0,6"/>
          <ComboBox x:Name="Mp4QualityChoice" SelectedIndex="1" AutomationProperties.Name="{DynamicResource Mp4QualityLabel}">
           <ComboBoxItem Content="{DynamicResource Mp4QualityStandard}"/>
@@ -337,7 +360,7 @@
        </StackPanel>
       </ScrollViewer>
      </TabItem>
-     <TabItem Header="{DynamicResource AnimationTabLabel}">
+     <TabItem x:Name="ExpertAnimationTab" Header="{DynamicResource AnimationTabLabel}">
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="18">
        <StackPanel>
         <TextBlock x:Name="KeyframesUnavailable" Visibility="Collapsed" Text="{DynamicResource KeyframesUnavailableLabel}"
@@ -377,6 +400,7 @@
       </ScrollViewer>
      </TabItem>
     </TabControl>
+    </DockPanel>
    </Border>
   </Grid>
  </DockPanel>

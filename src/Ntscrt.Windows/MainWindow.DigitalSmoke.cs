@@ -6,6 +6,46 @@ namespace Ntscrt.Windows;
 
 public partial class MainWindow
 {
+    internal static Dictionary<string, RenderSettings> CheckBasicLookSelection(Action<bool, string> check)
+    {
+        var app = Application.Current;
+        var shutdownMode = app.ShutdownMode;
+        app.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        MainWindow? window = null;
+        try
+        {
+            window = new MainWindow();
+            var crop = new SourceCrop("1:1", X: 0.7);
+            var output = new OutputSettings(176, 144);
+            window.RestoreCrop(crop);
+            window.RestoreOutput(output);
+            var settings = new Dictionary<string, RenderSettings>();
+            foreach (var button in window.BasicLooks.Children.OfType<Button>())
+            {
+                button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent, button));
+                settings.Add((string)button.Tag, window.Settings(preview: false));
+            }
+            check(settings.Count == 9 && window.BasicLooks.Children.OfType<TextBlock>().Count() == 3 &&
+                settings.Values.All(value => value.Crop == crop && value.Output == output),
+                "All nine Basic looks in three categories preserve the source crop and output size");
+            check(settings["used-vhs"].Analog is { Vcr: true, Reception: false } &&
+                settings["antenna-ghost"].Analog is { Vcr: false, Reception: true } &&
+                settings["vhs-crt"].Analog == null && settings["minidv"].Digital != null,
+                "Basic looks use distinct VCR, reception and digital stages");
+            check(settings["ntscrt-clean-vhs"].ImportedLook is { Crt: false, KeyframeCount: 0 } &&
+                settings["ntscrt-clean-crt"].ImportedLook is { Crt: true, KeyframeCount: 0 } &&
+                settings["ntscrt-aperture-mask"].ImportedLook is { Crt: true, KeyframeCount: 0 } &&
+                settings["minidv"].ImportedLook == null && window.BasicLooks.IsEnabled,
+                "Three unchanged NTSCRT presets can be selected consecutively and switched back to a Tape & Tube look");
+            return settings;
+        }
+        finally
+        {
+            window?.Close();
+            app.ShutdownMode = shutdownMode;
+        }
+    }
+
     internal static async Task CheckStillMotionAsync(Action<bool, string> check, CancellationToken token)
     {
         var app = Application.Current;

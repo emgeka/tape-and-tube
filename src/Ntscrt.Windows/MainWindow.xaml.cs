@@ -54,6 +54,7 @@ public partial class MainWindow : Window
             InitializeCrop();
             RefreshEffectAvailability();
             InitializeKeyframes();
+            InitializeWorkspace();
             _ready = true;
             Status.Text = Localization.T("Bereit · Originaleffekte von ntsc-rs und der RetroArch-Shader-Community");
         }
@@ -173,7 +174,7 @@ public partial class MainWindow : Window
             {
                 if (firstForVersion) Status.Text = Localization.T("Laufende Störeffekte in der Vorschau");
             }
-            else Status.Text = $"{decoded.Width} × {decoded.Height} → {result.Frame.Width} × {result.Frame.Height} · {clock.ElapsedMilliseconds} ms · " + (_playing ? Localization.T("Video-Vorschau") : Localization.T("PNG bereit"));
+            else Status.Text = $"{decoded.Width} × {decoded.Height} → {result.Frame.Width} × {result.Frame.Height} · {clock.ElapsedMilliseconds} ms · " + (_playing ? Localization.T("Video-Vorschau") : Localization.T("Bild bereit"));
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
@@ -234,15 +235,6 @@ public partial class MainWindow : Window
         }
         catch (Exception ex) { Error(ex); }
     }
-    private void ExportImage(object sender, RoutedEventArgs e)
-    {
-        if (_output is not { } snapshot || !ExportButton.IsEnabled || !_outputInputValid) return;
-        var dialog = new SaveFileDialog { Title = Localization.T("Bild speichern…"), Filter = "PNG|*.png", FileName = "tape-and-tube.png" };
-        if (dialog.ShowDialog(this) != true) return;
-        try { snapshot.Save(dialog.FileName); Status.Text = Localization.T("PNG gespeichert: ") + dialog.FileName; }
-        catch (Exception ex) { Error(ex); }
-    }
-
     private void BuildNtscControls()
     {
         NtscControls.Children.Clear();
@@ -377,7 +369,7 @@ public partial class MainWindow : Window
     private void LoadPreset(object sender, RoutedEventArgs e)
     {
         if (!_ready) return;
-        var dialog = new OpenFileDialog { Title = Localization.T("Preset laden…"), Filter = "Tape & Tube / NTSCRT (*.json)|*.json" };
+        var dialog = PresetDialogs.Open();
         if (dialog.ShowDialog(this) != true) return;
         try
         {
@@ -399,7 +391,7 @@ public partial class MainWindow : Window
         catch (Exception ex) { Error(ex); }
     }
 
-    private void ApplyLookPreset(LookPreset p)
+    private void ApplyLookPreset(LookPreset p, bool preserveGeometry = false)
     {
         PauseVideo();
         _ready = false;
@@ -421,8 +413,11 @@ public partial class MainWindow : Window
             RestoreAnalog(p.Analog);
             ScreenLoopEnabled.IsChecked = false;
             RestoreKeyframes(p.Timeline);
-            RestoreCrop(p.Crop);
-            RestoreOutput(p.Output);
+            if (!preserveGeometry)
+            {
+                RestoreCrop(p.Crop);
+                RestoreOutput(p.Output);
+            }
             BuildNtscControls();
         }
         finally { _ready = true; }
@@ -437,6 +432,7 @@ public partial class MainWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         _closing = true;
+        SaveWorkspaceMode();
         _debounce.Stop();
         _stillMotionTimer.Stop();
         DiscardPreparedFrames();

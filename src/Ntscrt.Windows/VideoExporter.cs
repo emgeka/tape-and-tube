@@ -7,7 +7,7 @@ namespace Ntscrt.Windows;
 
 internal sealed record ExportProgress(int CompletedFrames, int TotalFrames, int Width, int Height, bool Finalizing = false);
 internal sealed record ExportResult(string Path, int Frames, int Width, int Height, double Duration);
-internal enum VideoExportFormat { Mp4, Gif, Hevc }
+internal enum VideoExportFormat { Mp4, Gif, Hevc, ProRes, WebM }
 internal enum Mp4Quality { Standard, High, VeryHigh, Maximum }
 internal sealed record GifExportSettings(int? Width = null, int? Fps = null)
 {
@@ -22,6 +22,15 @@ internal sealed record GifEstimate(int Width, int Height, int Frames)
 internal static class VideoExporter
 {
     internal const int MaxLoops = 50;
+
+    internal static string Extension(VideoExportFormat format) => format switch
+    {
+        VideoExportFormat.Mp4 or VideoExportFormat.Hevc => "mp4",
+        VideoExportFormat.Gif => "gif",
+        VideoExportFormat.ProRes => "mov",
+        VideoExportFormat.WebM => "webm",
+        _ => throw new ArgumentOutOfRangeException(nameof(format))
+    };
 
     public static async Task<ExportResult> ExportAsync(string sourcePath, string outputPath, RenderSettings settings,
         IProgress<ExportProgress>? progress = null, CancellationToken cancellation = default, bool overwrite = false,
@@ -69,6 +78,9 @@ internal static class VideoExporter
         VideoExportFormat format, Mp4Quality quality, int loops = 1, GifExportSettings? gifSettings = null)
     {
         var totalFrames = checked(info.FrameCount * loops);
+        var extension = Extension(format);
+        if (format is VideoExportFormat.ProRes or VideoExportFormat.WebM)
+            await CheckAdditionalEncodersAsync(info, format, cancellation).ConfigureAwait(false);
         // Freeze caller-owned values, including the parameter dictionary, for the whole job.
         settings = settings with { ShaderValues = new(settings.ShaderValues), Digital=settings.Digital==null?null:new(settings.Digital),
             Analog = settings.Analog?.Snapshot(), ScreenLoop = settings.ScreenLoop == null ? null : new(settings.ScreenLoop) };
@@ -83,7 +95,6 @@ internal static class VideoExporter
         var firstRendered = await RenderFrame(first,0).ConfigureAwait(false);
         var width = gif == null ? Mp4Dimension(firstRendered.Width) : firstRendered.Width;
         var height = gif == null ? Mp4Dimension(firstRendered.Height) : firstRendered.Height;
-        var extension = gif == null ? "mp4" : "gif";
         var temporary = Path.Combine(Path.GetDirectoryName(outputPath)!, $".tapetube-{Guid.NewGuid():N}.{extension}");
         var audioCycle = loops > 1 ? Path.ChangeExtension(temporary, ".wav") : null;
         Process? encoder = null;
@@ -96,7 +107,7 @@ internal static class VideoExporter
             encodeArgs.AddRange([
                 "-f", "rawvideo", "-pixel_format", "bgra", "-video_size", $"{firstRendered.Width}x{firstRendered.Height}",
                 "-framerate", gif?.Rate ?? info.Rate, "-i", "pipe:0"]);
-            if (gif == null) AddMp4Options(encodeArgs, info, format, quality, loops, hasAudio ? audioCycle : null);
+            if (gif == null) AddVideoOptions(encodeArgs, info, format, quality, loops, hasAudio ? audioCycle : null);
             else encodeArgs.AddRange(["-an", "-filter_complex_threads", "1", "-filter_complex",
                 "[0:v]split[image][colors];[colors]palettegen=stats_mode=single:reserve_transparent=0[palette];[image][palette]paletteuse=new=1:dither=bayer:bayer_scale=3",
                 "-fps_mode", "passthrough", "-loop", "0", "-final_delay", gif.FinalDelay.ToString(CultureInfo.InvariantCulture)]);
@@ -133,10 +144,10 @@ internal static class VideoExporter
             await encoder.WaitForExitAsync(cancellation).ConfigureAwait(false);
             var error = await errors.ConfigureAwait(false);
             cancellation.ThrowIfCancellationRequested();
-            if (encoder.ExitCode != 0) throw new InvalidOperationException(Localization.T(gif == null
-                ? "MP4 konnte nicht gespeichert werden: " : "GIF konnte nicht gespeichert werden: ") + error.Trim());
+            if (encoder.ExitCode != 0) throw new InvalidOperationException(Localization.F(
+                $"Export als {extension.ToUpperInvariant()} fehlgeschlagen: {error.Trim()}"));
             if (!File.Exists(temporary) || new FileInfo(temporary).Length == 0)
-                throw new IOException(Localization.T(gif == null ? "Der Encoder hat keine MP4-Datei erzeugt." : "Der Encoder hat keine GIF-Datei erzeugt."));
+                throw new IOException(Localization.T("Der Encoder hat keine Datei erzeugt."));
             // Only replace the destination after a complete, successful encode.
             cancellation.ThrowIfCancellationRequested();
             File.Move(temporary, outputPath, overwrite);
@@ -183,11 +194,28 @@ internal static class VideoExporter
 
     private const string AudioAlignment = "aresample=async=1:first_pts=0,apad";
 
-    private static async Task<bool> CreateAudioCycleAsync(VideoInfo info, string path, CancellationToken cancellation)
+    private static async Task CheckAdditionalEncodersAsync(VideoInfo info, VideoExportFormat format, CancellationToken cancellation)
+    {
+        var (video, audio) = format == VideoExportFormat.ProRes ? ("prores_ks", "pcm_s24le") : ("libvpx-vp9", "libopus");
+        var list = await MediaTools.CaptureAsync("ffmpeg", ["-hide_banner", "-encoders"], cancellation).ConfigureAwait(false);
+        var names = list.Split('\n').Select(line => line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+            .Where(fields => fields.Length >= 2).Select(fields => fields[1]).ToHashSet(StringComparer.Ordinal);
+        if (!names.Contains(video))
+            throw new InvalidOperationException(Localization.F($"Die ausgewählte FFmpeg-Version enthält den Encoder {video} nicht."));
+        if (!names.Contains(audio) && !info.IsStill && await HasAudioAsync(info, cancellation).ConfigureAwait(false))
+            throw new InvalidOperationException(Localization.F($"Die ausgewählte FFmpeg-Version enthält den Encoder {audio} nicht."));
+    }
+
+    private static async Task<bool> HasAudioAsync(VideoInfo info, CancellationToken cancellation)
     {
         var stream = await MediaTools.CaptureAsync("ffprobe", ["-v", "error", "-protocol_whitelist", "file,pipe",
             "-select_streams", "a:0", "-show_entries", "stream=index", "-of", "csv=p=0", info.Path], cancellation).ConfigureAwait(false);
-        if (string.IsNullOrWhiteSpace(stream)) return false;
+        return !string.IsNullOrWhiteSpace(stream);
+    }
+
+    private static async Task<bool> CreateAudioCycleAsync(VideoInfo info, string path, CancellationToken cancellation)
+    {
+        if (!await HasAudioAsync(info, cancellation).ConfigureAwait(false)) return false;
         // Normalize one pass to the video duration before repeating audio. Source containers can have
         // an audio lead-in or tail. PCM also avoids an AAC encoder delay at every join.
         await MediaTools.CaptureAsync("ffmpeg", ["-v", "error", "-nostdin", "-y", "-copyts",
@@ -198,7 +226,7 @@ internal static class VideoExporter
         return true;
     }
 
-    private static void AddMp4Options(List<string> args, VideoInfo info, VideoExportFormat format, Mp4Quality quality,
+    private static void AddVideoOptions(List<string> args, VideoInfo info, VideoExportFormat format, Mp4Quality quality,
         int loops, string? audioCycle)
     {
         var crf = quality switch
@@ -209,6 +237,7 @@ internal static class VideoExporter
             Mp4Quality.Maximum => "10",
             _ => throw new ArgumentOutOfRangeException(nameof(quality))
         };
+        var pixelFormat = format == VideoExportFormat.ProRes ? "yuv422p10le" : "yuv420p";
         var originalAudio = loops == 1 && !info.IsStill;
         if (originalAudio) args.AddRange([
             "-itsoffset", (-info.StartTime).ToString("R", CultureInfo.InvariantCulture),
@@ -217,15 +246,35 @@ internal static class VideoExporter
         args.AddRange(["-map", "0:v:0"]);
         if (originalAudio || audioCycle != null) args.AddRange(["-map", "1:a:0?"]);
         args.AddRange(["-map_metadata", "-1", "-map_chapters", "-1",
-            "-vf", "pad=ceil(iw/2)*2:ceil(ih/2)*2,scale=in_range=full:out_range=tv:out_color_matrix=bt709,format=yuv420p,setparams=range=limited:color_primaries=bt709:color_trc=bt709:colorspace=bt709",
-            "-c:v", format == VideoExportFormat.Hevc ? "libx265" : "libx264",
-            "-preset", "medium", "-crf", crf, "-pix_fmt", "yuv420p",
+            "-vf", $"pad=ceil(iw/2)*2:ceil(ih/2)*2,scale=in_range=full:out_range=tv:out_color_matrix=bt709,format={pixelFormat},setparams=range=limited:color_primaries=bt709:color_trc=bt709:colorspace=bt709",
+            "-pix_fmt", pixelFormat,
             "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709", "-color_range", "tv",
             "-threads", "2", "-fps_mode", "passthrough"]);
-        if (format == VideoExportFormat.Hevc) args.AddRange(["-tag:v", "hvc1", "-x265-params", "pools=2:frame-threads=2"]);
-        if (originalAudio || audioCycle != null) args.AddRange(["-c:a", "aac", "-b:a", "192k", "-af", AudioAlignment]);
-        args.AddRange(["-t", (checked(info.FrameCount * loops) / info.FramesPerSecond).ToString("R", CultureInfo.InvariantCulture),
-            "-movflags", "+faststart"]);
+        switch (format)
+        {
+            case VideoExportFormat.ProRes:
+                args.AddRange(["-c:v", "prores_ks", "-profile:v", "standard"]);
+                break;
+            case VideoExportFormat.WebM:
+                args.AddRange(["-c:v", "libvpx-vp9", "-b:v", "0", "-crf", crf, "-row-mt", "1", "-cpu-used", "2"]);
+                break;
+            default:
+                args.AddRange(["-c:v", format == VideoExportFormat.Hevc ? "libx265" : "libx264", "-preset", "medium", "-crf", crf]);
+                if (format == VideoExportFormat.Hevc) args.AddRange(["-tag:v", "hvc1", "-x265-params", "pools=2:frame-threads=2"]);
+                break;
+        }
+        if (originalAudio || audioCycle != null)
+        {
+            args.AddRange(format switch
+            {
+                VideoExportFormat.ProRes => ["-c:a", "pcm_s24le"],
+                VideoExportFormat.WebM => ["-c:a", "libopus", "-b:a", "192k"],
+                _ => ["-c:a", "aac", "-b:a", "192k"]
+            });
+            args.AddRange(["-af", AudioAlignment]);
+        }
+        args.AddRange(["-t", (checked(info.FrameCount * loops) / info.FramesPerSecond).ToString("R", CultureInfo.InvariantCulture)]);
+        if (format != VideoExportFormat.WebM) args.AddRange(["-movflags", "+faststart"]);
     }
 
     internal const int GifMaxAutomaticSide = 480;

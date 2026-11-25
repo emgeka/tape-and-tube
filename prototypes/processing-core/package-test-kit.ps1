@@ -15,7 +15,6 @@ $copies += @(@{Source='THIRD_PARTY.md';Target='THIRD_PARTY.md'},@{Source='COPYRI
 $copies += Get-ChildItem -LiteralPath (Join-Path $projectRoot 'docs') -File | Where-Object {$_.Extension -in @('.md','.json','.jpg')} | ForEach-Object {@{Source="docs/$($_.Name)";Target="docs/$($_.Name)"}}
 foreach ($file in $prototypeFiles) { $copies += @{Source="prototypes/processing-core/$file";Target="prototypes/processing-core/$file"} }
 $copies += @(
-    @{Source='artifacts/core-prototype/downloads/NTSCRT-0.28.1.zip';Target='artifacts/core-prototype/downloads/NTSCRT-0.28.1.zip'},
     @{Source='artifacts/core-prototype/downloads/librashader-76462c03.zip';Target='artifacts/core-prototype/downloads/librashader-76462c03.zip'},
     @{Source='.tools/shaders.zip';Target='artifacts/core-prototype/downloads/shaders.zip'}
 )
@@ -29,6 +28,7 @@ foreach ($copy in $copies) {
     New-Item -ItemType Directory -Path (Split-Path $destination -Parent) -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $projectRoot $copy.Source) -Destination $destination
 }
+& (Join-Path $projectRoot 'scripts/copy-ntscrt-source.ps1') -Destination (Join-Path $packageRoot 'prototypes/processing-core/vendor')
 @'
 Tape & Tube: Quell-Testpaket fuer den gemeinsamen Verarbeitungskern
 
@@ -40,12 +40,13 @@ VirtualBox-Freigabeordner bauen. Im entpackten Ordner ein Terminal oeffnen:
 
 Voraussetzungen und Hinweise: prototypes/processing-core/README.md
 Das Skript prueft Werkzeuge, installiert aber keine Systempakete.
-Die Originalarchive sind enthalten; Cargo benoetigt weiterhin Internet.
+Die verwendeten NTSCRT-Quellen und die anderen Originalarchive sind enthalten.
+Cargo benoetigt fuer uncached Abhaengigkeiten weiterhin Internet.
 Ergebnisse: artifacts/core-prototype/linux-...
 
 Eigener Code GPL-3.0-only. NTSCRT-Module MIT (Finn McKenty), librashader,
 ntsc-rs und Shader behalten ihre eigenen Lizenzen und Originalhinweise.
-Originaltexte sind in den mitgelieferten Originalarchiven enthalten.
+Die mitgelieferten Quellen und Archive enthalten ihre Originalhinweise.
 '@ | Set-Content -LiteralPath (Join-Path $packageRoot 'START-LINUX.txt') -Encoding utf8
 $inventory = Get-ChildItem -LiteralPath $packageRoot -File -Recurse | Sort-Object FullName | ForEach-Object {
     [pscustomobject]@{path=[IO.Path]::GetRelativePath($packageRoot,$_.FullName).Replace('\','/');bytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}

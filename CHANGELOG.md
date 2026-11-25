@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-beta.4 — Windows test candidate
+
+- Added Basic and Expert modes with persistent mode selection.
+- Added a categorized Looks library with three NTSCRT originals, worn VHS and antenna ghosting. All 44 original looks and five Screen Loop presets are directly available as JSON files.
+- Added JPEG, WebP, TIFF and BMP image export, and video export as ProRes 422 MOV or VP9/Opus WebM.
+- Split Components & Credits into Project, Software and Hardware.
+- Reduced the Windows package by replacing the full NTSCRT archive with the required pinned sources in the matching source package.
+
 ## 0.1.0-beta.3 — Windows test candidate
 
 - Added digital video, VCR, TV reception, Screen Loop, and import of animated NTSCRT looks.

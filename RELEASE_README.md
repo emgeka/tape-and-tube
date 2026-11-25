@@ -2,7 +2,7 @@
 
 **Windows adaptation of [NTSCRT](https://github.com/finnmckenty/NTSCRT) by Finn McKenty.** The original macOS project is the starting point for the concept, signal chain and workflow; this Windows implementation covers its core NTSC/VHS and CRT stages with newly written application/host code.
 
-**Version 0.1.0-beta.3 — unsigned Windows test candidate.**
+**Version 0.1.0-beta.4 — unsigned Windows beta.**
 
 ![Tape & Tube with a synthetic original/output video comparison](docs/screenshot.jpg)
 
@@ -14,13 +14,15 @@ The reference librashader binary also imports Microsoft Visual C++ runtime DLLs 
 
 Select **Testbild** to try the effects immediately. Use **Bild öffnen…** or **Video öffnen…** for your own material. The interface supports ten selectable languages; see Language below.
 
+Choose **Basic** for the Looks library or **Expert** for individual effects and animation controls. **Preset laden…** opens the bundled NTSCRT preset folder on first use. **Screen-Loop-Preset laden…** opens the separate Screen Loop folder.
+
 **Komponenten & Credits** identifies the external projects and their responsibilities, tested reference versions, licenses, source links and actual loaded paths. Personal overrides belong in `components.local.json`; the shared `components.json` documents defaults. You can point to other compatible libraries, another shader collection and additional shader presets without modifying application code. See the source README for the options and ABI requirements.
 
 ## Video tools
 
-Video preview and MP4 or animated GIF export require **FFmpeg** and **ffprobe**. This review ZIP does not redistribute the computer's installed FFmpeg build. Either make an existing installation available on PATH, or place `ffmpeg.exe` and `ffprobe.exe` in the included `runtime/media/` folder. `TAPETUBE_FFMPEG` and `TAPETUBE_FFPROBE` can also point to these executables.
+Video preview and MP4, MOV, WebM or animated GIF export require **FFmpeg** and **ffprobe**. Use an existing installation on PATH or place `ffmpeg.exe` and `ffprobe.exe` in `runtime/media/`. `TAPETUBE_FFMPEG` and `TAPETUBE_FFPROBE` can also point to these executables.
 
-Still-image processing works without FFmpeg. Video preview is silent; MP4 exports include the first audio track from the original video.
+Still-image processing works without FFmpeg. WebP export requires `libwebp`. Video preview is silent. MP4, MOV and WebM exports include the first audio track from the original video when present.
 
 ## Output size
 
@@ -28,13 +30,11 @@ Use **Ausgabe** next to the save buttons to open the output settings. Choose aut
 
 ## Limits
 
-- Windows x64 with a Direct3D 11 capable GPU. Other systems and GPUs still need independent testing.
+- Windows x64 with a Direct3D 11-capable GPU. The shared effects engine requires compute shader support.
 - 4K effects may be slower than real time; video export renders every frame.
 - Variable frame rates are normalized to the preview frame rate.
 - Supported HDR sources are tone-mapped to SDR. Export remains SDR.
 - Unsigned beta. Release/Beta update notices can be checked automatically at startup; the user opens the download page and installs updates manually. Disable automatic checking under Updates if desired.
-- Earlier VirtualBox CRTsim exports showed black or flickering frames. Follow-up exports from the reference clip succeeded on physical hardware.
-- The beta.3 installer still needs a fresh Windows 11 VM test.
 
 ## Licensing and review status
 

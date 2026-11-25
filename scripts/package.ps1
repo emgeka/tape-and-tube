@@ -91,10 +91,10 @@ try {
     }
 
     # Explicit allowlist: never package caches, personal configuration, media or build outputs as source.
-    foreach ($File in @('README.md','RELEASE_README.md','RELEASE_REVIEW.md','RELEASE_NOTES.md','CHANGELOG.md','CONTRIBUTING.md','PUBLICATION.md','THIRD_PARTY.md','COPYRIGHT.md','LICENSE','dependencies.json','components.json','release.json','global.json','.gitignore','Start.ps1')) {
+    foreach ($File in @('README.md','RELEASE_README.md','RELEASE_REVIEW.md','RELEASE_NOTES.md','CHANGELOG.md','CONTRIBUTING.md','PUBLICATION.md','THIRD_PARTY.md','COPYRIGHT.md','LICENSE','dependencies.json','components.json','release.json','global.json','.gitignore','.gitattributes','Start.ps1')) {
         Copy-Item -LiteralPath $File -Destination $SourceDirectory
     }
-    foreach ($Directory in @('src/Ntscrt.Windows','src/TapeTube.Cli','native/src','scripts')) {
+    foreach ($Directory in @('src/Ntscrt.Windows','src/Ntscrt.Windows/UpstreamLooks','src/TapeTube.Cli','native/src','scripts')) {
         $Destination = Join-Path $SourceDirectory $Directory
         New-Item -ItemType Directory -Force $Destination | Out-Null
         Get-ChildItem -LiteralPath $Directory -File | Where-Object { $_.Extension -in @('.cs','.rs','.xaml','.csproj','.ps1','.mjs','.json') } |
@@ -109,16 +109,14 @@ try {
     }
     $CoreSources = Join-Path $PackageDirectory 'sources/core'
     New-Item -ItemType Directory -Force $CoreSources | Out-Null
-    $Pins = Get-Content -Raw -LiteralPath 'prototypes/processing-core/upstream-sources.json' | ConvertFrom-Json
-    foreach($Name in @('ntscrt','librashader')) {
-        $Pin = $Pins.$Name
-        $Archive = Join-Path $ProjectRoot "artifacts/core-prototype/downloads/$($Pin.directory).zip"
-        if($Name -eq 'librashader' -and -not (Test-Path -LiteralPath $Archive)) {
-            $Archive = Join-Path $ProjectRoot 'artifacts/core-prototype/downloads/librashader-76462c03.zip'
-        }
-        if((Get-FileHash -LiteralPath $Archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Pin.sha256){throw "Core source checksum mismatch: $Name"}
-        Copy-Item -LiteralPath $Archive -Destination $CoreSources
+    & "$PSScriptRoot/copy-ntscrt-source.ps1" -Destination (Join-Path $SourceDirectory 'prototypes/processing-core/vendor')
+    $Pin = (Get-Content -Raw -LiteralPath 'prototypes/processing-core/upstream-sources.json' | ConvertFrom-Json).librashader
+    $Archive = Join-Path $ProjectRoot "artifacts/core-prototype/downloads/$($Pin.directory).zip"
+    if (-not (Test-Path -LiteralPath $Archive)) {
+        $Archive = Join-Path $ProjectRoot 'artifacts/core-prototype/downloads/librashader-76462c03.zip'
     }
+    if ((Get-FileHash -LiteralPath $Archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Pin.sha256) { throw 'Core source checksum mismatch: librashader' }
+    Copy-Item -LiteralPath $Archive -Destination $CoreSources
     Copy-Item -LiteralPath 'prototypes/processing-core/upstream-sources.json','prototypes/processing-core/engine-adapter/host-lifecycle.patch' -Destination $CoreSources
     New-Item -ItemType Directory -Force (Join-Path $SourceDirectory 'native') | Out-Null
     Copy-Item -LiteralPath 'native/Cargo.toml','native/Cargo.lock' -Destination (Join-Path $SourceDirectory 'native')

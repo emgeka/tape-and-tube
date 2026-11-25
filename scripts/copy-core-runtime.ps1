@@ -17,3 +17,4 @@ $ntscrt=Join-Path $Destination 'licenses/upstream'
 New-Item -ItemType Directory -Force -Path $ntscrt | Out-Null
 Copy-Item -LiteralPath (Join-Path $projectRoot 'licenses/upstream/NTSCRT-MIT.txt') -Destination $ntscrt
 Copy-Item -LiteralPath (Join-Path $projectRoot 'prototypes/processing-core/upstream-sources.json') -Destination (Join-Path $coreDirectory 'upstream-sources.json')
+& "$PSScriptRoot/copy-ntscrt-presets.ps1" -Destination $Destination

@@ -1,7 +1,7 @@
 {
   "name": "Tape & Tube",
   "executable": "TapeTube.exe",
-  "version": "0.1.0-beta.3",
+  "version": "0.1.0-beta.4",
   "ownCodeLicense": "GPL-3.0-only",
   "status": "beta",
   "channel": "beta",

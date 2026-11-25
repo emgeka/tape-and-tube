@@ -49,25 +49,8 @@ internal static class ExportSmoke
         Check(progress.Count(p => !p.Finalizing && p.CompletedFrames > 0) == 12 && progress.Last().Finalizing,
             "Fortschritt für jedes Bild und Abschluss gemeldet");
 
-        // Verify the audible delay, not merely the stream's container timestamps.
-        using (var decodeAudio = MediaTools.Start("ffmpeg", ["-v", "error", "-nostdin", "-i", outputPath,
-            "-map", "0:a:0", "-ac", "1", "-ar", "48000", "-f", "f32le", "pipe:1"]))
-        {
-            var errors = decodeAudio.StandardError.ReadToEndAsync();
-            using var memory = new MemoryStream();
-            await decodeAudio.StandardOutput.BaseStream.CopyToAsync(memory, token);
-            await decodeAudio.WaitForExitAsync(token);
-            if (decodeAudio.ExitCode != 0) throw new InvalidOperationException(await errors);
-            var bytes = memory.ToArray();
-            double Energy(double from, double to)
-            {
-                double sum = 0; var start = (int)(from * 48000); var end = Math.Min((int)(to * 48000), bytes.Length / 4);
-                for (var sample = start; sample < end; sample++) { var value = BitConverter.ToSingle(bytes, sample * 4); sum += value * value; }
-                return sum / Math.Max(1, end - start);
-            }
-            Check(Energy(0.03, 0.2) < 0.000001 && Energy(0.55, 0.75) > 0.001,
-                "Verzögert einsetzender Originalton bleibt auch bei verschobenem Quell-Zeitstempel synchron");
-        }
+        Check(await AudioAligned(outputPath, token),
+            "Verzögert einsetzender Originalton bleibt auch bei verschobenem Quell-Zeitstempel synchron");
 
         await using (var original = await VideoSource.OpenAsync(shiftedPath, token))
         await using (var exported = await VideoSource.OpenAsync(outputPath, token))
@@ -88,6 +71,32 @@ internal static class ExportSmoke
         await VideoExporter.ExportAsync(silentPath, silentOutput, settings with { Ntsc = false, Crt = false }, cancellation: token, overwrite: true);
         using (var silent = await Probe(silentOutput, token))
             Check(silent.RootElement.GetProperty("streams").EnumerateArray().All(s => s.GetProperty("codec_type").GetString() != "audio"), "Videos ohne Ton exportierbar");
+
+        foreach (var (format, videoCodec, audioCodec) in new[]
+        {
+            (VideoExportFormat.ProRes, "prores", "pcm_s24le"),
+            (VideoExportFormat.WebM, "vp9", "opus")
+        })
+        {
+            var extension = VideoExporter.Extension(format);
+            var target = Path.Combine(directory, $"Effekt mit Ton.{extension}");
+            var clip = await VideoExporter.ExportAsync(shiftedPath, target, settings, cancellation: token, overwrite: true, format: format);
+            using var probe = await Probe(target, token);
+            var encoded = probe.RootElement.GetProperty("streams").EnumerateArray().ToArray();
+            var picture = encoded.Single(s => s.GetProperty("codec_type").GetString() == "video");
+            var sound = encoded.Single(s => s.GetProperty("codec_type").GetString() == "audio");
+            Check(picture.GetProperty("codec_name").GetString() == videoCodec && sound.GetProperty("codec_name").GetString() == audioCodec,
+                $"{extension} verwendet {videoCodec} und {audioCodec}");
+            Check(picture.GetProperty("nb_read_frames").GetString() == "12" && picture.GetProperty("avg_frame_rate").GetString() == "6/1" &&
+                picture.GetProperty("width").GetInt32() == clip.Width && picture.GetProperty("height").GetInt32() == clip.Height &&
+                Math.Abs(Seconds(picture, "start_time")) < 0.02, $"{extension} übernimmt Bildanzahl, Bildrate, Auflösung und Startzeit");
+            Check(await AudioAligned(target, token), $"{extension} behält den Tonversatz und die Dauer bei");
+            var targetSilent = Path.Combine(directory, $"ohne-ton-export.{extension}");
+            await VideoExporter.ExportAsync(silentPath, targetSilent, settings with { Ntsc = false, Crt = false },
+                cancellation: token, overwrite: true, format: format);
+            using var silentProbe = await Probe(targetSilent, token);
+            Check(silentProbe.RootElement.GetProperty("streams").GetArrayLength() == 1, $"{extension} exportiert Clips ohne Ton");
+        }
 
         var oddPath = Path.Combine(directory, "ungerade.mkv");
         await MediaTools.CaptureAsync("ffmpeg", ["-v", "error", "-nostdin", "-y", "-f", "lavfi", "-i", "testsrc=size=81x61:rate=2:duration=1",
@@ -154,8 +163,36 @@ internal static class ExportSmoke
         Check(overwriteRejected && File.ReadAllBytes(protectedPath).SequenceEqual(sentinel), "Vorhandene Ziele benötigen ausdrückliche Überschreibfreigabe");
         await GifSmoke.RunAsync(directory, shiftedPath, Check, token);
         await CheckStillWithoutKeys(directory, Check, token);
+        await CheckHistoricalLooks(directory, shiftedPath, Check, token);
         File.WriteAllText(Path.Combine(Paths.Root, "artifacts", "export-smoke.json"), JsonSerializer.Serialize(new
         { passed = true, count = checks.Count, checks, outputPath, result }, new JsonSerializerOptions { WriteIndented = true }));
+    }
+
+    private static async Task CheckHistoricalLooks(string directory, string sourcePath, Action<bool, string> check, CancellationToken token)
+    {
+        var looks = MainWindow.CheckBasicLookSelection(check);
+        await using var source = await VideoSource.OpenAsync(sourcePath, token);
+        using var preview = new EffectPipeline();
+        const int index = 5;
+        async Task<PixelFrame> Render(string id) => (await preview.RenderAsync(await source.ReadFrameAsync(index, token),
+            looks[id] with { Frame = index }, id, source.Info, source.ReadFrameAsync, token)).Frame;
+        var clean = await Render("vhs-crt");
+        var worn = await Render("used-vhs");
+        var ghost = await Render("antenna-ghost");
+        check(!clean.Pixels.SequenceEqual(worn.Pixels) && !clean.Pixels.SequenceEqual(ghost.Pixels) &&
+            !worn.Pixels.SequenceEqual(ghost.Pixels), "Tape wear and antenna ghosting produce distinct images");
+        var expectedFrames = new Dictionary<string, PixelFrame> { ["used-vhs"] = worn, ["antenna-ghost"] = ghost };
+        foreach (var id in new[] { "ntscrt-clean-vhs", "ntscrt-clean-crt", "ntscrt-aperture-mask" })
+            expectedFrames[id] = await Render(id);
+        foreach (var (id, expected) in expectedFrames)
+        {
+            var target = Path.Combine(directory, $"basic-{id}.mp4");
+            var matches = false;
+            var exported = await VideoExporter.ExportAsync(sourcePath, target, looks[id], cancellation: token, overwrite: true,
+                frameObserver: (i, frame) => { if (i == index) matches = frame.Pixels.SequenceEqual(expected.Pixels); });
+            check(matches && exported.Frames == source.Info.FrameCount && exported.Width == 176 && exported.Height == 144,
+                $"Basic {id} reproduces the preview frame and output geometry in the full export");
+        }
     }
 
     private static async Task CheckStillWithoutKeys(string directory, Action<bool, string> check, CancellationToken token)
@@ -185,4 +222,32 @@ internal static class ExportSmoke
 
     private static async Task<JsonDocument> Probe(string path, CancellationToken cancellation) => JsonDocument.Parse(
         await MediaTools.CaptureAsync("ffprobe", ["-v", "error", "-count_frames", "-show_streams", "-of", "json", path], cancellation));
+
+    // Check when the tone becomes audible, including padding and codec delay.
+    private static async Task<bool> AudioAligned(string path, CancellationToken token)
+    {
+        using var decode = MediaTools.Start("ffmpeg", ["-v", "error", "-nostdin", "-i", path,
+            "-map", "0:a:0", "-ac", "1", "-ar", "48000", "-f", "f32le", "pipe:1"]);
+        using var registration = token.Register(() => MediaTools.Stop(decode));
+        var errors = decode.StandardError.ReadToEndAsync();
+        using var memory = new MemoryStream();
+        await decode.StandardOutput.BaseStream.CopyToAsync(memory, token);
+        await decode.WaitForExitAsync(token);
+        if (decode.ExitCode != 0) throw new InvalidOperationException(await errors);
+        var bytes = memory.ToArray();
+        double Energy(double from, double to)
+        {
+            double sum = 0;
+            var start = (int)(from * 48000);
+            var end = Math.Min((int)(to * 48000), bytes.Length / 4);
+            for (var sample = start; sample < end; sample++)
+            {
+                var value = BitConverter.ToSingle(bytes, sample * 4);
+                sum += value * value;
+            }
+            return sum / Math.Max(1, end - start);
+        }
+        return Math.Abs(bytes.Length / (48000.0 * 4) - 2) < 0.05 &&
+            Energy(0.03, 0.3) < 0.000001 && Energy(0.55, 0.75) > 0.001 && Energy(1.4, 1.8) < 0.000001;
+    }
 }

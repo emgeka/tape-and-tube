@@ -79,10 +79,9 @@ public partial class MainWindow
         if (SnapScanlinesChoice.IsChecked == true && _output != null) { width = _output.Width; height = _output.Height; }
         else if (_outputSettings != null) { width = _outputSettings.Width; height = _outputSettings.Height; }
         else if (_output != null) { width = _output.Width; height = _output.Height; }
-        else { OutputSizeInfo.Text = Localization.T("PNG und MP4: Größe der Vorschau"); return; }
+        else { OutputSizeInfo.Text = Localization.T("Bild und Video: Größe der Vorschau"); return; }
         var mp4Width = (width + 1) & ~1; var mp4Height = (height + 1) & ~1;
-        OutputSizeInfo.Text = $"PNG: {width} × {height} · MP4: {mp4Width} × {mp4Height}" +
-            (width == mp4Width && height == mp4Height ? "" : Localization.T(" · MP4 ergänzt ungerade Maße um höchstens einen Randpixel"));
+        OutputSizeInfo.Text = Localization.F($"Bild: {width} × {height} · MP4, MOV, WebM: {mp4Width} × {mp4Height}");
     }
 
     private void GifOptionsChanged(object sender, TextChangedEventArgs e)

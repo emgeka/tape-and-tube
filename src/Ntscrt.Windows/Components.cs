@@ -55,8 +55,14 @@ internal static class Components
             throw new FileNotFoundException(Localization.T("Die konfigurierte Bibliothek wurde nicht gefunden."), configured);
         return configured != null && File.Exists(configured) ? configured : Path.Combine(AppContext.BaseDirectory, filename);
     }
-    public static string NativeStatus(string key, string environment, string filename) =>
-        LoadedLibraries.TryGetValue(filename, out var loaded) ? Localization.T("Geladen: ") + loaded : Localization.T("Vorgesehen: ") + NativePath(key, environment, filename);
+    public static (string Path, bool Loaded) NativeLocation(string key, string environment, string filename) =>
+        LoadedLibraries.TryGetValue(filename, out var loaded) ? (loaded, true) : (NativePath(key, environment, filename), false);
+
+    public static string NativeStatus(string key, string environment, string filename)
+    {
+        var (path, loaded) = NativeLocation(key, environment, filename);
+        return Localization.T(loaded ? "Geladen: " : "Vorgesehen: ") + path;
+    }
 
     private static nint Load(string key, string environment, string filename)
     {

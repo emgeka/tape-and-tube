@@ -2,7 +2,7 @@
 
 Etappe 3, Stand 17.11.2026. Dieser zunächst isolierte Versuch enthält jetzt auch den dauerhaften Worker für die lokale Windows-Integration. Die veröffentlichte Beta.2 bleibt unverändert. Kein Linux-App-Binärpaket.
 
-Der Prototyp verbindet Finn McKentys MIT-lizenzierte Digitalvideo-Stufe und Rust-/wgpu-Engine aus **NTSCRT v0.26.0** mit einer eigenen GPL-3.0-only-Hostgrenze. NTSC und alle sieben CRT-Presets bleiben erhalten. Herkunft, Versionen, Originalarchive und lokale Prüfsummen stehen in [upstream-sources.json](upstream-sources.json).
+Der Prototyp verbindet Finn McKentys MIT-lizenzierte Digitalvideo-Stufe und Rust-/wgpu-Engine aus **NTSCRT v0.28.1** mit der eigenen GPL-3.0-only-Host-Anbindung. Herkunft, Versionen und Prüfsummen stehen in [upstream-sources.json](upstream-sources.json).
 
 ## Was implementiert ist
 
@@ -28,9 +28,9 @@ Für den GPU-Build müssen CMake und Ninja auf PATH vorhanden sein; alternativ e
 ./prototypes/processing-core/test.ps1 -SkipBuild
 ```
 
-`prepare.ps1` lädt zwei festgelegte Originalarchive, prüft SHA-256 und wendet NTSCRTs librashader-Patch sowie unseren [Host-Lifecycle-Patch](engine-adapter/host-lifecycle.patch) an. Letzterer ergänzt eine frühe GPU-Prüfung, ausdrückliche Softwarefreigabe und Zustandsreset ohne neues Grafikgerät; Effektalgorithmen werden nicht verändert. `Cargo.lock` fixiert Rust-Abhängigkeiten. Die bestehende `runtime/librashader.dll` wird nicht ersetzt.
+`prepare.ps1` übernimmt die mitgeführten NTSCRT-Quellen aus `vendor/` und wendet NTSCRTs librashader-Patch sowie unseren [Host-Lifecycle-Patch](engine-adapter/host-lifecycle.patch) an. Der Host-Patch ergänzt eine frühe GPU-Prüfung, ausdrückliche Softwarefreigabe und einen Zustandsreset ohne neues Grafikgerät. Das festgelegte librashader-Archiv wird bei Bedarf geladen und per SHA-256 geprüft. `Cargo.lock` fixiert die Rust-Abhängigkeiten.
 
-Für Wiederholung ohne Downloads `-Offline` verwenden. Die Testskripte setzen die Prozessumgebung für die vorhandenen MinGW-Laufzeitbibliotheken; der nackte Prototyp-EXE ist kein eigenständig verteilbares Windows-Paket.
+Für Wiederholung ohne Downloads `-Offline` verwenden. Dafür müssen das librashader-Archiv und die übrigen Build-Abhängigkeiten bereits vorliegen. Zum gezielten Wechsel des NTSCRT-Stands das neue, gepinnte Originalarchiv in den Download-Cache legen und `scripts/copy-ntscrt-source.ps1 -FromOriginalArchive -Destination <Prüfverzeichnis>` ausführen. Die daraus übernommenen Dateien, Patches und Integrationstests vor der Freigabe gemeinsam prüfen.
 
 ## Linux Mint / VirtualBox
 

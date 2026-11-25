@@ -1,0 +1,2 @@
+prototypes/processing-core/vendor/** -text
+src/Ntscrt.Windows/UpstreamLooks/*.json -text

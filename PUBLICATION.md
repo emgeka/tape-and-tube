@@ -1,8 +1,6 @@
 # Publication
 
-## Beta.3 authorization — 2026-11-24
-
-The owner authorized public GitHub publication of v0.1.0-beta.3 as a prerelease, with the exact VM-tested Windows x64 installer and its matching source archive. The standalone release notes record the virtual GPU limitation. SHA256SUMS.txt lists the two uploaded assets.
+Version 0.1.0-beta.3 was published with the owner's approval on 2026-11-24 as a [public GitHub prerelease](https://github.com/emgeka/tape-and-tube/releases/tag/v0.1.0-beta.3). The release tag points to commit `55ca9ca2c268d445be138a223514006af38acc11`. The exact tested installer and its matching source archive came from `artifacts/releases/20261124-093128-460`. All three public downloads and their checksums were verified. The release notes record the Windows 11 VM export and the virtual GPU limitation for the shared renderer. The local receipt is at `artifacts/github/v0.1.0-beta.3/publication-receipt.json`.
 
 ## Published beta — 0.1.0-beta.2
 
@@ -31,6 +29,10 @@ The installer contains matching own source, shaders/notices and upstream source 
 3. Prepare and scan the allowlisted source tree. Commit it on the current remote main history; tag that exact commit v0.1.0-beta.2. Push without force and respect any protection requirements.
 4. Create a draft prerelease with prerelease=true and make_latest=false, upload the installer, source and public checksum file. Verify the server digests against local files before publishing.
 5. Publish under the owner's authorization. Verify anonymous release feed, public download links and tag/commit correspondence. Save a local publication receipt. Keep beta.1 intact.
+
+## Public release notes
+
+For future GitHub releases, keep VM and VirtualBox references to the minimum needed to communicate a verified limitation that affects users. State the practical requirement in one sentence where possible, such as the need for a graphics adapter with compute shader support. Keep detailed test environments, procedures and results in local test records.
 
 ## Limits and channels
 

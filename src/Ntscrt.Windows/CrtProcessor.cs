@@ -18,12 +18,18 @@ internal sealed class CrtProcessor : IDisposable
     private nint _chain;
     private string? _path;
     public IReadOnlyList<ShaderParameter> Parameters { get; private set; } = [];
+    public string? AdapterName { get; }
 
     public CrtProcessor()
     {
         CheckAbi();
         D3D11CreateDevice(nint.Zero, DriverType.Hardware, DeviceCreationFlags.BgraSupport,
             [FeatureLevel.Level_11_0], out _device, out _, out _context).CheckError();
+        using var dxgiDevice = _device.QueryInterfaceOrNull<IDXGIDevice>();
+        if (dxgiDevice != null && dxgiDevice.GetAdapter(out var adapter).Success)
+        {
+            using (adapter) AdapterName = adapter!.Description.Description;
+        }
     }
 
     private static void CheckAbi()

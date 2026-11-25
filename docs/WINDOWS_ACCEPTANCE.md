@@ -61,7 +61,8 @@ Im aktuellen Testbuild sind 118 Sprachprüfungen, 43 Ausgabeprüfungen und 193 I
 
 ## Verbleibende Automatisierung
 
-- **Für die Abnahme prüfen:** Kann ein normaler CLI- und MCP-Aufruf einen üblichen Export zuverlässig abschließen? Fortschritt und geschätzte Restzeit über CLI sowie Statusabfragen über MCP gewinnen Priorität, wenn längere Aufträge im verwendeten Client unklar bleiben oder abbrechen.
+- **Bestanden am 24.11.2026** mit Windows-Testbuild `20261124-135732-823` und FFmpeg 9.0.2. Die 17 CLI-Prüfungen decken unter anderem PNG-Einzelbilder und Serien, H.264/HEVC mit AAC und GIF ab. Der MCP-Test bestätigt Initialisierung, Werkzeugliste, beschnittenes PNG, wiederholten HEVC-Export, Überschreibschutz und Abbruch.
+- Fortschritt und geschätzte Restzeit über CLI sowie Statusabfragen über MCP gewinnen Priorität, wenn längere Aufträge im verwendeten Client unklar bleiben oder abbrechen.
 - **Für einen späteren Ausbau vormerken:** ein eigener MCP-Vorschauaufruf, Look-Liste und Speichern von Looks über CLI und MCP. PNG-Vorschau, Preset-Dateien und der Effektkatalog decken den grundlegenden Workflow bereits ab. Importierte NTSCRT-Looks folgen weiterhin dem vereinbarten schreibgeschützten Ablauf.
 
 Der Funktionsabgleich bezieht sich auf die Windows-Referenz NTSCRT 0.28.1. ProRes und der separate Viewport-Export aus der allgemeinen NTSCRT-Dokumentation gehören in dieser Referenz nicht zum Windows-Speicherdialog. [Windows-Abgleich](NTSCRT_COMPARISON.md#verbleibende-windows-lücken-am-23112026)

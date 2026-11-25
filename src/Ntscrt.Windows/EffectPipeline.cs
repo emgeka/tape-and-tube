@@ -23,6 +23,15 @@ internal sealed class EffectPipeline : IDisposable
     private readonly CoreWorkerClient _worker = new();
     public int? WorkerProcessId => _worker.ProcessId;
     public string? WorkerAdapter => _worker.Adapter?.ToJsonString();
+    public (string? Name, string? Backend) GraphicsAdapter
+    {
+        get
+        {
+            var adapter = _worker.Adapter;
+            return (adapter?["name"]?.ToString(), adapter?["backend"]?.ToString());
+        }
+    }
+    public string? D3D11Adapter => _crt?.AdapterName;
     public static string WorkerPath => Components.ConfiguredPath("coreWorker", "TAPETUBE_CORE_WORKER")
         ?? System.IO.Path.Combine(AppContext.BaseDirectory, "core", "TapeTube.Core.exe");
     public async Task<RenderResult> RenderAsync(PixelFrame source, RenderSettings settings, string sourceId,

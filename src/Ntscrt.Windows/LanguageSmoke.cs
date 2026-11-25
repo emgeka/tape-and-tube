@@ -92,6 +92,16 @@ internal static class LanguageSmoke
         Check(Localization.T("crt-easymode") == "crt-easymode" && Localization.T("GPL-3.0-only") == "GPL-3.0-only", "Technical names and license identifiers remain unchanged");
         var folder = Path.Combine(Paths.Root, "artifacts", "language-fixtures");
         Directory.CreateDirectory(folder);
+        var workspacePath = Path.Combine(folder, Guid.NewGuid().ToString("N") + ".workspace");
+        try
+        {
+            Check(!MainWindow.ReadExpertMode(workspacePath), "First start opens Basic");
+            MainWindow.WriteWorkspaceMode(workspacePath, true);
+            Check(MainWindow.ReadExpertMode(workspacePath), "Expert preference survives restart");
+            MainWindow.WriteWorkspaceMode(workspacePath, false);
+            Check(File.ReadAllText(workspacePath) == "basic" && !MainWindow.ReadExpertMode(workspacePath), "Basic preference replaces Expert");
+        }
+        finally { if (File.Exists(workspacePath)) File.Delete(workspacePath); }
         var path = Path.Combine(folder, "preferences.json");
         foreach (var language in new[] { "auto" }.Concat(Localization.Supported.Select(l => l.Code)))
         {

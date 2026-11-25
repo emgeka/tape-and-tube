@@ -85,6 +85,37 @@ internal static class OutputSmoke
 
         using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         var token = timeout.Token;
+        var image = pipeline.Render(source, settings with { Output = new(321, 181, OutputFit.Crop) }).Frame;
+        async Task<PixelFrame> WriteAndRead(string extension, int quality = 90, bool losslessWebp = true, string name = "export-image")
+        {
+            var path = Path.Combine(directory, name + extension);
+            await Task.Run(() => ImageExporter.SaveAsync(image, path, quality, losslessWebp, token));
+            if (extension != ".webp") return PixelFrame.Read(path);
+            var decoded = Path.ChangeExtension(path, ".decoded.png");
+            await MediaTools.CaptureAsync("ffmpeg", ["-v", "error", "-y", "-i", path, "-frames:v", "1", "-update", "1", decoded], token);
+            return PixelFrame.Read(decoded);
+        }
+        foreach (var extension in new[] { ".png", ".bmp", ".tif", ".tiff", ".webp" })
+        {
+            var saved = await WriteAndRead(extension);
+            Check(saved.Width == image.Width && saved.Height == image.Height && saved.Pixels.SequenceEqual(image.Pixels),
+                $"{extension} round-trips the cropped CRT frame at odd dimensions without changing pixels");
+        }
+        foreach (var extension in new[] { ".jpg", ".jpeg", ".webp" })
+        {
+            var high = await WriteAndRead(extension, quality: 90, losslessWebp: false, name: "high-quality");
+            var low = await WriteAndRead(extension, quality: 15, losslessWebp: false, name: "low-quality");
+            Check(high.Width == image.Width && high.Height == image.Height &&
+                low.Width == high.Width && low.Height == high.Height && !high.Pixels.SequenceEqual(low.Pixels),
+                $"{extension} keeps image dimensions and applies the selected lossy quality");
+        }
+        var protectedImage = Path.Combine(directory, "protected-image.png");
+        var sentinel = new byte[] { 1, 2, 3 };
+        File.WriteAllBytes(protectedImage, sentinel);
+        var imageCanceled = false;
+        try { await ImageExporter.SaveAsync(image, protectedImage, 90, true, new CancellationToken(canceled: true)); }
+        catch (OperationCanceledException) { imageCanceled = true; }
+        Check(imageCanceled && File.ReadAllBytes(protectedImage).SequenceEqual(sentinel), "Image cancellation preserves the existing file");
         var videoPath = Path.Combine(directory, "source.mp4");
         await MediaTools.CaptureAsync("ffmpeg", ["-v", "error", "-nostdin", "-y", "-f", "lavfi", "-i", "testsrc2=size=96x64:rate=3:duration=1",
             "-c:v", "mpeg4", videoPath], token);

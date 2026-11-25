@@ -13,6 +13,17 @@ Set-Content -LiteralPath (Join-Path $ProjectRoot 'artifacts/packaging/last-qa-pa
 Expand-Archive -LiteralPath (Join-Path $ReleaseDirectory $Manifest.package) -DestinationPath $QaDirectory
 $Package = Get-ChildItem -LiteralPath $QaDirectory -Directory | Select-Object -First 1
 $Executable = Join-Path $Package.FullName 'TapeTube.exe'
+$NtscrtPin = (Get-Content -LiteralPath (Join-Path $Package.FullName 'core/upstream-sources.json') -Raw | ConvertFrom-Json).ntscrt
+if (Test-Path -LiteralPath (Join-Path $Package.FullName "sources/core/$($NtscrtPin.directory).zip")) {
+    throw 'The full NTSCRT source archive is still in the Windows package.'
+}
+$NtscrtPresets = Join-Path $Package.FullName 'presets/NTSCRT'
+if ((Get-ChildItem -LiteralPath $NtscrtPresets -Filter '*.json' -File).Count -ne 44 -or
+    (Get-ChildItem -LiteralPath (Join-Path $NtscrtPresets 'Screen Loop') -Filter '*.json' -File).Count -ne 5 -or
+    -not (Test-Path -LiteralPath (Join-Path $NtscrtPresets 'LICENSE.txt') -PathType Leaf) -or
+    -not (Test-Path -LiteralPath (Join-Path $NtscrtPresets 'README.txt') -PathType Leaf)) {
+    throw 'NTSCRT looks, Screen Loop presets or original notices are missing from the package.'
+}
 foreach ($Required in @('TapeTube.exe','coreclr.dll','hostfxr.dll','ntscrt_ntsc.dll','librashader.dll','release.json','components.json','LICENSE')) {
     if (-not (Test-Path -LiteralPath (Join-Path $Package.FullName $Required))) { throw "Portable Datei fehlt: $Required" }
 }
@@ -44,8 +55,15 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $Source = [IO.Compression.ZipFile]::OpenRead((Join-Path $ReleaseDirectory $Manifest.source))
 try {
     $Entries = @($Source.Entries | ForEach-Object { $_.FullName.Replace('\','/') })
-    foreach ($Required in @('/native/src/lib.rs','/native/Cargo.lock','/src/Ntscrt.Windows/packages.lock.json','/LICENSE','/licenses/upstream/sources.json','/docs/shader-license-evidence.json','/docs/librashader-release-evidence.json')) {
+    foreach ($Required in @('/native/src/lib.rs','/native/Cargo.lock','/src/Ntscrt.Windows/packages.lock.json','/LICENSE','/licenses/upstream/sources.json','/docs/shader-license-evidence.json','/docs/librashader-release-evidence.json',
+        '/src/Ntscrt.Windows/UpstreamLooks/Clean VHS.json','/src/Ntscrt.Windows/UpstreamLooks/Clean CRT.json','/src/Ntscrt.Windows/UpstreamLooks/CRT aperture mask.json',
+        "/vendor/$($NtscrtPin.directory)/LICENSE","/vendor/$($NtscrtPin.directory)/port/engine/src/lib.rs",
+        "/vendor/$($NtscrtPin.directory)/port/codec/src/lib.rs","/vendor/$($NtscrtPin.directory)/port/librashader-wgpu-push-constants.patch")) {
         if (-not ($Entries | Where-Object { $_.EndsWith($Required) })) { throw "Quellcode-Datei fehlt: $Required" }
+    }
+    if ($Entries | Where-Object { $_ -like "*/vendor/$($NtscrtPin.directory)/port/spike/*" -or
+        $_ -like "*/vendor/$($NtscrtPin.directory)/Sources/*" -or $_ -like "*/$($NtscrtPin.directory).zip" }) {
+        throw 'The source ZIP contains unused NTSCRT application or reference files.'
     }
     if ($Entries | Where-Object { $_ -match '/(\.tools|bin|obj|artifacts)/|components\.local\.json|media-tools\.json|current-app\.txt' }) { throw 'Persönliche oder generierte Dateien in Quellcode-ZIP gefunden.' }
     foreach ($Entry in $Source.Entries) {
