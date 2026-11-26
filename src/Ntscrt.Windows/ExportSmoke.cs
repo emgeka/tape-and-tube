@@ -164,8 +164,294 @@ internal static class ExportSmoke
         await GifSmoke.RunAsync(directory, shiftedPath, Check, token);
         await CheckStillWithoutKeys(directory, Check, token);
         await CheckHistoricalLooks(directory, shiftedPath, Check, token);
+        await CheckBairdLook(directory, Check, token);
+        await CheckBritish405Look(directory, Check, token);
+        await CheckKinescopeLook(directory, Check, token);
+        await CheckHistoricalCombinations(directory, shiftedPath, Check, token);
+        await CheckSideBySideExport(directory, shiftedPath, Check, token);
+        await CheckPreviewAudio(directory, shiftedPath, Check, token);
         File.WriteAllText(Path.Combine(Paths.Root, "artifacts", "export-smoke.json"), JsonSerializer.Serialize(new
         { passed = true, count = checks.Count, checks, outputPath, result }, new JsonSerializerOptions { WriteIndented = true }));
+    }
+
+    private static async Task CheckBairdLook(string directory, Action<bool, string> check, CancellationToken token)
+    {
+        var preset = BasicLookCatalog.Groups.SelectMany(group => group.Looks)
+            .Single(look => look.Display == HistoricalDisplay.Baird30).CreatePreset("crt-easymode");
+        check(LookPreset.Parse(JsonSerializer.Serialize(preset), [preset.Shader]).Display == HistoricalDisplay.Baird30 &&
+            LookPreset.Parse(JsonSerializer.Serialize(preset with { Display = HistoricalDisplay.None, Baird = true }),
+                [preset.Shader]).Display == HistoricalDisplay.Baird30, "New and existing Baird presets load successfully");
+        var original = Path.Combine(directory, "baird-portrait.mp4");
+        var target = Path.Combine(directory, "basic-baird-30.mp4");
+        await MediaTools.CaptureAsync("ffmpeg", ["-v", "error", "-nostdin", "-y", "-f", "lavfi", "-i",
+            "testsrc=size=96x168:rate=25:duration=0.48", "-c:v", "libx264", "-pix_fmt", "yuv420p", original], token);
+        await using var source = await VideoSource.OpenAsync(original, token);
+        using var pipeline = new EffectPipeline();
+        var settings = new RenderSettings(false, false, "{}", "", 320, 3, 0, [], new(192, 280), Display: HistoricalDisplay.Baird30);
+        async Task<PixelFrame> Preview(int index) => (await pipeline.RenderHistoricalVideoAsync(
+            settings with { Frame = (uint)index }, "baird-preview", source.Info, source.ReadFrameAsync, token)).Frame;
+        var afterJump = await Preview(5);
+        var held = await Preview(4);
+        var next = await Preview(6);
+        check(afterJump.Pixels.SequenceEqual(held.Pixels) && !next.Pixels.SequenceEqual(held.Pixels) &&
+            EffectPipeline.HistoricalSampleIndex(settings.Display, 299, 30000.0 / 1001) == 298,
+            "Baird seeks to the same held image on the 12.5 Hz clock, including with a fractional source rate");
+        var still = pipeline.Render(await source.ReadFrameAsync(4, token), settings).Frame;
+        still.Save(Path.Combine(directory, "basic-baird-30.png"));
+        var center = (still.Height / 2 * still.Width + still.Width / 2) * 4;
+        check(still is { Width: 192, Height: 280 } && still.Pixels[0] == 0 && still.Pixels[3] == 255 &&
+            still.Pixels[center + 2] > still.Pixels[center + 1] && still.Pixels[center + 1] > still.Pixels[center],
+            "The Baird still preserves output dimensions, centers its portrait aperture and has amber luminance");
+        var matches = false;
+        var exported = await VideoExporter.ExportAsync(original, target, settings, cancellation: token, overwrite: true,
+            frameObserver: (i, frame) => { if (i == 5) matches = frame.Pixels.SequenceEqual(afterJump.Pixels); });
+        check(matches && exported.Width == still.Width && exported.Height == still.Height &&
+            exported.Frames == source.Info.FrameCount, "Baird video export matches the seeked preview without changing the timeline");
+    }
+
+    private static async Task CheckBritish405Look(string directory, Action<bool, string> check, CancellationToken token)
+    {
+        var preset = BasicLookCatalog.Groups.SelectMany(group => group.Looks)
+            .Single(look => look.Display == HistoricalDisplay.British405).CreatePreset("crt-easymode");
+        check(LookPreset.Parse(JsonSerializer.Serialize(preset), [preset.Shader]).Display == HistoricalDisplay.British405,
+            "The British 405-line display survives a preset round trip");
+        var original = Path.Combine(directory, "british-405-source.mp4");
+        var target = Path.Combine(directory, "basic-british-405.mp4");
+        await MediaTools.CaptureAsync("ffmpeg", ["-v", "error", "-nostdin", "-y", "-f", "lavfi", "-i",
+            "testsrc2=size=320x240:rate=50:duration=0.32", "-c:v", "libx264", "-pix_fmt", "yuv420p", original], token);
+        await using var source = await VideoSource.OpenAsync(original, token);
+        using var pipeline = new EffectPipeline();
+        var settings = new RenderSettings(false, false, "{}", "", 320, 3, 0, [], new(240, 192), Display: preset.Display);
+        var still = pipeline.Render(await source.ReadFrameAsync(4, token), settings with { Output = new(1120, 800) }).Frame;
+        still.Save(Path.Combine(directory, "basic-british-405.png"));
+        int Offset(int x, int y) => (y * still.Width + x) * 4;
+        var center = Offset(560, 400);
+        var corner = Offset(61, 1);
+        var padding = Offset(50, 400);
+        check(still is { Width: 1120, Height: 800 } && still.Pixels[center] > 20 &&
+            still.Pixels[center] == still.Pixels[center + 1] && still.Pixels[center] == still.Pixels[center + 2] &&
+            still.Pixels[padding] == 0 && still.Pixels[corner] == 0 && still.Pixels[padding + 3] == 255,
+            "The 405-line still has a monochrome 5:4 aperture with rounded corners inside the requested canvas");
+        async Task<PixelFrame> Preview(int index) => (await pipeline.RenderHistoricalVideoAsync(
+            settings with { Frame = (uint)index }, "405-preview", source.Info, source.ReadFrameAsync, token)).Frame;
+        var afterJump = await Preview(5);
+        var held = await Preview(4);
+        var next = await Preview(6);
+        check(afterJump.Pixels.SequenceEqual(held.Pixels) && !next.Pixels.SequenceEqual(held.Pixels),
+            "The 405-line preview holds a 25 Hz picture from a 50 fps source, including after a seek");
+        var matches = false;
+        var exported = await VideoExporter.ExportAsync(original, target, settings, cancellation: token, overwrite: true,
+            frameObserver: (i, frame) => { if (i == 5) matches = frame.Pixels.SequenceEqual(afterJump.Pixels); });
+        check(matches && exported.Frames == source.Info.FrameCount && exported.Width == 240 && exported.Height == 192,
+            "The 405-line MP4 export matches the preview and preserves the source timeline");
+    }
+
+    private static async Task CheckKinescopeLook(string directory, Action<bool, string> check, CancellationToken token)
+    {
+        var preset = BasicLookCatalog.Groups.SelectMany(group => group.Looks)
+            .Single(look => look.Film).CreatePreset("crt-easymode");
+        check(LookPreset.Parse(JsonSerializer.Serialize(preset), [preset.Shader]).Film &&
+            LookPreset.Parse(JsonSerializer.Serialize(preset with { Film = false, Display = HistoricalDisplay.Kinescope }),
+                [preset.Shader]) is { Film: true, Display: HistoricalDisplay.None },
+            "New and existing Kinescope presets restore the film stage");
+        var original = Path.Combine(directory, "kinescope-source.mp4");
+        var target = Path.Combine(directory, "basic-kinescope.mp4");
+        await MediaTools.CaptureAsync("ffmpeg", ["-v", "error", "-nostdin", "-y", "-f", "lavfi", "-i",
+            "testsrc2=size=320x240:rate=48:duration=0.5", "-f", "lavfi", "-i", "sine=duration=0.5",
+            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", original], token);
+        await using var source = await VideoSource.OpenAsync(original, token);
+        using var pipeline = new EffectPipeline();
+        var settings = new RenderSettings(false, false, "{}", "", 320, 3, 0, [], new(320, 240), Film: preset.Film);
+        var originalFrame = await source.ReadFrameAsync(4, token);
+        var stillSettings = settings with { Output = new(640, 432) };
+        var still = pipeline.Render(originalFrame, stillSettings).Frame;
+        still.Save(Path.Combine(directory, "basic-kinescope.png"));
+        var center = (still.Height / 2 * still.Width + still.Width / 2) * 4;
+        check(still is { Width: 640, Height: 432 } && still.Pixels[center] > 15 &&
+            still.Pixels[center] == still.Pixels[center + 1] && still.Pixels[center] == still.Pixels[center + 2] &&
+            still.Pixels[0] == 0 && still.Pixels.SequenceEqual(pipeline.Render(originalFrame, stillSettings).Frame.Pixels),
+            "The Kinescope still has a monochrome 4:3 picture within the canvas and repeatable film grain");
+
+        Func<int, CancellationToken, Task<PixelFrame>> fixedSource = (_, _) => Task.FromResult(originalFrame);
+        var first = await pipeline.RenderHistoricalVideoAsync(settings with { Frame = 4 }, "kinescope-fixed", source.Info, fixedSource, token);
+        var second = await pipeline.RenderHistoricalVideoAsync(settings with { Frame = 6 }, "kinescope-fixed", source.Info, fixedSource, token);
+        check(!first.Frame.Pixels.SequenceEqual(second.Frame.Pixels), "Kinescope film grain and movement vary across exposures on a static source");
+
+        async Task<PixelFrame> Preview(int index) => (await pipeline.RenderHistoricalVideoAsync(
+            settings with { Frame = (uint)index }, "kinescope-preview", source.Info, source.ReadFrameAsync, token)).Frame;
+        var afterJump = await Preview(5);
+        var held = await Preview(4);
+        var next = await Preview(6);
+        check(afterJump.Pixels.SequenceEqual(held.Pixels) && !next.Pixels.SequenceEqual(held.Pixels),
+            "Kinescope holds a 24 Hz exposure from a 48 fps video and reproduces it after seeking");
+        var matches = false;
+        var exported = await VideoExporter.ExportAsync(original, target, settings, cancellation: token, overwrite: true,
+            frameObserver: (i, frame) => { if (i == 5) matches = frame.Pixels.SequenceEqual(afterJump.Pixels); });
+        var audio = await MediaTools.CaptureAsync("ffprobe",
+            ["-v", "error", "-select_streams", "a:0", "-show_entries", "stream=codec_type", "-of", "csv=p=0", target], token);
+        check(matches && exported.Frames == source.Info.FrameCount && exported.Width == 320 && exported.Height == 240 &&
+            audio.Trim() == "audio", "Kinescope MP4 matches the seeked preview and preserves the source timeline and audio");
+    }
+
+    private static async Task CheckHistoricalCombinations(string directory, string original, Action<bool, string> check, CancellationToken token)
+    {
+        await using var source = await VideoSource.OpenAsync(original, token);
+        using var pipeline = new EffectPipeline();
+        var basic = BasicLookCatalog.Groups.SelectMany(group => group.Looks).Single(look => look.Id == "antenna-ghost")
+            .CreatePreset("crt-easymode");
+        var preset = basic with { CrtEnabled = false, Display = HistoricalDisplay.British405, Film = true };
+        check(LookPreset.Parse(JsonSerializer.Serialize(preset), [preset.Shader])
+            is { Display: HistoricalDisplay.British405, Film: true, Analog.Reception: true },
+            "A combined signal, screen and film preset preserves all stages");
+        var settings = new RenderSettings(true, false, preset.Ntsc.ToJsonString(), "", 320, 3, 5, [],
+            new(320, 240), DigitalCatalog.Profile, Analog: preset.Analog, Display: preset.Display);
+        var requested = new List<int>();
+        Task<PixelFrame> ReadSource(int index, CancellationToken cancellation)
+        {
+            requested.Add(index);
+            return source.ReadFrameAsync(index, cancellation);
+        }
+        async Task<RenderResult> Preview(RenderSettings value) => await pipeline.RenderHistoricalVideoAsync(
+            value, "combined-preview", source.Info, ReadSource, token);
+        var ghost = await Preview(settings);
+        check(requested.SequenceEqual(new[] { (int)settings.Frame }),
+            "Seeking with fixed reception and NTSC settings does not request earlier source pictures");
+        var clean = await Preview(settings with { Analog = null });
+        check(!ghost.Frame.Pixels.SequenceEqual(clean.Frame.Pixels), "Reception changes a 405-line image and invalidates the held preview cache");
+        var filmed = await Preview(settings with { Film = true });
+        var target = Path.Combine(directory, "combined-405-kinescope.mp4");
+        var matches = false;
+        var exported = await VideoExporter.ExportAsync(original, target, settings with { Film = true }, cancellation: token, overwrite: true,
+            frameObserver: (i, frame) => { if (i == settings.Frame) matches = frame.Pixels.SequenceEqual(filmed.Frame.Pixels); });
+        check(matches && exported.Width == 320 && exported.Height == 240, "Reception, the historical display and film render identically after a seek and during export");
+
+        var crt = settings with { Analog = null, Display = HistoricalDisplay.None, Film = true, Crt = true, Renderer = "legacy-v1",
+            Shader = Path.Combine(Paths.ShaderRoot, "crt", "crt-easymode.slangp") };
+        var filmedCrt = await Preview(crt);
+        var filmWithoutCrt = await Preview(crt with { Crt = false });
+        check(!filmedCrt.Frame.Pixels.SequenceEqual(filmWithoutCrt.Frame.Pixels) &&
+            filmedCrt.Parameters.Count > 0, "Filming a CRT preserves its rendered contribution and editable shader parameters");
+        var filmSized = new PixelFrame(384, 288, Enumerable.Repeat((byte)127, 384 * 288 * 4).ToArray());
+        pipeline.Render(filmSized, settings with { Display = HistoricalDisplay.None, Film = true, Ntsc = false, Analog = null });
+        check(filmSized.Pixels.All(value => value == 127), "Kinescope rendering leaves the original comparison frame intact");
+    }
+
+    private static async Task CheckSideBySideExport(string directory, string original, Action<bool, string> check, CancellationToken token)
+    {
+        var settings = new RenderSettings(false, false, "{}", "", 320, 3, 0, [], new(192, 64),
+            Crop: new("1:1", X: 1), Film: true);
+        var target = Path.Combine(directory, "comparison.mp4");
+        const int frameIndex = 5;
+        PixelFrame? seen = null;
+        var exported = await VideoExporter.ExportAsync(original, target, settings, cancellation: token, overwrite: true,
+            frameObserver: (index, frame) => { if (index == frameIndex) seen = frame; }, sideBySide: true);
+        await using var source = await VideoSource.OpenAsync(original, token);
+        var input = await source.ReadFrameAsync(frameIndex, token);
+        using var pipeline = new EffectPipeline();
+        var rendered = await pipeline.RenderAsync(input, settings with { Frame = frameIndex }, "side-by-side-check",
+            source.Info, source.ReadFrameAsync, token);
+        var right = OutputComposer.Compose(rendered.Frame, new OutputSettings(96, 64).Geometry(rendered.Frame.Width, rendered.Frame.Height));
+        check(seen is { Width: 192, Height: 64 } && PanelMatches(seen, input, 0) && PanelMatches(seen, right, 96),
+            "Comparison export places the full source and the cropped, processed frame in the two panels");
+        using var metadata = await Probe(target, token);
+        var video = metadata.RootElement.GetProperty("streams").EnumerateArray()
+            .Single(stream => stream.GetProperty("codec_type").GetString() == "video");
+        check(exported is { Width: 192, Height: 64, Frames: 12 } && video.GetProperty("width").GetInt32() == 192 &&
+            video.GetProperty("height").GetInt32() == 64 && await AudioAligned(target, token),
+            "Comparison MP4 uses the selected total size and preserves delayed source audio");
+        var gif = await VideoExporter.ExportAsync(original, Path.Combine(directory, "comparison.gif"), settings,
+            cancellation: token, overwrite: true, format: VideoExportFormat.Gif, gifSettings: new(144, 8), sideBySide: true);
+        check(gif is { Width: 144, Height: 48, Frames: 16 }, "GIF width and frame rate apply to the complete comparison");
+
+        var fastSource = Path.Combine(directory, "kinescope-source.mp4");
+        PixelFrame? before = null, after = null;
+        var fastSettings = settings with { Output = new(640, 240), Crop = null };
+        await VideoExporter.ExportAsync(fastSource, Path.Combine(directory, "comparison-film-cadence.mp4"), fastSettings,
+            cancellation: token, overwrite: true, frameObserver: (index, frame) =>
+            {
+                if (index == 4) before = frame;
+                if (index == 5) after = frame;
+            }, sideBySide: true);
+        await using var raw = await VideoSource.OpenAsync(fastSource, token);
+        var rawAfter = await raw.ReadFrameAsync(5, token);
+        check(after != null && before != null && PanelMatches(after, rawAfter, 0) && !PanelMatches(before, rawAfter, 0) &&
+            Enumerable.Range(0, after.Height).All(y => SameRow(before, y, 320, after, y, 320, 320)),
+            "Comparison keeps the original timeline when two consecutive output frames share a film exposure");
+
+        static bool PanelMatches(PixelFrame canvas, PixelFrame panel, int left) =>
+            Enumerable.Range(0, panel.Height).All(y => SameRow(canvas, y, left, panel, y, 0, panel.Width));
+
+        static bool SameRow(PixelFrame a, int ay, int ax, PixelFrame b, int by, int bx, int width) =>
+            a.Pixels.AsSpan((ay * a.Width + ax) * 4, width * 4).SequenceEqual(b.Pixels.AsSpan((by * b.Width + bx) * 4, width * 4));
+    }
+
+    private static async Task CheckPreviewAudio(string directory, string path, Action<bool, string> check, CancellationToken token)
+    {
+        await using var delayed = await VideoSource.OpenAsync(path, token);
+        var info = delayed.Info;
+        var pcm = await Decode(info, 0, info.FrameCount, token);
+        var sampleAtSeek = (int)PreviewAudio.FrameSample(info, 3);
+        var seek = await Decode(info, 3, info.FrameCount, token);
+        check(info.HasAudio && pcm.Length == PreviewAudio.FrameSample(info, info.FrameCount) * PreviewAudio.BlockAlign &&
+            Peak(pcm, 0, 0.25) <= 16 && Peak(pcm, 0.5, 0.2) > 1000,
+            "Preview audio preserves the original delay relative to a nonzero video start");
+        check(pcm.Skip(sampleAtSeek * PreviewAudio.BlockAlign).SequenceEqual(seek),
+            "Preview audio after a seek matches the same samples on the continuous timeline");
+        await using var silentVideo = await VideoSource.OpenAsync(Path.Combine(directory, "baird-portrait.mp4"), token);
+        check(!silentVideo.Info.HasAudio, "Sources without an audio track do not offer preview audio");
+
+        var vfrPath = Path.Combine(directory, "preview-audio-vfr.mp4");
+        await MediaTools.CaptureAsync("ffmpeg", ["-v", "error", "-nostdin", "-y", "-f", "lavfi", "-i",
+            "testsrc2=size=96x64:rate=30:duration=1", "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
+            "-vf", "select='not(eq(mod(n,3),1))'", "-fps_mode", "vfr", "-c:v", "libx264", "-c:a", "aac",
+            "-t", "1", vfrPath], token);
+        await using var vfr = await VideoSource.OpenAsync(vfrPath, token);
+        var vfrInfo = vfr.Info;
+        var vfrSamples = await Decode(vfrInfo, 3, 9, token);
+        check(vfrInfo.FramesPerSecond is > 15 and < 25 && vfrSamples.Length ==
+            (PreviewAudio.FrameSample(vfrInfo, 9) - PreviewAudio.FrameSample(vfrInfo, 3)) * PreviewAudio.BlockAlign,
+            "Preview audio seeks on the normalized timeline of a variable-frame-rate source");
+
+        var player = new PreviewAudio(vfrInfo, 0, Task.CompletedTask);
+        try
+        {
+            var wait = System.Diagnostics.Stopwatch.StartNew();
+            while (!player.Failed && player.Elapsed < 0.04 && wait.Elapsed < TimeSpan.FromSeconds(2))
+                await Task.Delay(10, token);
+            if (!player.Failed)
+            {
+                await Task.Delay(180, token);
+                var stalled = player.Elapsed;
+                player.Present(5);
+                wait.Restart();
+                while (!player.Failed && player.Elapsed <= stalled + 0.04 && wait.Elapsed < TimeSpan.FromSeconds(2))
+                    await Task.Delay(10, token);
+                check(!player.Failed && stalled is > 0.04 and <= 0.14 && player.Elapsed > stalled + 0.04,
+                    "The Windows audio clock waits for displayed frames and resumes on presentation");
+            }
+        }
+        finally { await player.StopAsync(); }
+
+        static async Task<byte[]> Decode(VideoInfo info, int start, int end, CancellationToken cancellation)
+        {
+            using var process = PreviewAudio.StartDecoder(info, PreviewAudio.FrameSample(info, start), PreviewAudio.FrameSample(info, end));
+            using var registration = cancellation.Register(() => MediaTools.Stop(process));
+            using var bytes = new MemoryStream();
+            var error = process.StandardError.ReadToEndAsync();
+            await process.StandardOutput.BaseStream.CopyToAsync(bytes, cancellation);
+            await process.WaitForExitAsync(cancellation);
+            if (process.ExitCode != 0) throw new InvalidDataException(await error);
+            return bytes.ToArray();
+        }
+
+        static int Peak(byte[] pcm, double start, double length)
+        {
+            var peak = 0;
+            var end = (int)((start + length) * PreviewAudio.SampleRate) * PreviewAudio.BlockAlign;
+            for (var offset = (int)(start * PreviewAudio.SampleRate) * PreviewAudio.BlockAlign; offset < end; offset += 2)
+                peak = Math.Max(peak, Math.Abs((int)BitConverter.ToInt16(pcm, offset)));
+            return peak;
+        }
     }
 
     private static async Task CheckHistoricalLooks(string directory, string sourcePath, Action<bool, string> check, CancellationToken token)

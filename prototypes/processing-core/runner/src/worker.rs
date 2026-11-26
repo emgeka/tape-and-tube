@@ -39,6 +39,8 @@ struct Configuration{
     effect_timeline:Option<Value>,
     downscale_method: Option<String>,
     downscale_enabled: Option<bool>,
+    #[serde(default)]
+    skip_source_history: bool,
 }
 impl Configuration {
     fn uses_downscale(&self) -> bool {
@@ -135,7 +137,7 @@ pub fn run()->Result<()>{
                         ensure!(next.effect_timeline.is_none() || (screen_loop.is_none() && imported_look.is_none()),
                             "Use one animation mode at a time");
                         effect_timeline = next.effect_timeline.as_ref().map(|timeline| -> Result<_> {
-                            let mut look = ntscrt_engine::Look::parse(&json!({"version": 3, "timeline": timeline}).to_string())?;
+                            let mut look = ntscrt_engine::Look::parse(&json!({"version": 4, "timeline": timeline}).to_string())?;
                             for key in &mut look.keys {
                                 key.glitch.remove(ntscrt_engine::glitch::VCR_ID);
                             }
@@ -164,7 +166,11 @@ pub fn run()->Result<()>{
                     if !single_frame && last==Some(index){send(&mut output,json!({"op":"frame","id":id,"sourceId":c.source_id,"frame":index,"width":c.output_width,"height":c.output_height}),&cached)?;return Ok(());}
                     if single_frame || last.is_some_and(|n|index<n){engine.as_mut().context("Missing engine")?.reset_host_state();last=None;previous_source=None;}
                     let e=engine.as_mut().context("Worker requires reconfiguration")?;
-                    let first=if single_frame {index}else{last.map_or(0,|n|n+1)};
+                    // With fixed signal settings the receiver advances from time alone.
+                    // Earlier pictures are only needed by the codec, shader or composed modes.
+                    let needs_pictures = digital.is_some() || shader.is_some() || screen_loop.is_some()
+                        || imported_look.is_some() || effect_timeline.is_some();
+                    let first=if single_frame || (c.skip_source_history && !needs_pictures) {index}else{last.map_or(0,|n|n+1)};
                     let fps = f64::from(c.fps_num) / f64::from(c.fps_den);
                     for n in first..=index{
                         let pixels=if n==index{data.clone()}else if c.still{data.clone()}else{

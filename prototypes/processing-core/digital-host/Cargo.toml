@@ -10,6 +10,6 @@ publish = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-ntscrt-codec = { path = "../upstream/NTSCRT-0.28.1/port/codec" }
+ntscrt-codec = { path = "../upstream/NTSCRT-0.29.2/port/codec" }
 serde_json = "1"
 

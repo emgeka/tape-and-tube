@@ -6,15 +6,17 @@ namespace Ntscrt.Windows;
 internal enum BasicAnalogEffect { None, UsedTape, AntennaGhost }
 
 internal sealed record BasicLook(string Id, string DescriptionResource, string? TitleResource = null,
-    string? DigitalFormat = null, BasicAnalogEffect AnalogEffect = BasicAnalogEffect.None, string? OriginalName = null)
+    string? DigitalFormat = null, BasicAnalogEffect AnalogEffect = BasicAnalogEffect.None, string? OriginalName = null,
+    HistoricalDisplay Display = HistoricalDisplay.None, bool Film = false)
 {
     public LookPreset CreatePreset(string shader)
     {
         var digital = DigitalFormat == null ? null : DigitalCatalog.Find(DigitalFormat);
         var analog = CreateAnalogSettings();
-        return new("tape-and-tube", analog == null ? 2 : 3, digital == null, digital == null, shader,
+        var useTelevisionChain = digital == null && Display == HistoricalDisplay.None && !Film;
+        return new("tape-and-tube", analog == null ? 2 : 3, useTelevisionChain, useTelevisionChain, shader,
             digital?.Width ?? 320, 3, NtscProcessor.Defaults(), [],
-            Renderer: DigitalCatalog.Profile, Digital: digital?.Values, Analog: analog);
+            Renderer: DigitalCatalog.Profile, Digital: digital?.Values, Analog: analog, Display: Display, Film: Film);
     }
 
     public static string ReadOriginal(string name)
@@ -47,6 +49,12 @@ internal static class BasicLookCatalog
 {
     public static IReadOnlyList<(string Heading, BasicLook[] Looks)> Groups { get; } =
     [
+        ("BasicEarlyTelevisionCategory",
+        [
+            new("baird-30", "BairdDescription", "BairdName", Display: HistoricalDisplay.Baird30),
+            new("british-405", "British405Description", "British405Name", Display: HistoricalDisplay.British405),
+            new("kinescope", "KinescopeDescription", "KinescopeName", Film: true)
+        ]),
         ("BasicTelevisionCategory",
         [
             new("vhs-crt", "BasicVhsDescription", "BasicVhsName"),

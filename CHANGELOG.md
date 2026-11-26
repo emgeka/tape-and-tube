@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.0-beta.5 — Windows test candidate
+
+- Added side-by-side comparison in the preview and as an export. MP4, MOV and WebM retain the first source audio track.
+- Added optional preview audio. Playback resumes from the same position after a look or effect change.
+- Added Baird 30-line and British 405-line television looks and a 16 mm kinescope film stage. The historical display and film stages can be combined with other effects.
+- Updated the shared NTSCRT effects engine to 0.29.2, including a fix for black or striped CRT Aperture output at large sizes with internal downscaling disabled.
+
 ## 0.1.0-beta.4 — Windows test candidate
 
 - Added Basic and Expert modes with persistent mode selection.

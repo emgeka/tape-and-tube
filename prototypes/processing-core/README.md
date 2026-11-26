@@ -2,7 +2,7 @@
 
 Etappe 3, Stand 17.11.2026. Dieser zunächst isolierte Versuch enthält jetzt auch den dauerhaften Worker für die lokale Windows-Integration. Die veröffentlichte Beta.2 bleibt unverändert. Kein Linux-App-Binärpaket.
 
-Der Prototyp verbindet Finn McKentys MIT-lizenzierte Digitalvideo-Stufe und Rust-/wgpu-Engine aus **NTSCRT v0.28.1** mit der eigenen GPL-3.0-only-Host-Anbindung. Herkunft, Versionen und Prüfsummen stehen in [upstream-sources.json](upstream-sources.json).
+Der Prototyp verbindet Finn McKentys MIT-lizenzierte Digitalvideo-Stufe und Rust-/wgpu-Engine aus **NTSCRT v0.29.2** mit der eigenen GPL-3.0-only-Host-Anbindung. Herkunft, Versionen und Prüfsummen stehen in [upstream-sources.json](upstream-sources.json).
 
 ## Was implementiert ist
 

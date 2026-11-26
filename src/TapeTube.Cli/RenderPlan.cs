@@ -58,6 +58,8 @@ internal static class RenderPlan
             renderer = settings.Renderer,
             effects = new
             {
+                historicalDisplay = settings.Display == HistoricalDisplay.None ? (HistoricalDisplay?)null : settings.Display,
+                kinescopeFilm = settings.Film,
                 snapScanlines = settings.SnapScanlines,
                 scanlineRows = geometry.ScanlineRows,
                 sourceCrop = settings.Crop,

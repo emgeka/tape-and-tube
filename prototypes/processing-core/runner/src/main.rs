@@ -52,7 +52,7 @@ struct Job {
 
 fn sources() -> Value {
     json!({
-        "ntscrt": "0ab60bf952b09a0c41ea4290979f23dadd963614",
+        "ntscrt": "889256dde173a89e475919be3d1bba34e6cc7355",
         "ntscRs": "add90f5bf1bf7e3c573e4e945a16f44a82941b51",
         "slangShaders": "cb01f2f238700eed7ec1c859be1737a9fbcdcb7c",
         "librashader": "76462c030b75c4f2d56e5386c3d4d7d1128318b8",

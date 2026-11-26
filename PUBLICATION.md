@@ -1,5 +1,7 @@
 # Publication
 
+Version 0.1.0-beta.4 was published with the owner's approval on 2026-11-25 as a [public GitHub prerelease](https://github.com/emgeka/tape-and-tube/releases/tag/v0.1.0-beta.4). The tag points to commit `5ec32b247e08252a7b492e5ba746c5306a4505c2`. GitHub's asset digests match the tested installer, matching source archive and public checksum file. Anonymous downloads were verified. The local receipt is at `artifacts/github/v0.1.0-beta.4/publication-receipt.json`.
+
 Version 0.1.0-beta.3 was published with the owner's approval on 2026-11-24 as a [public GitHub prerelease](https://github.com/emgeka/tape-and-tube/releases/tag/v0.1.0-beta.3). The release tag points to commit `55ca9ca2c268d445be138a223514006af38acc11`. The exact tested installer and its matching source archive came from `artifacts/releases/20261124-093128-460`. All three public downloads and their checksums were verified. The release notes record the Windows 11 VM export and the virtual GPU limitation for the shared renderer. The local receipt is at `artifacts/github/v0.1.0-beta.3/publication-receipt.json`.
 
 ## Published beta — 0.1.0-beta.2

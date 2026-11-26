@@ -11,7 +11,10 @@ internal sealed record LookPreset(string Kind, int Version, bool NtscEnabled, bo
     string Renderer="legacy-v1", Dictionary<string,double>? Digital=null, AnalogSettings? Analog=null, EffectTimeline? Timeline=null,
     SourceCrop? Crop=null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DownscaleMethod = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? DownscaleEnabled = null)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? DownscaleEnabled = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool Baird = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] HistoricalDisplay Display = HistoricalDisplay.None,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool Film = false)
 {
     internal static IReadOnlyList<string> DownscaleMethods { get; } = ["nearest", "nearest+", "bilinear", "bicubic", "lanczos", "area"];
     internal static IReadOnlyList<int> EffectWidths { get; } = [240, 256, 320, 480, 640, 720, 1280];
@@ -22,7 +25,7 @@ internal sealed record LookPreset(string Kind, int Version, bool NtscEnabled, bo
         var p=JsonSerializer.Deserialize<LookPreset>(json)??throw new InvalidDataException(Localization.T("Leeres Preset."));
         if((p.Kind!="ntscrt-windows"&&p.Kind!="tape-and-tube")||(p.Version<1||p.Version>5)||!shaders.Contains(p.Shader)
             ||p.Ntsc==null||p.Parameters==null||!(p.Version==1?new[]{256,320,640,1280}:EffectWidths).Contains(p.Width)
-            ||p.Scale<2||p.Scale>4||p.Parameters.Values.Any(v=>!float.IsFinite(v)))
+            ||p.Scale<2||p.Scale>4||p.Parameters.Values.Any(v=>!float.IsFinite(v)) || !Enum.IsDefined(p.Display))
             throw new InvalidDataException(Localization.T("Unbekanntes oder ungültiges Presetformat."));
         if((p.Version is 2 or 3 && p.Renderer!=DigitalCatalog.Profile)
             || (p.Version>=4 && p.Renderer is not ("legacy-v1" or DigitalCatalog.Profile)))
@@ -42,6 +45,8 @@ internal sealed record LookPreset(string Kind, int Version, bool NtscEnabled, bo
         if(p.Digital!=null)DigitalCatalog.Validate(p.Digital);
         if (p.Analog != null) AnalogCatalog.Current.Validate(p.Analog);
         p.Output?.Validate();
+        if (p.Baird && p.Display == HistoricalDisplay.None) p = p with { Display = HistoricalDisplay.Baird30, Baird = false };
+        if (p.Display == HistoricalDisplay.Kinescope) p = p with { Display = HistoricalDisplay.None, Film = true };
         return p.Version==1?p with{Renderer="legacy-v1"}:p;
     }
 }

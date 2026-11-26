@@ -2,7 +2,7 @@
 
 This is prototype host code, GPL-3.0-only. It wraps the **unchanged MIT-licensed
 NTSCRT `port/codec`** from commit
-`0ab60bf952b09a0c41ea4290979f23dadd963614`. Preserve Finn McKenty's original
+`889256dde173a89e475919be3d1bba34e6cc7355`. Preserve Finn McKenty's original
 copyright/license and the upstream dependency notices when packaging. It does not
 change the released Windows app, its presets, or its installer.
 

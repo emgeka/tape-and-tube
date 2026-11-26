@@ -15,7 +15,7 @@ public partial class MainWindow
     private bool _updatingScreenLoop;
     private readonly Dictionary<string, Slider> _screenLoopPointSliders = new();
 
-    private bool InScreenLoop => _importedLook == null && ScreenLoopEnabled.IsChecked == true;
+    private bool InScreenLoop => _importedLook == null && !HistoricalDisplayActive && ScreenLoopEnabled.IsChecked == true;
     private VideoInfo? TimelineInfo => _video?.Info ?? StillAnimationTimeline();
 
     private VideoInfo? StillAnimationTimeline()
@@ -49,8 +49,11 @@ public partial class MainWindow
     private void ToggleScreenLoop(object sender, RoutedEventArgs e)
     {
         if (!_ready || _updatingScreenLoop) return;
-        PauseVideo();
-        if (InScreenLoop) _frameIndex = 0;
+        if (_video == null)
+        {
+            PauseVideo();
+            if (InScreenLoop) _frameIndex = 0;
+        }
         RefreshTimeline();
         UpdatePreviewNavigationLayout();
         Schedule();
@@ -128,11 +131,11 @@ public partial class MainWindow
         _updatingScreenLoop = true;
         try
         {
-            PauseVideo();
+            if (_video == null) PauseVideo();
             _screenLoopValues = values;
             if (preset.Seconds.HasValue) _screenLoopSeconds = preset.Seconds.Value;
             ScreenLoopEnabled.IsChecked = true;
-            _frameIndex = 0;
+            if (_video == null) _frameIndex = 0;
             BuildScreenLoopControls();
             RefreshTimeline();
         }

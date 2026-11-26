@@ -10,9 +10,10 @@ public partial class MainWindow
     private string? _importedLookText;
     private bool _basicOriginalActive;
 
-    private void ApplyImportedLook(NtscrtImportedLook? look, string? text = null, string? path = null, bool fromBasic = false)
+    private void ApplyImportedLook(NtscrtImportedLook? look, string? text = null, string? path = null,
+        bool fromBasic = false, bool keepPlayback = false)
     {
-        PauseVideo();
+        if (!keepPlayback) PauseVideo();
         var leavingBasic = look == null && _basicOriginalActive;
         _basicOriginalActive = look != null && fromBasic;
         _importedLook = look;
@@ -25,7 +26,6 @@ public partial class MainWindow
         ImportedLookNotice.Visibility = look == null ? Visibility.Collapsed : Visibility.Visible;
         EffectControls.IsEnabled = look == null;
         BasicLooks.IsEnabled = look == null || _basicOriginalActive;
-        ScreenLoopPanel.IsEnabled = look == null;
         RefreshTimeline();
         Schedule();
     }

@@ -8,6 +8,12 @@ namespace Ntscrt.Windows;
 public partial class MainWindow
 {
     private OutputSettings? _outputSettings;
+    private bool ComparisonExportActive => ComparisonExportChoice?.IsChecked == true;
+
+    private void ComparisonExportChanged(object sender, RoutedEventArgs e)
+    {
+        if (_ready) UpdateOutputInfo();
+    }
 
     private void ShowOutputOptions(object sender, RoutedEventArgs e)
     {
@@ -20,7 +26,6 @@ public partial class MainWindow
     {
         if (!_ready || _syncOutputUi) return;
         CustomOutputFields.Visibility = OutputChoice.SelectedIndex == 4 ? Visibility.Visible : Visibility.Collapsed;
-        OutputFitChoice.IsEnabled = OutputChoice.SelectedIndex != 0;
         RefreshEffectAvailability();
         ApplyOutputChoice();
     }
@@ -76,12 +81,16 @@ public partial class MainWindow
         if (!_playing) UpdateGifEstimate();
         if (!_outputInputValid) return;
         int width, height;
-        if (SnapScanlinesChoice.IsChecked == true && _output != null) { width = _output.Width; height = _output.Height; }
+        if (!HistoricalDisplayActive && SnapScanlinesChoice.IsChecked == true && _output != null) { width = _output.Width; height = _output.Height; }
         else if (_outputSettings != null) { width = _outputSettings.Width; height = _outputSettings.Height; }
         else if (_output != null) { width = _output.Width; height = _output.Height; }
         else { OutputSizeInfo.Text = Localization.T("Bild und Video: Größe der Vorschau"); return; }
-        var mp4Width = (width + 1) & ~1; var mp4Height = (height + 1) & ~1;
-        OutputSizeInfo.Text = Localization.F($"Bild: {width} × {height} · MP4, MOV, WebM: {mp4Width} × {mp4Height}");
+        var comparison = ComparisonExportActive ? VideoExporter.ComparisonOutput(width, height, _outputSettings) : null;
+        var mp4Width = VideoExporter.Mp4Dimension(comparison?.Width ?? width);
+        var mp4Height = VideoExporter.Mp4Dimension(comparison?.Height ?? height);
+        OutputSizeInfo.Text = comparison == null
+            ? Localization.F($"Bild: {width} × {height} · MP4, MOV, WebM: {mp4Width} × {mp4Height}")
+            : Localization.F($"Bild: {width} × {height} · Vergleichsvideo: {mp4Width} × {mp4Height}");
     }
 
     private void GifOptionsChanged(object sender, TextChangedEventArgs e)
@@ -108,8 +117,12 @@ public partial class MainWindow
         var crop = _importedLook != null ? _importedLook.Crop : _sourceCrop;
         try
         {
-            var estimate = VideoExporter.EstimateGif(info, _outputSettings, crop, options,
-                SnapScanlinesChoice.IsChecked == true, _previewScanlineRows);
+            var comparison = ComparisonExportActive ? VideoExporter.ComparisonOutput(
+                _output?.Width ?? info.Width, _output?.Height ?? info.Height, _outputSettings, gif: true, gifWidth: options.Width) : null;
+            var estimate = comparison == null
+                ? VideoExporter.EstimateGif(info, _outputSettings, crop, options,
+                    !HistoricalDisplayActive && SnapScanlinesChoice.IsChecked == true, _previewScanlineRows)
+                : new GifEstimate(comparison.Width, comparison.Height, new VideoExporter.GifTiming(info, options.Fps).Count);
             var unit = estimate.Megabytes < 1 ? "kB" : "MB";
             var size = estimate.Megabytes < 1 ? estimate.Megabytes * 1000 : estimate.Megabytes;
             GifEstimateText.Text = Localization.F($"Geschätzt {size:0.##} {unit} · {estimate.Width} × {estimate.Height}");
@@ -135,7 +148,6 @@ public partial class MainWindow
             OutputFitChoice.SelectedIndex = settings.Fit == OutputFit.Crop ? 1 : 0;
         }
         CustomOutputFields.Visibility = OutputChoice.SelectedIndex == 4 ? Visibility.Visible : Visibility.Collapsed;
-        OutputFitChoice.IsEnabled = settings != null;
         _syncOutputUi = false;
         RefreshEffectAvailability();
         UpdateOutputInfo();

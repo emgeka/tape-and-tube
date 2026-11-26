@@ -10,8 +10,31 @@ internal static class OutputComposer
     {
         if (input.Width == layout.Width && input.Height == layout.Height && layout.Left == 0 && layout.Top == 0
             && layout.ContentWidth == input.Width && layout.ContentHeight == input.Height) return input;
-        var bytes = new byte[checked(layout.Width * layout.Height * 4)];
+        var bytes = OpaqueCanvas(layout.Width, layout.Height);
+        Blit(input, layout, bytes);
+        return new(layout.Width, layout.Height, bytes);
+    }
+
+    internal static PixelFrame SideBySide(PixelFrame original, PixelFrame processed, OutputSettings canvas)
+    {
+        var leftWidth = canvas.Width / 2;
+        var left = new OutputSettings(leftWidth, canvas.Height).Geometry(original.Width, original.Height);
+        var right = new OutputSettings(canvas.Width - leftWidth, canvas.Height).Geometry(processed.Width, processed.Height);
+        var bytes = OpaqueCanvas(canvas.Width, canvas.Height);
+        Blit(original, left with { Width = canvas.Width }, bytes);
+        Blit(processed, right with { Width = canvas.Width, Left = right.Left + leftWidth }, bytes);
+        return new(canvas.Width, canvas.Height, bytes);
+    }
+
+    private static byte[] OpaqueCanvas(int width, int height)
+    {
+        var bytes = new byte[checked(width * height * 4)];
         for (int i = 3; i < bytes.Length; i += 4) bytes[i] = 255;
+        return bytes;
+    }
+
+    private static void Blit(PixelFrame input, OutputGeometry layout, byte[] bytes)
+    {
         var left = Math.Max(0, layout.Left); var top = Math.Max(0, layout.Top);
         var right = Math.Min(layout.Width, layout.Left + layout.ContentWidth);
         var bottom = Math.Min(layout.Height, layout.Top + layout.ContentHeight);
@@ -20,7 +43,7 @@ internal static class OutputComposer
             for (int y = top; y < bottom; y++)
                 Buffer.BlockCopy(input.Pixels, ((y - layout.Top) * input.Width + left - layout.Left) * 4,
                     bytes, (y * layout.Width + left) * 4, (right - left) * 4);
-            return new(layout.Width, layout.Height, bytes);
+            return;
         }
         var xs = Axis(input.Width, layout.ContentWidth, left - layout.Left, right - left);
         var ys = Axis(input.Height, layout.ContentHeight, top - layout.Top, bottom - top);
@@ -42,7 +65,6 @@ internal static class OutputComposer
                 bytes[target + 2] = (byte)Math.Clamp(Math.Round(r), 0, 255);
             }
         });
-        return new(layout.Width, layout.Height, bytes);
     }
 
     private static Tap[][] Axis(int source, int destination, int offset, int count)

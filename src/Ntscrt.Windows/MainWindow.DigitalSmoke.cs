@@ -19,15 +19,38 @@ public partial class MainWindow
             var output = new OutputSettings(176, 144);
             window.RestoreCrop(crop);
             window.RestoreOutput(output);
+            window.ComparisonExportChoice.IsChecked = true;
+            check(window.ComparisonExportActive && window.OutputSizeInfo.Text.Contains("176 × 144") &&
+                window.SideBySideComparison.IsChecked == false, "Comparison export shows the total size independently of preview mode");
+            window.ComparisonExportChoice.IsChecked = false;
             var settings = new Dictionary<string, RenderSettings>();
             foreach (var button in window.BasicLooks.Children.OfType<Button>())
             {
                 button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent, button));
                 settings.Add((string)button.Tag, window.Settings(preview: false));
             }
-            check(settings.Count == 9 && window.BasicLooks.Children.OfType<TextBlock>().Count() == 3 &&
+            check(settings.Count == 12 && window.BasicLooks.Children.OfType<TextBlock>().Count() == 4 &&
                 settings.Values.All(value => value.Crop == crop && value.Output == output),
-                "All nine Basic looks in three categories preserve the source crop and output size");
+                "All twelve Basic looks in four categories preserve the source crop and output size");
+            check(settings["baird-30"].Display == HistoricalDisplay.Baird30 &&
+                settings["british-405"].Display == HistoricalDisplay.British405 &&
+                settings["kinescope"] is { Display: HistoricalDisplay.None, Film: true, Crt: false } &&
+                settings["vhs-crt"].Display == HistoricalDisplay.None, "Basic presets switch between distinct historical profiles and the standard effects");
+            window.BasicLooks.Children.OfType<Button>().Single(button => (string)button.Tag == "baird-30")
+                .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            window.ReceptionEnabled.IsChecked = true;
+            check(window.Settings() is { Display: HistoricalDisplay.Baird30, Analog.Reception: true } &&
+                window.ReceptionEnabled.IsEnabled && !window.CrtCard.IsEnabled && !window.SnapScanlinesChoice.IsEnabled,
+                "A historical display accepts reception effects and takes the place of the CRT shader");
+            window.FilmCaptureChoice.SelectedIndex = 1;
+            check(window.Settings() is { Display: HistoricalDisplay.Baird30, Film: true }, "Expert mode can film a historical display");
+            window.HistoricalDisplayChoice.SelectedIndex = (int)HistoricalDisplay.None;
+            window.CrtEnabled.IsChecked = true;
+            check(window.Settings() is { Display: HistoricalDisplay.None, Crt: true, Film: true } && window.CrtCard.IsEnabled,
+                "Expert mode can film a CRT shader");
+            window.FilmCaptureChoice.SelectedIndex = 0;
+            check(window.Settings() is { Display: HistoricalDisplay.None, Film: false, Analog.Reception: true } &&
+                window.SnapScanlinesChoice.IsEnabled, "Turning off film preserves the other chosen effects");
             check(settings["used-vhs"].Analog is { Vcr: true, Reception: false } &&
                 settings["antenna-ghost"].Analog is { Vcr: false, Reception: true } &&
                 settings["vhs-crt"].Analog == null && settings["minidv"].Digital != null,
@@ -112,6 +135,19 @@ public partial class MainWindow
             var cachedMs = clock.Elapsed.TotalMilliseconds;
             window.PauseVideo();
             check(ReferenceEquals(window._output, prepared.Rendered.Frame), $"Resuming presents the prepared bitmap ({cachedMs:F2} ms)");
+            window.SideBySideComparison.IsChecked = true;
+            static bool ShowsFrame(Image image, PixelFrame frame)
+            {
+                if (image.Source is not System.Windows.Media.Imaging.BitmapSource bitmap ||
+                    bitmap.PixelWidth != frame.Width || bitmap.PixelHeight != frame.Height) return false;
+                var pixels = new byte[frame.Pixels.Length];
+                bitmap.CopyPixels(pixels, frame.Width * 4, 0);
+                return pixels.SequenceEqual(frame.Pixels);
+            }
+            check(ShowsFrame(window.SideOriginalPreview, prepared.Source) &&
+                ShowsFrame(window.SideOutputPreview, prepared.Rendered.Frame),
+                "Side-by-side loads the source and result of the same prepared video frame");
+            window.SideBySideComparison.IsChecked = false;
 
             using var pipeline = new EffectPipeline();
             await using var reference = await VideoSource.OpenAsync(input, token);
@@ -122,6 +158,73 @@ public partial class MainWindow
             window.JumpToFrame(0);
             check(window._preparedFrames.Count == 0 && window._preparedBytes == 0,
                 "Seeking immediately invalidates the prepared preview frames");
+            void SelectLook(string id)
+            {
+                var button = window.BasicLooks.Children.OfType<Button>().Single(item => Equals(item.Tag, id));
+                button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent, button));
+            }
+            window.SetFrame(2);
+            window.TogglePlayback(window, new RoutedEventArgs());
+            foreach (var look in new[] { "baird-30", "ntscrt-clean-vhs", "kinescope" })
+            {
+                var position = window._frameIndex;
+                SelectLook(look);
+                check(window._playing && window._frameIndex == position && !window._playClock.IsRunning,
+                    $"Switching to {look} in Basic holds the current position during playback");
+                window._debounce.Stop();
+                await window.Render();
+                check(window._playing && window._playClock.IsRunning,
+                    $"Playback resumes after presenting {look}");
+            }
+            var resumedAt = window._frameIndex;
+            await Task.Delay(200, timeout.Token);
+            window.PlaybackRendering(window, EventArgs.Empty);
+            check(window._frameIndex > resumedAt, "Playback advances after a Basic look switch");
+            window.PauseVideo();
+            var pausedAt = window._frameIndex;
+            SelectLook("british-405");
+            check(!window._playing && window._frameIndex == pausedAt, "Changing a Basic look while paused preserves the position and pause state");
+
+            var silentAudio = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(input)!, "preview-with-silent-audio.mp4");
+            await MediaTools.CaptureAsync("ffmpeg", ["-v", "error", "-nostdin", "-y", "-i", input, "-f", "lavfi", "-i",
+                "anullsrc=r=48000:cl=stereo", "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", "aac",
+                "-shortest", silentAudio], token);
+            await window.LoadVideo(silentAudio);
+            window.JumpToFrame(2);
+            window._debounce.Stop();
+            await window.Render();
+            window.PreviewAudioChoice.IsChecked = true;
+            window.TogglePlayback(window, new RoutedEventArgs());
+            foreach (var (effect, change) in new (string, Action)[]
+            {
+                ("film", () => window.FilmCaptureChoice.SelectedIndex = 1),
+                ("screen", () => window.HistoricalDisplayChoice.SelectedIndex = (int)HistoricalDisplay.None),
+                ("Basic look", () => SelectLook("baird-30")),
+                ("Screen Loop preset", () =>
+                {
+                    window.HistoricalDisplayChoice.SelectedIndex = (int)HistoricalDisplay.None;
+                    window.ScreenLoopPresetChoice.SelectedIndex = 2;
+                })
+            })
+            {
+                var audio = window._previewAudio;
+                change();
+                check(audio != null && window._playing && window._frameIndex == 2 && window._previewAudio == null,
+                    $"Changing {effect} holds audio and video without pausing or resetting the transport");
+                window._debounce.Stop();
+                await window.Render();
+                check(window._playing && window._playClock.IsRunning && window._previewAudio is { } restarted &&
+                    !ReferenceEquals(restarted, audio), $"Changing {effect} restarts audio with the newly displayed frame");
+            }
+            var start = System.Diagnostics.Stopwatch.StartNew();
+            while (window._previewAudio is { Failed: false } clockAudio && clockAudio.Elapsed < 0.18 && start.Elapsed.TotalSeconds < 2)
+                await Task.Delay(20, token);
+            if (window._previewAudio is { Failed: false })
+            {
+                window.PlaybackRendering(window, EventArgs.Empty);
+                check(window._frameIndex > 2, "Playback with audio advances after the effect change");
+            }
+            window.PauseVideo();
         }
         finally
         {
@@ -187,6 +290,34 @@ public partial class MainWindow
                 check(displayedRowsPerLine >= 1 && Math.Abs(displayedRowsPerLine - Math.Round(displayedRowsPerLine)) < 1e-6,
                     "Integer scaling uses whole display pixels per line in the preview");
                 window.IntegerPreviewChoice.IsChecked = false;
+                window._output = new PixelFrame(120, 200, new byte[120 * 200 * 4]);
+                window._previewCrop = new SourceCrop("1:1");
+                window.UpdatePreview();
+                window.SplitComparison.IsChecked = true;
+                check(window.OriginalPreview.Source is System.Windows.Media.Imaging.BitmapSource cropped &&
+                    cropped.PixelWidth == cropped.PixelHeight, "The divider still uses the cropped source for alignment");
+                window.SideBySideComparison.IsChecked = true;
+                window.PreviewHost.Measure(new Size(800, 600));
+                window.PreviewHost.Arrange(new Rect(0, 0, 800, 600));
+                window.UpdateSideBySideLayout();
+                check(window.SideBySideLayer.Visibility == Visibility.Visible && window.DividerLayer.Visibility == Visibility.Collapsed &&
+                    window.SplitComparison.IsChecked == false &&
+                    window.SideOriginalPreview.Source is System.Windows.Media.Imaging.BitmapSource full &&
+                    full.PixelWidth == window._source.Width && full.PixelHeight == window._source.Height &&
+                    window.SideOriginalPreview.Width > 0 && window.SideOriginalPreview.Width <= window.SideOriginalPane.ActualWidth + 1e-6 &&
+                    window.SideOutputPreview.Height > 0 && window.SideOutputPreview.Height <= window.SideOutputPane.ActualHeight + 1e-6,
+                    $"Side-by-side fits both complete canvases ({window.SideOriginalPreview.Width:F1} / {window.SideOriginalPane.ActualWidth:F1}, " +
+                    $"{window.SideOutputPreview.Height:F1} / {window.SideOutputPane.ActualHeight:F1}) and hides the divider");
+                var sideWidth = window.SideOriginalPreview.Width;
+                window.PreviewZoomChoice.Value = 2;
+                check(window.SideOriginalPreview.Width > sideWidth && window.SideOutputPreview.Height > window.SideOutputPane.ActualHeight,
+                    "The preview zoom applies to both comparison panes");
+                window.FitPreviewButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                window.ShowOriginal.IsChecked = true;
+                check(window.SideBySideLayer.Visibility == Visibility.Collapsed && window.SideBySideComparison.IsChecked == false &&
+                    window.Preview.Source != null, "Original-only view closes the side-by-side comparison");
+                window.ShowOriginal.IsChecked = false;
+                window._previewCrop = null;
                 window.ScreenLoopPresetChoice.SelectedIndex = 2;
                 check(window.InScreenLoop && !window.DigitalPanel.IsEnabled && window.DigitalPausedHint.Visibility == Visibility.Visible
                     && window.TimelineInfo is { IsStill: true, FrameCount: 60 }

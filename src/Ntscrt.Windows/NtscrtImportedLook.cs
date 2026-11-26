@@ -23,7 +23,7 @@ internal sealed record NtscrtImportedLook(string Json, int RetroWidth, bool Down
             throw new InvalidDataException(Localization.T("Preset ist zu groß."));
 
         var version = Integer(root, "version", 1);
-        if (version is < 1 or > 3 || downscale.ValueKind != JsonValueKind.Object ||
+        if (version is < 1 or > 4 || downscale.ValueKind != JsonValueKind.Object ||
             !root.TryGetProperty("ntsc", out var ntsc) || ntsc.ValueKind != JsonValueKind.Object ||
             !root.TryGetProperty("shader", out var shader) || shader.ValueKind != JsonValueKind.Object)
             throw new InvalidDataException(Localization.T("Unbekanntes oder ungültiges Presetformat."));

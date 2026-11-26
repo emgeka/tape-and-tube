@@ -62,8 +62,16 @@ public partial class MainWindow
     {
         return Task.Run(async () =>
         {
+            settings = settings with { Frame = (uint)index };
+            if (settings.HasHistoricalStages && video != null)
+            {
+                // Decode the held picture first so that a jump within its refresh interval stays forward-only.
+                var rendered = await _pipeline.RenderHistoricalVideoAsync(settings, sourceId, video.Info, video.ReadFrameAsync, token)
+                    .ConfigureAwait(false);
+                return new PreparedFrame(index, await video.ReadFrameAsync(index, token).ConfigureAwait(false), rendered);
+            }
             var decoded = video == null ? source! : await video.ReadFrameAsync(index, token).ConfigureAwait(false);
-            var result = await _pipeline.RenderAsync(decoded, settings with { Frame = (uint)index }, sourceId, timeline,
+            var result = await _pipeline.RenderAsync(decoded, settings, sourceId, timeline,
                 video == null || singleFrame ? null : video.ReadFrameAsync, token, singleFrame).ConfigureAwait(false);
             return new PreparedFrame(index, decoded, result);
         }, token);

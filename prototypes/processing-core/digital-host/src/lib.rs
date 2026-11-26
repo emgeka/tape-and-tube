@@ -185,7 +185,7 @@ pub extern "C" fn tt_digital_metadata_json() -> *mut c_char {
             }
             value
         }).collect();
-        owned(json!({"hostApi":API_VERSION,"settingsSchema":1,"processor":"NTSCRT ntscrt-codec","upstreamRevision":"0ab60bf952b09a0c41ea4290979f23dadd963614","upstreamLicense":"MIT","hostLicense":"GPL-3.0-only","pixelFormat":"RGBA8","alpha":"output opaque","settingsHistory":false,"seed":"upstream deterministic capture-index seed; no independent seed override","parameters":parameters}).to_string())
+        owned(json!({"hostApi":API_VERSION,"settingsSchema":1,"processor":"NTSCRT ntscrt-codec","upstreamRevision":"889256dde173a89e475919be3d1bba34e6cc7355","upstreamLicense":"MIT","hostLicense":"GPL-3.0-only","pixelFormat":"RGBA8","alpha":"output opaque","settingsHistory":false,"seed":"upstream deterministic capture-index seed; no independent seed override","parameters":parameters}).to_string())
     }).unwrap_or(std::ptr::null_mut())
 }
 

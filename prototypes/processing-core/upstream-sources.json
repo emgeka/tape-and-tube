@@ -2,15 +2,15 @@
   "schemaVersion": 1,
   "ntscrt": {
     "repository": "https://github.com/finnmckenty/NTSCRT",
-    "revision": "0ab60bf952b09a0c41ea4290979f23dadd963614",
-    "archive": "https://codeload.github.com/finnmckenty/NTSCRT/zip/refs/tags/v0.28.1",
-    "sha256": "e83ddb47030090f4114ff4df6dabbd63e275216db2e3e3ee747c9f6f04226bd0",
-    "directory": "NTSCRT-0.28.1",
+    "revision": "889256dde173a89e475919be3d1bba34e6cc7355",
+    "archive": "https://codeload.github.com/finnmckenty/NTSCRT/zip/refs/tags/v0.29.2",
+    "sha256": "2fde75636d51631db30f4c252f7e5002b3991d7c3bb4b3afc41303ac90ddbfbf",
+    "directory": "NTSCRT-0.29.2",
     "license": "MIT",
     "uses": ["port/codec", "port/engine", "port/librashader-wgpu-push-constants.patch"],
     "modifiedSourceFiles": ["port/engine/src/lib.rs"],
     "hostPatch": "engine-adapter/host-lifecycle.patch",
-    "hostPatchPurpose": "GPU capability check, explicit software backend consent, temporal reset retaining the device, and CRT intermediate sizing for small outputs"
+    "hostPatchPurpose": "GPU capability check, explicit software backend consent, and temporal reset retaining the device"
   },
   "librashader": {
     "repository": "https://github.com/SnowflakePowered/librashader",
@@ -19,7 +19,7 @@
     "sha256": "48bf30a981b91d284f9dfd2df53ea227c7420cf4c15e40e7cd0d7b99ec385739",
     "directory": "librashader-76462c030b75c4f2d56e5386c3d4d7d1128318b8",
     "license": "MPL-2.0 OR GPL-3.0-only",
-    "patch": "NTSCRT-0.28.1/port/librashader-wgpu-push-constants.patch"
+    "patch": "NTSCRT-0.29.2/port/librashader-wgpu-push-constants.patch"
   },
   "ntscRs": {
     "repository": "https://github.com/ntsc-rs/ntsc-rs",

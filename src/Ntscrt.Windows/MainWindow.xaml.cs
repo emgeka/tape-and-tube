@@ -69,17 +69,36 @@ public partial class MainWindow : Window
         Schedule();
     }
 
+    private HistoricalDisplay SelectedHistoricalDisplay =>
+        (HistoricalDisplay)Math.Max(0, HistoricalDisplayChoice?.SelectedIndex ?? 0);
+    private bool KinescopeActive => FilmCaptureChoice?.SelectedIndex == 1;
+    private bool HistoricalDisplayActive => _importedLook == null && (SelectedHistoricalDisplay != HistoricalDisplay.None || KinescopeActive);
+
+    private void HistoricalDisplayChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_ready) return;
+        if (_video == null) PauseVideo();
+        RefreshTimeline();
+        Schedule();
+    }
+
     private void RefreshEffectAvailability()
     {
+        var shaderAvailable = SelectedHistoricalDisplay == HistoricalDisplay.None;
+        CrtCard.IsEnabled = shaderAvailable;
+        ScreenLoopPanel.IsEnabled = _importedLook == null && !HistoricalDisplayActive;
+        SnapScanlinesChoice.IsEnabled = !HistoricalDisplayActive;
+        OutputFitChoice.IsEnabled = !HistoricalDisplayActive && OutputChoice.SelectedIndex != 0;
         var screenLoop = InScreenLoop;
         DigitalPanel.IsEnabled = !screenLoop;
         DigitalPausedHint.Visibility = screenLoop ? Visibility.Visible : Visibility.Collapsed;
         var downscale = SelectedDownscaleEnabled;
-        WidthChoice.IsEnabled = downscale ?? (CrtEnabled.IsChecked == true || VcrEnabled.IsChecked == true ||
+        WidthChoice.IsEnabled = downscale ?? ((shaderAvailable && CrtEnabled.IsChecked == true) || VcrEnabled.IsChecked == true ||
             ReceptionEnabled.IsChecked == true || DigitalEnabled.IsChecked == true || screenLoop);
         DownscaleMethodChoice.IsEnabled = WidthChoice.IsEnabled;
-        ScaleChoice.IsEnabled = downscale != false && CrtEnabled.IsChecked == true && OutputChoice.SelectedIndex == 0;
+        ScaleChoice.IsEnabled = shaderAvailable && downscale != false && CrtEnabled.IsChecked == true && OutputChoice.SelectedIndex == 0;
     }
+    private int SelectedRetroWidth => int.Parse((string)((ComboBoxItem)WidthChoice.SelectedItem).Content, CultureInfo.InvariantCulture);
     private void OpenDemo(object sender, RoutedEventArgs e) => LoadDemo();
     internal async void LoadDemo()
     {
@@ -95,6 +114,7 @@ public partial class MainWindow : Window
     private void Schedule()
     {
         if (!_ready || _closing) return;
+        if (_playing && _video != null) HoldPlaybackClock();
         InvalidateRender();
         _debounce.Stop(); _debounce.Start();
     }
@@ -114,16 +134,17 @@ public partial class MainWindow : Window
                 DigitalCatalog.Profile, ImportedLook: look, Crop: look.Crop, SnapScanlines: SnapScanlinesChoice.IsChecked == true);
         var shaderName = (string)ShaderChoice.SelectedItem;
         var animation = AnimationPayload(shaderName, preview);
-        return new(NtscEnabled.IsChecked == true, CrtEnabled.IsChecked == true,
+        return new(NtscEnabled.IsChecked == true, SelectedHistoricalDisplay == HistoricalDisplay.None && CrtEnabled.IsChecked == true,
             _ntsc.ToJsonString(), _shaders[shaderName],
-            int.Parse((string)((ComboBoxItem)WidthChoice.SelectedItem).Content, CultureInfo.InvariantCulture),
+            SelectedRetroWidth,
             scale, (uint)_frameIndex, new(_shaderValues), _outputSettings,
             OwnRenderer,
             !InScreenLoop && DigitalEnabled.IsChecked == true ? new(_digitalValues) : null,
             VcrEnabled.IsChecked == true || ReceptionEnabled.IsChecked == true ? ReadAnalogSettings() : null,
             InScreenLoop ? new(_screenLoopValues) : null,
-            EffectTimeline: animation, Crop: _sourceCrop, SnapScanlines: SnapScanlinesChoice.IsChecked == true,
-            DownscaleMethod: SelectedDownscaleMethod, DownscaleEnabled: SelectedDownscaleEnabled);
+            EffectTimeline: animation, Crop: _sourceCrop, SnapScanlines: !HistoricalDisplayActive && SnapScanlinesChoice.IsChecked == true,
+            DownscaleMethod: SelectedDownscaleMethod, DownscaleEnabled: SelectedDownscaleEnabled,
+            Display: SelectedHistoricalDisplay, Film: KinescopeActive);
     }
 
     private async Task Render()
@@ -152,7 +173,7 @@ public partial class MainWindow : Window
             }
             if (ready == null)
             {
-                if (!_playing && video != null && index > 0 && settings.Renderer == DigitalCatalog.Profile &&
+                if ((!_playing || !_playClock.IsRunning) && video != null && index > 0 && !settings.HasHistoricalStages && settings.Renderer == DigitalCatalog.Profile &&
                     settings.ScreenLoop == null && settings.ImportedLook == null && settings.EffectTimeline == null &&
                     settings.Digital?.GetValueOrDefault("fields") is not (2 or 3))
                 {
@@ -169,6 +190,8 @@ public partial class MainWindow : Window
             var decoded = ready.Source;
             var result = ready.Rendered;
             Present(decoded, result, settings);
+            if (_playing && !_playClock.IsRunning) StartPlaybackClock();
+            _previewAudio?.Present(index);
             ExportButton.IsEnabled = !_playing && _outputInputValid;
             if (liveStill)
             {
@@ -358,9 +381,9 @@ public partial class MainWindow : Window
             var track = _effectTimeline.Enabled || _effectTimeline.Keys.Length > 0 ? _effectTimeline : null;
             var version = _sourceCrop != null ? 5 : track != null ? 4 : saveAnalog ? 3 : _renderer == "legacy-v1" ? 1 : 2;
             File.WriteAllText(dialog.FileName, JsonSerializer.Serialize(new LookPreset("tape-and-tube", version, NtscEnabled.IsChecked == true, CrtEnabled.IsChecked == true,
-                (string)ShaderChoice.SelectedItem, Settings().RetroWidth, Settings().Scale, _ntsc, new(_shaderValues), _outputSettings,_renderer,
+                (string)ShaderChoice.SelectedItem, SelectedRetroWidth, Settings().Scale, _ntsc, new(_shaderValues), _outputSettings,_renderer,
                 DigitalEnabled.IsChecked==true?new(_digitalValues):null, saveAnalog ? analog : null, track, _sourceCrop,
-                SelectedDownscaleMethod, SelectedDownscaleEnabled),
+                SelectedDownscaleMethod, SelectedDownscaleEnabled, Display: SelectedHistoricalDisplay, Film: KinescopeActive),
                 new JsonSerializerOptions { WriteIndented = true }));
             Status.Text = Localization.T("Preset gespeichert.");
         }
@@ -391,9 +414,9 @@ public partial class MainWindow : Window
         catch (Exception ex) { Error(ex); }
     }
 
-    private void ApplyLookPreset(LookPreset p, bool preserveGeometry = false)
+    private void ApplyLookPreset(LookPreset p, bool preserveGeometry = false, bool keepPlayback = false)
     {
-        PauseVideo();
+        if (!keepPlayback) PauseVideo();
         _ready = false;
         try
         {
@@ -403,6 +426,8 @@ public partial class MainWindow : Window
             ShaderChoice.SelectedItem = p.Shader; _controlsShader = null; CrtControls.Children.Clear();
             _keyframeShaderParameters = [];
             NtscEnabled.IsChecked = p.NtscEnabled; CrtEnabled.IsChecked = p.CrtEnabled;
+            HistoricalDisplayChoice.SelectedIndex = (int)p.Display;
+            FilmCaptureChoice.SelectedIndex = p.Film ? 1 : 0;
             SelectRetroWidth(p.Width); ScaleChoice.SelectedIndex = p.Scale - 2;
             DownscaleEnabledChoice.SelectedIndex = p.DownscaleEnabled switch { true => 1, false => 2, _ => 0 };
             if (p.DownscaleMethod == null) DownscaleMethodChoice.SelectedIndex = 0;
@@ -421,7 +446,7 @@ public partial class MainWindow : Window
             BuildNtscControls();
         }
         finally { _ready = true; }
-        if (_importedLook != null) ApplyImportedLook(null);
+        if (_importedLook != null) ApplyImportedLook(null, keepPlayback: keepPlayback);
         else
         {
             RefreshTimeline();
@@ -432,6 +457,7 @@ public partial class MainWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         _closing = true;
+        StopPreviewAudio();
         SaveWorkspaceMode();
         _debounce.Stop();
         _stillMotionTimer.Stop();

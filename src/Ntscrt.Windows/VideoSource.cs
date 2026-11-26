@@ -6,7 +6,8 @@ using System.Text.Json;
 
 namespace Ntscrt.Windows;
 
-internal sealed record VideoInfo(string Path, int Width, int Height, double FramesPerSecond, string Rate, int FrameCount, double StartTime, bool ToneMappedToSdr = false, bool IsStill = false)
+internal sealed record VideoInfo(string Path, int Width, int Height, double FramesPerSecond, string Rate, int FrameCount, double StartTime,
+    bool ToneMappedToSdr = false, bool IsStill = false, bool HasAudio = false)
 {
     public double Duration => FrameCount / FramesPerSecond;
 }
@@ -36,12 +37,13 @@ internal sealed class VideoSource : IAsyncDisposable
         if (!File.Exists(path)) throw new FileNotFoundException(Localization.T("Video wurde nicht gefunden."), path);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
         timeout.CancelAfter(TimeSpan.FromSeconds(30));
-        var output = await MediaTools.CaptureAsync("ffprobe", ["-v", "error", "-protocol_whitelist", "file,pipe", "-select_streams", "v:0",
+        var output = await MediaTools.CaptureAsync("ffprobe", ["-v", "error", "-protocol_whitelist", "file,pipe",
             "-show_streams", "-show_format", "-of", "json", path], timeout.Token);
         using var json = JsonDocument.Parse(output);
         var streams = json.RootElement.GetProperty("streams");
-        if (streams.GetArrayLength() == 0) throw new InvalidDataException(Localization.T("Die Datei enthält keine Videospur."));
-        var stream = streams[0];
+        var stream = streams.EnumerateArray().FirstOrDefault(candidate => Text(candidate, "codec_type") == "video");
+        if (stream.ValueKind == JsonValueKind.Undefined) throw new InvalidDataException(Localization.T("Die Datei enthält keine Videospur."));
+        var hasAudio = streams.EnumerateArray().Any(candidate => Text(candidate, "codec_type") == "audio");
         var width = stream.GetProperty("width").GetInt32();
         var height = stream.GetProperty("height").GetInt32();
         var rate = Text(stream, "avg_frame_rate");
@@ -73,7 +75,7 @@ internal sealed class VideoSource : IAsyncDisposable
         if (wideGamut && transfer is "" or "unknown" or "unspecified")
             throw new InvalidDataException(Localization.T("Das BT.2020-Video enthält keine Angabe zur Helligkeitskurve."));
         var sdrConversion = hdr || wideGamut ? BuildSdrConversion(stream, hdr) : null;
-        return new(new(path, width, height, fps, rate, frames, startTime, hdr), sdrConversion);
+        return new(new(path, width, height, fps, rate, frames, startTime, hdr, HasAudio: hasAudio), sdrConversion);
     }
 
     private static string BuildSdrConversion(JsonElement stream, bool hdr)

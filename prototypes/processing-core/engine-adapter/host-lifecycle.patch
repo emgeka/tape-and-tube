@@ -36,22 +36,3 @@ diff --git a/port/engine/src/lib.rs b/port/engine/src/lib.rs
      pub fn adapter_info(&self) -> &wgpu::AdapterInfo {
          &self.info
      }
-@@ -763,6 +784,18 @@ impl Engine {
-         self.howl_feed(&mut enc, &chain_input, settings)?;
-         let (iw, ih) = (chain_input.width(), chain_input.height());
-         let render_size = match &settings.shader {
-+            Some(_) if out.1 < ih => {
-+                // Below one output row per source line a CRT pass can sample
-+                // only the gaps between scanlines. Resolve the CRT first,
-+                // then integrate its light into the smaller requested image.
-+                let limit = self.device.limits().max_texture_dimension_2d.min(8192);
-+                [2, 1].into_iter().map(|scale| {
-+                    let h = ih * scale;
-+                    let w = (f64::from(out.0) * f64::from(h) / f64::from(out.1)).round() as u32;
-+                    (w, h)
-+                }).find(|&(w, h)| w <= limit && h <= limit && u64::from(w) * u64::from(h) <= 24_000_000)
-+                    .unwrap_or(out)
-+            }
-             Some(_) => {
-                 let k = export::supersample_factor(ih, out.1);
-                 if k > 1 {

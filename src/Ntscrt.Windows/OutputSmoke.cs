@@ -85,6 +85,19 @@ internal static class OutputSmoke
 
         using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         var token = timeout.Token;
+        var tallSource = Solid(1904, 2544);
+        var aperture = (await pipeline.RenderAsync(tallSource, settings with
+        {
+            Renderer = DigitalCatalog.Profile,
+            Shader = Path.Combine(Paths.ShaderRoot, "crt", "crt-aperture.slangp"),
+            DownscaleEnabled = false,
+            Output = new(tallSource.Width, tallSource.Height)
+        }, "aperture-without-downscale", cancellation: token)).Frame;
+        long red = 0;
+        for (var i = 2; i < aperture.Pixels.Length; i += 4) red += aperture.Pixels[i];
+        Check(aperture.Width == tallSource.Width && aperture.Height == tallSource.Height &&
+            red > 20L * aperture.Width * aperture.Height,
+            "CRT Aperture zeigt bei 1904 × 2544 auch ohne interne Verkleinerung ein Bild");
         var image = pipeline.Render(source, settings with { Output = new(321, 181, OutputFit.Crop) }).Frame;
         async Task<PixelFrame> WriteAndRead(string extension, int quality = 90, bool losslessWebp = true, string name = "export-image")
         {

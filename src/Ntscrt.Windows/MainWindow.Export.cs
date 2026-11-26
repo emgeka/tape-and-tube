@@ -46,6 +46,7 @@ public partial class MainWindow
         PauseVideo();
         var sourcePath = info.IsStill ? _stillPath : info.Path;
         var still = info.IsStill ? _source : null;
+        var sideBySide = ComparisonExportActive;
         var dialog = new SaveFileDialog
         {
             Title = Localization.T("Video oder GIF speichern…"),
@@ -53,7 +54,7 @@ public partial class MainWindow
                 "MOV (ProRes 422)|*.mov|WebM (VP9 / Opus)|*.webm|" + Localization.T("Animiertes GIF|*.gif"),
             AddExtension = true,
             FileName = (Path.GetFileNameWithoutExtension(sourcePath) ?? (InScreenLoop ? "screen-loop" : "animation"))
-                + "-tape-and-tube", OverwritePrompt = true
+                + (sideBySide ? "-tape-and-tube-comparison" : "-tape-and-tube"), OverwritePrompt = true
         };
         if (dialog.ShowDialog(this) != true) return;
         var format = Path.GetExtension(dialog.FileName).ToLowerInvariant() switch
@@ -98,10 +99,10 @@ public partial class MainWindow
         {
             var result = await Task.Run(() => still == null
                 ? VideoExporter.ExportAsync(info.Path, dialog.FileName, settings, progress, cancellation.Token,
-                    overwrite: true, format: selectedFormat, quality: quality, loops: loops, gifSettings: gifSettings)
+                    overwrite: true, format: selectedFormat, quality: quality, loops: loops, gifSettings: gifSettings, sideBySide: sideBySide)
                 : VideoExporter.ExportStillAsync(still, sourcePath, dialog.FileName, stillSeconds, settings,
                     progress, cancellation.Token, overwrite: true, fps: (int)info.FramesPerSecond, format: selectedFormat,
-                    quality: quality, gifSettings: gifSettings));
+                    quality: quality, gifSettings: gifSettings, sideBySide: sideBySide));
             Status.Text = isGif
                 ? Localization.F($"GIF gespeichert: {result.Path} · {result.Frames} Bilder · {result.Width} × {result.Height}")
                 : Localization.F($"Video gespeichert: {result.Path} · {result.Frames} Bilder · {result.Width} × {result.Height}");

@@ -7,12 +7,12 @@ license = "MIT"
 publish = false
 
 [lib]
-path = "../upstream/NTSCRT-0.28.1/port/engine/src/lib.rs"
+path = "../upstream/NTSCRT-0.29.2/port/engine/src/lib.rs"
 
 [dependencies]
 anyhow = "1"
 ntsc-rs = { git = "https://github.com/ntsc-rs/ntsc-rs", rev = "add90f5bf1bf7e3c573e4e945a16f44a82941b51" }
-ntscrt-codec = { path = "../upstream/NTSCRT-0.28.1/port/codec" }
+ntscrt-codec = { path = "../upstream/NTSCRT-0.29.2/port/codec" }
 librashader = { path = "../upstream/librashader-76462c030b75c4f2d56e5386c3d4d7d1128318b8/librashader", default-features = false, features = ["runtime-wgpu", "presets", "preprocess", "stable"] }
 pollster = "0.4"
 serde_json = { version = "1", features = ["float_roundtrip"] }

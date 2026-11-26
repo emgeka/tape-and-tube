@@ -10,24 +10,45 @@ namespace Ntscrt.Windows;
 public partial class MainWindow
 {
     private OutputGeometry? _previewLayout;
+    private bool _updatingComparisonMode;
+    private bool SideBySideActive => SideBySideComparison.IsChecked == true && _source != null && _output != null;
+
     private void CompareChanged(object sender, RoutedEventArgs e)
     {
-        if (!_ready) return;
-        if (ShowOriginal.IsChecked == true) SplitComparison.IsChecked = false;
+        if (!_ready || _updatingComparisonMode) return;
+        _updatingComparisonMode = true;
+        try
+        {
+            if (sender == ShowOriginal && ShowOriginal.IsChecked == true)
+            {
+                SplitComparison.IsChecked = false;
+                SideBySideComparison.IsChecked = false;
+            }
+            else if (sender == SplitComparison && SplitComparison.IsChecked == true)
+            {
+                ShowOriginal.IsChecked = false;
+                SideBySideComparison.IsChecked = false;
+            }
+            else if (sender == SideBySideComparison && SideBySideComparison.IsChecked == true)
+            {
+                ShowOriginal.IsChecked = false;
+                SplitComparison.IsChecked = false;
+            }
+        }
+        finally { _updatingComparisonMode = false; }
         UpdatePreview();
     }
-    private void SplitComparisonChanged(object sender, RoutedEventArgs e)
-    {
-        if (!_ready) return;
-        if (SplitComparison.IsChecked == true) ShowOriginal.IsChecked = false;
-        UpdatePreview();
-    }
+
     private void UpdatePreview()
     {
         var comparing = SplitComparison.IsChecked == true && _source != null && _output != null;
-        SplitComparison.IsEnabled = _source != null && _output != null;
+        var sideBySide = SideBySideActive;
+        SplitComparison.IsEnabled = SideBySideComparison.IsEnabled = _source != null && _output != null;
         var frame = DisplayedPreviewFrame;
-        Preview.Source = frame?.Bitmap();
+        Preview.Source = sideBySide ? null : frame?.Bitmap();
+        SideOriginalPreview.Source = sideBySide ? _source!.Bitmap() : null;
+        SideOutputPreview.Source = sideBySide ? _output!.Bitmap() : null;
+        SideBySideLayer.Visibility = sideBySide ? Visibility.Visible : Visibility.Collapsed;
         PreviewNavigation.Visibility = frame == null ? Visibility.Collapsed : Visibility.Visible;
         OriginalPreview.Source = comparing
             ? _previewCrop is { } crop
@@ -36,6 +57,25 @@ public partial class MainWindow
             : null;
         OriginalLayer.Visibility = DividerLayer.Visibility = ComparisonControls.Visibility = comparing ? Visibility.Visible : Visibility.Collapsed;
         UpdatePreviewNavigationLayout();
+    }
+
+    private void UpdateSideBySideLayout()
+    {
+        var originalGrid = IntegerPreviewChoice.IsChecked == true
+            ? new PreviewGrid(1, 0, VisualTreeHelper.GetDpi(SideOriginalPane)) : (PreviewGrid?)null;
+        var original = PlaceComparisonImage(SideOriginalPane, SideOriginalPreview, _source!, originalGrid);
+        var output = PlaceComparisonImage(SideOutputPane, SideOutputPreview, _output!, CurrentPreviewGrid(_output!));
+        if (original is Vector a && output is Vector b)
+            _previewPan = new(Math.Abs(a.X) > Math.Abs(b.X) ? a.X : b.X, Math.Abs(a.Y) > Math.Abs(b.Y) ? a.Y : b.Y);
+    }
+
+    private Vector? PlaceComparisonImage(Canvas pane, Image image, PixelFrame frame, PreviewGrid? grid)
+    {
+        var size = pane.RenderSize;
+        if (size.Width <= 0 || size.Height <= 0) return null;
+        var view = ComparisonLayout.ImageBounds(size, frame.Width, frame.Height, PreviewZoomChoice.Value, _previewPan, grid);
+        PositionPreviewImage(image, view, grid);
+        return new Vector(view.Left + (view.Width - size.Width) / 2, view.Top + (view.Height - size.Height) / 2);
     }
     private ComparisonLayout CurrentComparisonLayout()
     {

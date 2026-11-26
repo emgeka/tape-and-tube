@@ -9,7 +9,7 @@ internal enum OutputFit { Fit, Crop }
 internal sealed record OutputSettings(int Width, int Height, OutputFit Fit = OutputFit.Fit)
 {
     internal const int MaxSide = 8192;
-    private const int MaxPixels = 24_000_000;
+    internal const int MaxPixels = 24_000_000;
 
     public void Validate()
     {

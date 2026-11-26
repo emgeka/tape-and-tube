@@ -35,7 +35,7 @@ internal static class VideoExporter
     public static async Task<ExportResult> ExportAsync(string sourcePath, string outputPath, RenderSettings settings,
         IProgress<ExportProgress>? progress = null, CancellationToken cancellation = default, bool overwrite = false,
         Action<int, PixelFrame>? frameObserver = null, VideoExportFormat format = VideoExportFormat.Mp4,
-        Mp4Quality quality = Mp4Quality.High, int loops = 1, GifExportSettings? gifSettings = null)
+        Mp4Quality quality = Mp4Quality.High, int loops = 1, GifExportSettings? gifSettings = null, bool sideBySide = false)
     {
         if (loops is < 1 or > MaxLoops || (loops > 1 && format == VideoExportFormat.Gif))
             throw new ArgumentOutOfRangeException(nameof(loops));
@@ -44,21 +44,21 @@ internal static class VideoExporter
         cancellation.ThrowIfCancellationRequested();
         await using var source = await VideoSource.OpenAsync(sourcePath, cancellation).ConfigureAwait(false);
         return await ExportFramesAsync(source.Info, source.ReadFrameAsync, target, settings,
-            progress, cancellation, overwrite, frameObserver, format, quality, loops, gifSettings).ConfigureAwait(false);
+            progress, cancellation, overwrite, frameObserver, format, quality, loops, gifSettings, sideBySide).ConfigureAwait(false);
     }
 
     public static Task<ExportResult> ExportStillAsync(PixelFrame source, string? imagePath, string outputPath,
         double seconds, RenderSettings settings, IProgress<ExportProgress>? progress = null,
         CancellationToken cancellation = default, bool overwrite = false, Action<int, PixelFrame>? frameObserver = null,
         int fps = ScreenLoopCatalog.StillFrameRate, VideoExportFormat format = VideoExportFormat.Mp4,
-        Mp4Quality quality = Mp4Quality.High, GifExportSettings? gifSettings = null)
+        Mp4Quality quality = Mp4Quality.High, GifExportSettings? gifSettings = null, bool sideBySide = false)
     {
         var maximumSeconds = settings.ScreenLoop == null ? NtscrtImportedLook.MaxStillSeconds : 60;
         if (!double.IsFinite(seconds) || seconds < 0.5 || seconds > maximumSeconds || fps is < 1 or > 60)
             throw new ArgumentException("Invalid still animation settings.");
         var target = CheckTarget(imagePath, outputPath, overwrite);
         return ExportFramesAsync(ScreenLoopCatalog.StillTimeline(source, seconds, fps), (_, _) => Task.FromResult(source),
-            target, settings, progress, cancellation, overwrite, frameObserver, format, quality, gifSettings: gifSettings);
+            target, settings, progress, cancellation, overwrite, frameObserver, format, quality, gifSettings: gifSettings, sideBySide: sideBySide);
     }
 
     internal static string CheckTarget(string? sourcePath, string outputPath, bool overwrite)
@@ -75,7 +75,7 @@ internal static class VideoExporter
     private static async Task<ExportResult> ExportFramesAsync(VideoInfo info,
         Func<int, CancellationToken, Task<PixelFrame>> readFrame, string outputPath, RenderSettings settings,
         IProgress<ExportProgress>? progress, CancellationToken cancellation, bool overwrite, Action<int, PixelFrame>? frameObserver,
-        VideoExportFormat format, Mp4Quality quality, int loops = 1, GifExportSettings? gifSettings = null)
+        VideoExportFormat format, Mp4Quality quality, int loops = 1, GifExportSettings? gifSettings = null, bool sideBySide = false)
     {
         var totalFrames = checked(info.FrameCount * loops);
         var extension = Extension(format);
@@ -89,12 +89,26 @@ internal static class VideoExporter
         var first = await readFrame(0, cancellation).ConfigureAwait(false);
         cancellation.ThrowIfCancellationRequested();
         var gif = format == VideoExportFormat.Gif ? new GifTiming(info, gifSettings?.Fps) : null;
-        if (gif != null) settings = ConfigureGifOutput(first.Width, first.Height, settings, gifSettings);
+        if (gif != null && !sideBySide) settings = ConfigureGifOutput(first.Width, first.Height, settings, gifSettings);
         var sourceId=Guid.NewGuid().ToString("N");
-        async Task<PixelFrame> RenderFrame(PixelFrame frame,int index)=> (await pipeline.RenderAsync(frame,settings with {Frame=(uint)index},sourceId,info,info.IsStill ? null : readFrame,cancellation).ConfigureAwait(false)).Frame;
-        var firstRendered = await RenderFrame(first,0).ConfigureAwait(false);
-        var width = gif == null ? Mp4Dimension(firstRendered.Width) : firstRendered.Width;
-        var height = gif == null ? Mp4Dimension(firstRendered.Height) : firstRendered.Height;
+        async Task<(PixelFrame Result, PixelFrame? Source)> RenderFrame(int index)
+        {
+            var current = settings with { Frame = (uint)index };
+            if (settings.HasHistoricalStages && !info.IsStill)
+                return ((await pipeline.RenderHistoricalVideoAsync(current, sourceId, info, readFrame, cancellation)
+                    .ConfigureAwait(false)).Frame, index == 0 ? first : null);
+            var decoded = index == 0 ? first : await readFrame(index, cancellation).ConfigureAwait(false);
+            return ((await pipeline.RenderAsync(decoded, current, sourceId, info, info.IsStill ? null : readFrame, cancellation)
+                .ConfigureAwait(false)).Frame, decoded);
+        }
+        var firstRendered = await RenderFrame(0).ConfigureAwait(false);
+        var comparison = sideBySide
+            ? ComparisonOutput(firstRendered.Result.Width, firstRendered.Result.Height, settings.Output, gif != null, gifSettings?.Width)
+            : null;
+        var inputWidth = comparison?.Width ?? firstRendered.Result.Width;
+        var inputHeight = comparison?.Height ?? firstRendered.Result.Height;
+        var width = gif == null ? Mp4Dimension(inputWidth) : inputWidth;
+        var height = gif == null ? Mp4Dimension(inputHeight) : inputHeight;
         var temporary = Path.Combine(Path.GetDirectoryName(outputPath)!, $".tapetube-{Guid.NewGuid():N}.{extension}");
         var audioCycle = loops > 1 ? Path.ChangeExtension(temporary, ".wav") : null;
         Process? encoder = null;
@@ -105,7 +119,7 @@ internal static class VideoExporter
             var encodeArgs = new List<string> { "-hide_banner", "-loglevel", "error", "-nostdin", "-y" };
             if (gif == null) encodeArgs.Add("-copyts");
             encodeArgs.AddRange([
-                "-f", "rawvideo", "-pixel_format", "bgra", "-video_size", $"{firstRendered.Width}x{firstRendered.Height}",
+                "-f", "rawvideo", "-pixel_format", "bgra", "-video_size", $"{inputWidth}x{inputHeight}",
                 "-framerate", gif?.Rate ?? info.Rate, "-i", "pipe:0"]);
             if (gif == null) AddVideoOptions(encodeArgs, info, format, quality, loops, hasAudio ? audioCycle : null);
             else encodeArgs.AddRange(["-an", "-filter_complex_threads", "1", "-filter_complex",
@@ -125,15 +139,16 @@ internal static class VideoExporter
                 if (offset > 0)
                 {
                     if (index == 0) sourceId = Guid.NewGuid().ToString("N");
-                    var decoded = index == 0 ? first : await readFrame(index, cancellation).ConfigureAwait(false);
-                    cancellation.ThrowIfCancellationRequested();
-                    rendered = await RenderFrame(decoded,index).ConfigureAwait(false);
+                    rendered = await RenderFrame(index).ConfigureAwait(false);
                 }
                 cancellation.ThrowIfCancellationRequested();
+                PixelFrame? composed = null;
                 while (gif == null ? written == offset : written < gif.Count && gif.SourceIndex(written) == index)
                 {
-                    frameObserver?.Invoke(index, rendered);
-                    await encoder.StandardInput.BaseStream.WriteAsync(rendered.Pixels, cancellation).ConfigureAwait(false);
+                    composed ??= comparison == null ? rendered.Result : OutputComposer.SideBySide(
+                        rendered.Source ?? await readFrame(index, cancellation).ConfigureAwait(false), rendered.Result, comparison);
+                    frameObserver?.Invoke(index, composed);
+                    await encoder.StandardInput.BaseStream.WriteAsync(composed.Pixels, cancellation).ConfigureAwait(false);
                     written++;
                 }
                 progress?.Report(new(offset + 1, totalFrames, width, height));
@@ -279,6 +294,18 @@ internal static class VideoExporter
 
     internal const int GifMaxAutomaticSide = 480;
     internal static int Mp4Dimension(int size) => (size + 1) & ~1;
+
+    internal static OutputSettings ComparisonOutput(int processedWidth, int processedHeight, OutputSettings? requested,
+        bool gif = false, int? gifWidth = null)
+    {
+        var width = requested?.Width ?? 2 * processedWidth;
+        var height = requested?.Height ?? processedHeight;
+        var scale = gif && gifWidth is int target ? target / (double)width
+            : gif && requested == null ? Math.Min(1, GifMaxAutomaticSide / (double)Math.Max(width, height)) : 1;
+        scale = Math.Min(scale, Math.Min(OutputSettings.MaxSide / (double)Math.Max(width, height),
+            Math.Sqrt(OutputSettings.MaxPixels / ((double)width * height))));
+        return new(Math.Max(2, (int)Math.Floor(width * scale + 1e-8)), Math.Max(1, (int)Math.Floor(height * scale + 1e-8)));
+    }
 
     internal static RenderSettings ConfigureGifOutput(int width, int height, RenderSettings settings, GifExportSettings? options)
     {

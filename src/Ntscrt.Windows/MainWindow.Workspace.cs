@@ -54,17 +54,19 @@ public partial class MainWindow
         if (!_ready || (_importedLook != null && !_basicOriginalActive) || _exportCancellation != null) return;
         try
         {
+            var keepPlayback = _playing && _video != null;
             if (look.OriginalName is { } name)
             {
                 var original = BasicLook.ReadOriginal(name);
                 var imported = NtscrtImportedLook.Parse(original)
                     ?? throw new InvalidDataException(Localization.T("Unbekanntes oder ungültiges Presetformat."));
-                ApplyImportedLook(imported with { Crop = _sourceCrop }, original, name + ".json", fromBasic: true);
+                ApplyImportedLook(imported with { Crop = _sourceCrop }, original, name + ".json",
+                    fromBasic: true, keepPlayback: keepPlayback);
             }
             else
             {
                 var shader = _shaders.ContainsKey("crt-easymode") ? "crt-easymode" : _shaders.Keys.First();
-                ApplyLookPreset(look.CreatePreset(shader), preserveGeometry: true);
+                ApplyLookPreset(look.CreatePreset(shader), preserveGeometry: true, keepPlayback: keepPlayback);
             }
             Status.Text = Localization.T("Preset geladen.");
         }

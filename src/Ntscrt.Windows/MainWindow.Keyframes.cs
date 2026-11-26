@@ -13,7 +13,7 @@ public partial class MainWindow
     private IReadOnlyList<ShaderParameter> _keyframeShaderParameters = [];
     private bool _syncKeyframes;
 
-    private bool OwnAnimationEnabled => _effectTimeline.Enabled && _importedLook == null && !InScreenLoop;
+    private bool OwnAnimationEnabled => _effectTimeline.Enabled && _importedLook == null && !InScreenLoop && !HistoricalDisplayActive;
     private bool HasOwnAnimation => OwnAnimationEnabled && _effectTimeline.Keys.Length > 0;
     private EffectKeyframe? SelectedKeyframe => KeyframeChoice.SelectedItem as ComboBoxItem is { Tag: EffectKeyframe key } ? key : null;
 
@@ -94,7 +94,9 @@ public partial class MainWindow
 
     private void RefreshKeyframeAvailability()
     {
-        var unavailable = InScreenLoop || _importedLook != null;
+        var unavailable = InScreenLoop || _importedLook != null || HistoricalDisplayActive;
+        KeyframesUnavailable.SetResourceReference(TextBlock.TextProperty,
+            HistoricalDisplayActive ? "HistoricalDisplayKeyframesUnavailable" : "KeyframesUnavailableLabel");
         KeyframesUnavailable.Visibility = unavailable ? Visibility.Visible : Visibility.Collapsed;
         KeyframeEditor.Visibility = unavailable ? Visibility.Collapsed : Visibility.Visible;
         var active = OwnAnimationEnabled;
@@ -126,7 +128,7 @@ public partial class MainWindow
     private void ToggleOwnAnimation(object sender, RoutedEventArgs e)
     {
         if (!_ready || _syncKeyframes) return;
-        PauseVideo();
+        if (_video == null) PauseVideo();
         _effectTimeline = _effectTimeline with { Enabled = AnimationEnabled.IsChecked == true };
         if (!_effectTimeline.Enabled) SetAudition(false);
         RefreshTimeline();

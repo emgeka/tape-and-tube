@@ -16,29 +16,72 @@ public partial class MainWindow
     private readonly Stopwatch _playClock = new();
     private int _playStartFrame;
     private CancellationTokenSource? _loadCancellation, _renderCancellation;
+    private PreviewAudio? _previewAudio;
+    private Task _previousPreviewAudio = Task.CompletedTask;
+
+    private void StopPreviewAudio()
+    {
+        if (_previewAudio is not { } audio) return;
+        _previewAudio = null;
+        _previousPreviewAudio = audio.StopAsync();
+    }
+
+    private void HoldPlaybackClock()
+    {
+        _playStartFrame = _frameIndex;
+        _playClock.Reset();
+        StopPreviewAudio();
+    }
+
+    private void StartPlaybackClock()
+    {
+        _playStartFrame = _frameIndex;
+        _playClock.Restart();
+        if (_video?.Info is { HasAudio: true } info && PreviewAudioChoice.IsChecked == true)
+            _previewAudio = new PreviewAudio(info, _frameIndex, _previousPreviewAudio);
+    }
+
+    private void PreviewAudioChanged(object sender, RoutedEventArgs e)
+    {
+        if (!_ready) return;
+        if (PreviewAudioChoice.IsChecked == true)
+            PreviewAudioChoice.SetResourceReference(ToolTipProperty, "PreviewAudioHint");
+        if (!_playing) return;
+        HoldPlaybackClock();
+        if (!_busy && !_debounce.IsEnabled && _completedPreviewVersion == _version) StartPlaybackClock();
+    }
 
     private async void PlaybackRendering(object? sender, EventArgs e)
     {
-        if (!_playing || _busy || _debounce.IsEnabled || TimelineInfo is not VideoInfo info) return;
-        var elapsed = _playClock.Elapsed.TotalSeconds;
+        if (!_playing || !_playClock.IsRunning || _busy || _debounce.IsEnabled || TimelineInfo is not VideoInfo info) return;
+        if (_previewAudio?.Failed == true)
+        {
+            PreviewAudioChoice.IsChecked = false;
+            PreviewAudioChoice.SetResourceReference(ToolTipProperty, "PreviewAudioUnavailable");
+        }
+        var elapsed = _previewAudio?.Elapsed ?? _playClock.Elapsed.TotalSeconds;
         var target = _playStartFrame + (int)Math.Min(info.FrameCount - 1 - _playStartFrame, Math.Floor(elapsed * info.FramesPerSecond));
         if (target == _frameIndex)
         {
-            if (target != info.FrameCount - 1 || elapsed < (info.FrameCount - _playStartFrame) / info.FramesPerSecond) return;
+            var remaining = (info.FrameCount - _playStartFrame) / info.FramesPerSecond;
+            var tolerance = _previewAudio == null ? 0 : 1.0 / PreviewAudio.SampleRate;
+            if (target != info.FrameCount - 1 || elapsed + tolerance < remaining) return;
             if (LoopPlaybackButton.IsChecked != true) { PauseVideo(); return; }
             target = 0;
-            _playStartFrame = target;
-            _playClock.Restart();
         }
-        else if ((_importedLook != null || OwnRenderer == DigitalCatalog.Profile) && target > _frameIndex + 1)
+        else if (!HistoricalDisplayActive && (_importedLook != null || OwnRenderer == DigitalCatalog.Profile) && target > _frameIndex + 1)
         {
             // The shared core needs every frame. Jumping ahead makes its history
             // request rewind the same decoder, even during ordinary playback.
             target = _frameIndex + 1;
-            _playStartFrame = target;
-            _playClock.Restart();
+            if (_previewAudio == null)
+            {
+                _playStartFrame = target;
+                _playClock.Restart();
+            }
         }
         SetFrame(target);
+        if (target == 0) HoldPlaybackClock();
         InvalidateRender(discardPrepared: target == 0);
         await Render();
     }
@@ -55,6 +98,7 @@ public partial class MainWindow
         _playing = false;
         CompositionTarget.Rendering -= PlaybackRendering;
         _playClock.Stop();
+        StopPreviewAudio();
         PlayButton.Content = Localization.T("Abspielen");
         // Only a completed rendering of the selected position may be exported.
         ExportButton.IsEnabled = _output != null && !_busy && !_debounce.IsEnabled && _outputInputValid;
@@ -120,10 +164,12 @@ public partial class MainWindow
 
     private void RefreshTimeline()
     {
+        RefreshEffectAvailability();
         UpdateScreenLoopControls();
         var info = TimelineInfo;
         VideoTransport.Visibility = info == null ? Visibility.Collapsed : Visibility.Visible;
         Mp4LoopOptions.Visibility = _video == null ? Visibility.Collapsed : Visibility.Visible;
+        PreviewAudioChoice.IsEnabled = _video?.Info.HasAudio == true;
         if (info != null)
         {
             _updatingTransport = true;
@@ -166,8 +212,15 @@ public partial class MainWindow
         SetAudition(false);
         _prepareTimer.Stop();
         _playing = true;
-        if (_frameIndex == info.FrameCount - 1) { SetFrame(0); InvalidateRender(); _ = Render(); }
-        _playStartFrame = _frameIndex; _playClock.Restart();
+        if (_frameIndex == info.FrameCount - 1)
+        {
+            SetFrame(0);
+            HoldPlaybackClock();
+            InvalidateRender();
+            _ = Render();
+        }
+        else if (!_busy && !_debounce.IsEnabled && _completedPreviewVersion == _version) StartPlaybackClock();
+        else HoldPlaybackClock();
         ExportButton.IsEnabled = false;
         PlayButton.Content = Localization.T("Pause");
         CompositionTarget.Rendering += PlaybackRendering;

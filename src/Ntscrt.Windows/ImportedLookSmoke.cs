@@ -65,6 +65,9 @@ internal static class ImportedLookSmoke
         check(videoMatches && videoResult.Frames == frames.Count, "An original animated VCR look matches between preview and video export");
 
         var animation = NtscrtImportedLook.Parse(Minimal)!;
+        var version4 = NtscrtImportedLook.Parse(Minimal.Replace("\"version\":2", "\"version\":4"))!;
+        check(version4 is { KeyframeCount: 2, Fps: 12, Seconds: 0.5 } && version4.Json.Contains("\"version\":4"),
+            "NTSCRT look version 4 is accepted with its original animation and revision");
         var stillLook = settings with { ImportedLook = animation };
         var timeline = ScreenLoopCatalog.StillTimeline(still, animation.Seconds, animation.Fps);
         var stillFrames = new List<byte[]>();

@@ -29,17 +29,28 @@ public partial class MainWindow
     private void UpdatePreviewNavigationLayout()
     {
         if (!_ready || DisplayedPreviewFrame is not { } frame) return;
+        if (SideBySideActive)
+        {
+            UpdateSideBySideLayout();
+            UpdateScreenLoopPad();
+            return;
+        }
         var size = PreviewSize;
         var grid = CurrentPreviewGrid(frame);
         var view = ComparisonLayout.ImageBounds(size, frame.Width, frame.Height, PreviewZoomChoice.Value, _previewPan, grid);
         _previewPan = new(view.Left + (view.Width - size.Width) / 2, view.Top + (view.Height - size.Height) / 2);
-        Canvas.SetLeft(Preview, view.Left);
-        Canvas.SetTop(Preview, view.Top);
-        Preview.Width = view.Width;
-        Preview.Height = view.Height;
-        SetPreviewSampling(Preview, view, grid);
+        PositionPreviewImage(Preview, view, grid);
         UpdateComparisonLayout();
         UpdateScreenLoopPad();
+    }
+
+    private static void PositionPreviewImage(Image image, Rect view, PreviewGrid? grid)
+    {
+        Canvas.SetLeft(image, view.Left);
+        Canvas.SetTop(image, view.Top);
+        image.Width = view.Width;
+        image.Height = view.Height;
+        SetPreviewSampling(image, view, grid);
     }
 
     private static void SetPreviewSampling(Image image, Rect view, PreviewGrid? grid)
@@ -61,7 +72,9 @@ public partial class MainWindow
     private void PreviewZoomChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         if (!_ready) return;
-        if (DisplayedPreviewFrame is { } frame)
+        if (SideBySideActive && e.OldValue > 0)
+            _previewPan *= e.NewValue / e.OldValue;
+        else if (DisplayedPreviewFrame is { } frame)
         {
             var size = PreviewSize;
             var grid = CurrentPreviewGrid(frame);

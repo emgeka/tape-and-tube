@@ -1,10 +1,10 @@
-# Release review — 0.1.0-beta.4 test candidate
+# Release review — 0.1.0-beta.5 test candidate
 
 Local Windows installer for testing. Candidate installation and public release approval are pending.
 
 ## Scope and validation
 
-The development builds verified Basic and Expert mode persistence, the new export formats, the bundled preset folders and an offline Windows effects-engine build with the pinned NTSCRT sources. The candidate package has its own checksums and validation results. The shared effects engine requires compute-shader support.
+The development builds verified preview audio and playback during effect changes, side-by-side video export, and the pinned NTSCRT 0.29.2 effects engine. The candidate package has its own checksums and validation results. The shared effects engine requires compute-shader support.
 
 Windows setup remains per-user. Existing FFmpeg installations are referenced in place. Microsoft runtimes and optional FFmpeg are supplied by their respective providers. The application is unsigned.
 

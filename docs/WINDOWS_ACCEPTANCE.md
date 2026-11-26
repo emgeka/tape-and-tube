@@ -66,3 +66,17 @@ Im aktuellen Testbuild sind 118 Sprachprüfungen, 43 Ausgabeprüfungen und 193 I
 - **Für einen späteren Ausbau vormerken:** ein eigener MCP-Vorschauaufruf, Look-Liste und Speichern von Looks über CLI und MCP. PNG-Vorschau, Preset-Dateien und der Effektkatalog decken den grundlegenden Workflow bereits ab. Importierte NTSCRT-Looks folgen weiterhin dem vereinbarten schreibgeschützten Ablauf.
 
 Der Funktionsabgleich bezieht sich auf die Windows-Referenz NTSCRT 0.28.1. ProRes und der separate Viewport-Export aus der allgemeinen NTSCRT-Dokumentation gehören in dieser Referenz nicht zum Windows-Speicherdialog. [Windows-Abgleich](NTSCRT_COMPARISON.md#verbleibende-windows-lücken-am-23112026)
+
+## Beta.4-Kandidat vom 24.11.2026
+
+Installer und passendes Quellpaket liegen unter `artifacts/releases/20261124-145413-788`. Alle drei lokalen SHA-256-Prüfsummen stimmen. Das portable Paket bestand 268 Prüfungen in einem getrennten Verzeichnis mit FFmpeg 9.0.2. Die Prüfung erfasst unter anderem die Exportformate, die 49 Original-Presets sowie die mitgeführten NTSCRT-Dateien im Quellpaket.
+
+Der Installationstest auf dem Entwicklungsrechner bestand mit vorhandenem FFmpeg 9.0.2. 1.032 installierte Dateien und das beigefügte Quellpaket stimmen mit den Kandidatendateien überein. Erneute Installation und Deinstallation ließen eigene Dateien bestehen. Die gespeicherte FFmpeg-Auswahl wurde übernommen und ein absichtlich fehlendes ausgewähltes Werkzeug wurde gemeldet. Die installierte App bestand 16 Effekt-, 17 Video- und 45 Exportprüfungen. Nach dem Test waren Programmdatei und Deinstallationseintrag entfernt. Der Test umfasste die Installation mit vorhandenen Laufzeitkomponenten und ohne FFmpeg-Download.
+
+Ein zweiter Test mit demselben Installer bestätigte den optionalen Download von FFmpeg 9.0.2 und dessen SHA-256-Prüfung. Installation, erneute Installation, Video-/Exportprüfungen und Deinstallation waren erfolgreich. Beide Tests liefen mit vorhandenen Microsoft-Laufzeitkomponenten. Die Ergebnisse stehen in `installer-validation-existing.json` und `installer-validation-download.json` im Kandidatenordner. Die für GitHub vorgesehenen Dateien sind lokal unter `artifacts/github/v0.1.0-beta.4` zusammengestellt.
+
+## Lokale Paketabnahme vom 26.11.2026
+
+Der Entwicklungsstand mit Vergleichsexport, Vorschauton und korrigiertem Effektwechsel wurde unter `artifacts/releases/20261126-093903-237` als lokaler Entwurf gepackt. Der Entwurf trägt die bestehende Versionskennung 0.1.0-beta.4. Alle drei SHA-256-Prüfsummen stimmen. Das portable Paket bestand in einem separaten Verzeichnis 302 Prüfungen mit FFmpeg 9.0.2, darunter 79 Exportprüfungen und 121 Sprachprüfungen. Eine vorhandene Windows-Installation wurde für die Prüfung nicht angetastet. Der Installationslauf auf einem frischen System steht für diesen Entwurf aus.
+
+Ein separater Größenvergleich mit gleichem Setup-Rezept ergab 66.711.594 Byte mit gebündelter Laufzeit und 22.064.385 Byte mit externer .NET-Laufzeit. Die App der Messfassung bestand 16 Effektprüfungen mit der bereits installierten x64-Desktoplaufzeit 10.0.15. Die .NET-Prüfseite des schlanken Installers und die Nachinstallation einer fehlenden Laufzeit stehen aus. Die Messdatei ist für den Größenvergleich vorgesehen.

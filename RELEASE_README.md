@@ -2,7 +2,7 @@
 
 **Windows adaptation of [NTSCRT](https://github.com/finnmckenty/NTSCRT) by Finn McKenty.** The original macOS project is the starting point for the concept, signal chain and workflow; this Windows implementation covers its core NTSC/VHS and CRT stages with newly written application/host code.
 
-**Version 0.1.0-beta.4 — unsigned Windows beta.**
+**Version 0.1.0-beta.5 — unsigned Windows beta.**
 
 ![Tape & Tube with a synthetic original/output video comparison](docs/screenshot.jpg)
 
@@ -22,11 +22,13 @@ Choose **Basic** for the Looks library or **Expert** for individual effects and 
 
 Video preview and MP4, MOV, WebM or animated GIF export require **FFmpeg** and **ffprobe**. Use an existing installation on PATH or place `ffmpeg.exe` and `ffprobe.exe` in `runtime/media/`. `TAPETUBE_FFMPEG` and `TAPETUBE_FFPROBE` can also point to these executables.
 
-Still-image processing works without FFmpeg. WebP export requires `libwebp`. Video preview is silent. MP4, MOV and WebM exports include the first audio track from the original video when present.
+Still-image processing works without FFmpeg. WebP export requires `libwebp`. Enable **Preview audio** in the player to hear the source during playback. MP4, MOV and WebM exports include the first audio track from the original video when present.
 
 ## Output size
 
 Use **Ausgabe** next to the save buttons to open the output settings. Choose automatic, 720p, 1080p, 4K or custom dimensions. **Einpassen** preserves the whole image with black borders. **Ausfüllen** fills the output with a centered crop. MP4 can pad odd dimensions by one pixel. Animated GIF has separate width and frame rate settings.
+
+Choose the side-by-side mode under **Compare** to view the full source beside the processed result. Enable **Export comparison video** in the output settings to save that layout. The chosen dimensions apply to the whole comparison.
 
 ## Limits
 

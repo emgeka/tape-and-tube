@@ -28,7 +28,7 @@ internal static class Program
             using var metadata = JsonDocument.Parse(api.Take(api.Metadata()));
             using var defaults = JsonDocument.Parse(api.Take(api.Defaults()));
             Require(metadata.RootElement.GetProperty("hostApi").GetUInt32() == 1, "metadata API");
-            Require(metadata.RootElement.GetProperty("upstreamRevision").GetString() == "0ab60bf952b09a0c41ea4290979f23dadd963614", "pinned upstream revision");
+            Require(metadata.RootElement.GetProperty("upstreamRevision").GetString() == "889256dde173a89e475919be3d1bba34e6cc7355", "pinned upstream revision");
             Require(metadata.RootElement.GetProperty("parameters").GetArrayLength() == 32, "32 upstream parameter descriptors");
             var values = defaults.RootElement.EnumerateObject().ToDictionary(p => p.Name, p => p.Value.GetDouble());
             Require(values.Count == 32, "32 default settings");

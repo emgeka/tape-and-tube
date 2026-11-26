@@ -7,7 +7,7 @@ namespace Ntscrt.Windows;
 internal sealed record DigitalLook(string Id, string Name, int Width, Dictionary<string,double> Values);
 internal static class DigitalCatalog
 {
-    public const string Revision = "0ab60bf952b09a0c41ea4290979f23dadd963614";
+    public const string Revision = "889256dde173a89e475919be3d1bba34e6cc7355";
     public const string Profile = "ntscrt-wgpu-v2";
     private static readonly JsonObject Data = Load();
     private static JsonObject Load()

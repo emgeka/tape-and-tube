@@ -36,7 +36,7 @@ public partial class MainWindow
     private void UpdateScreenLoopPad()
     {
         if (!_ready) return;
-        if (!InScreenLoop || _output == null || ShowOriginal.IsChecked == true || SplitComparison.IsChecked == true)
+        if (!InScreenLoop || _output == null || ShowOriginal.IsChecked == true || SplitComparison.IsChecked == true || SideBySideActive)
         {
             ScreenLoopPadLayer.Visibility = Visibility.Collapsed;
             _screenLoopDrag = null;
@@ -99,7 +99,7 @@ public partial class MainWindow
             ("drift_x", Math.Clamp(drift.X, -1, 1)), ("drift_y", Math.Clamp(drift.Y, -1, 1))
         };
         if (values.All(pair => _screenLoopValues[pair.Key] == pair.Value)) return;
-        PauseVideo();
+        if (_video == null) PauseVideo();
         _updatingScreenLoop = true;
         try
         {

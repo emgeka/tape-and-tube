@@ -156,14 +156,15 @@ internal static class Program
         var ntsc = NtscProcessor.Defaults();
         foreach (var (key, value) in preset.Ntsc) ntsc[key] = value?.DeepClone();
         var track = preset.Timeline;
-        return new(new(preset.NtscEnabled, preset.CrtEnabled, ntsc.ToJsonString(), shaders[preset.Shader],
+        var animated = track?.Enabled == true && preset.Display == HistoricalDisplay.None && !preset.Film;
+        return new(new(preset.NtscEnabled, preset.CrtEnabled && preset.Display == HistoricalDisplay.None, ntsc.ToJsonString(), shaders[preset.Shader],
             preset.Width, preset.Scale, 0, preset.Parameters, preset.Output,
-            track?.Enabled == true || preset.DownscaleMethod != null || preset.DownscaleEnabled.HasValue
+            animated || preset.DownscaleMethod != null || preset.DownscaleEnabled.HasValue
                 ? DigitalCatalog.Profile : preset.Renderer, preset.Digital, preset.Analog,
-            EffectTimeline: track is { Enabled: true, Keys.Length: > 0 } ? track.WorkerTimeline(preset.Shader) : null,
-            Crop: preset.Crop, DownscaleMethod: preset.DownscaleMethod, DownscaleEnabled: preset.DownscaleEnabled),
-            track is { Enabled: true } ? track.Seconds : 5, track is { Enabled: true } ? track.Fps : 30,
-            track?.Enabled == true);
+            EffectTimeline: animated && track is { Keys.Length: > 0 } ? track.WorkerTimeline(preset.Shader) : null,
+            Crop: preset.Crop, DownscaleMethod: preset.DownscaleMethod, DownscaleEnabled: preset.DownscaleEnabled,
+            Display: preset.Display, Film: preset.Film),
+            animated ? track!.Seconds : 5, animated ? track!.Fps : 30, animated);
     }
 
     internal static async Task<object> RenderAsync(Dictionary<string, string> options, CancellationToken token)
